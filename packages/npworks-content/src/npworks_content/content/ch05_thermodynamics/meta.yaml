@@ -1,0 +1,9 @@
+title: "第5章 热力学与统计物理"
+description: "热力学与统计物理模拟"
+sections:
+  - file: "01_random_walk.py"
+    title: "5.1 随机行走"
+  - file: "02_molecular_dynamics.py"
+    title: "5.2 分子动力学"
+  - file: "03_heat_equation.py"
+    title: "5.3 热传导方程"

@@ -1,0 +1,13 @@
+title: "第3章 经典力学"
+description: "经典力学模拟"
+sections:
+  - file: "01_projectile_motion.py"
+    title: "3.1 抛体运动"
+  - file: "02_planet_orbit.py"
+    title: "3.2 行星轨道"
+  - file: "03_harmonic_oscillator.py"
+    title: "3.3 谐振子"
+  - file: "04_damped_oscillator.py"
+    title: "3.4 阻尼振动"
+  - file: "05_double_pendulum.py"
+    title: "3.5 双摆"

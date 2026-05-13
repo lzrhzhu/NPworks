@@ -1,0 +1,13 @@
+title: "第1章 Python 基础"
+description: "Python 编程语言基础入门"
+sections:
+  - file: "01_hello.py"
+    title: "1.1 Hello World"
+  - file: "02_variables.py"
+    title: "1.2 变量与数据类型"
+  - file: "03_control_flow.py"
+    title: "1.3 控制流"
+  - file: "04_functions.py"
+    title: "1.4 函数"
+  - file: "05_file_io.py"
+    title: "1.5 文件读写"

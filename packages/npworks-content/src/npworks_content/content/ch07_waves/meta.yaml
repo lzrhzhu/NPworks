@@ -1,0 +1,9 @@
+title: "第7章 波动与光学"
+description: "波动与光学模拟"
+sections:
+  - file: "01_wave_equation.py"
+    title: "7.1 波动方程"
+  - file: "02_interference.py"
+    title: "7.2 干涉"
+  - file: "03_diffraction.py"
+    title: "7.3 衍射"

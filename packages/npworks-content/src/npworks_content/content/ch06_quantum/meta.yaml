@@ -1,0 +1,9 @@
+title: "第6章 量子力学"
+description: "量子力学数值模拟"
+sections:
+  - file: "01_wave_function.py"
+    title: "6.1 波函数"
+  - file: "02_schrodinger.py"
+    title: "6.2 薛定谔方程"
+  - file: "03_tunneling.py"
+    title: "6.3 量子隧穿"

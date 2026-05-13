@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npworks-ide"
+version = "0.0.2"
+description = "NPworks — 计算物理交互式教材 IDE 界面"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+readme = "README.md"
+authors = [
+    {name = "ruihua zhu", email = "ruihuazhu@126.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "PyQt5>=5.15",
+    "QScintilla>=2.13",
+    "pygments>=2.0",
+    "numpy>=1.20",
+    "scipy>=1.7",
+    "matplotlib>=3.4",
+    "qtconsole>=5.0",
+    "pywinpty>=2.0",
+    "pyte>=0.8",
+    "markdown>=3.4",
+    "npworks-content>=0.0.1",
+]
+
+[project.scripts]
+npworks-ide = "npworks_ide.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]

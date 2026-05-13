@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npworks"
+version = "0.0.1"
+description = "NPworks — Numerical Physics Works, 计算物理交互式教材"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+readme = "README.md"
+authors = [
+    {name = "ruihua zhu", email = "ruihuazhu@126.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "npworks-ide>=0.0.1",
+    "npworks-content>=0.0.1",
+]
+
+[project.scripts]
+npworks = "npworks_ide.app:main"
