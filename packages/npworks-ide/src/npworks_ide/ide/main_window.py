@@ -21,7 +21,8 @@ from npworks_ide.ide.tab_manager import TabManager
 from npworks_ide.ide.actions import ActionManager
 from npworks_ide.ide.theme import apply_theme
 from npworks_ide.ide.preview_image import is_image_file, ImagePreview
-from npworks_ide.ide.preview_markdown import is_markdown_file, MarkdownPreview
+from npworks_ide.ide.preview_markdown import is_markdown_file, MarkdownSplitView
+from npworks_ide.ide.preview_pdf import is_pdf_file, PdfPreview
 from npworks_ide.runner.executor import Executor, _RC_LINE_COUNT
 
 import npworks_content
@@ -167,9 +168,13 @@ class MainWindow(QMainWindow):
         recent_menu = file_menu.addMenu("最近文件(&R)")
         self._actions.set_recent_menu(recent_menu)
         file_menu.addSeparator()
+        self._add_action(file_menu, "关闭标签(&C)", self._close_tab,
+                         QKeySequence(Qt.ControlModifier | Qt.Key_W))
         self._add_action(file_menu, "关闭文件夹(&W)", self._close_current_folder)
         file_menu.addSeparator()
         self._add_action(file_menu, "保存(&S)", self._save_code, QKeySequence.Save)
+        self._add_action(file_menu, "全部保存(&L)", self._save_all,
+                         QKeySequence(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_S))
         self._add_action(file_menu, "另存为(&A)...", self._save_as, QKeySequence.SaveAs)
         file_menu.addSeparator()
         self._add_action(file_menu, "退出(&Q)", self.close, QKeySequence.Quit)
@@ -189,6 +194,8 @@ class MainWindow(QMainWindow):
         edit_menu.addSeparator()
         self._add_action(edit_menu, "查找(&F)...", self._show_find, QKeySequence.Find)
         self._add_action(edit_menu, "查找替换(&H)...", self._show_replace, QKeySequence.Replace)
+        self._add_action(edit_menu, "跳转到行(&G)...", self._go_to_line,
+                         QKeySequence(Qt.ControlModifier | Qt.Key_G))
 
         run_menu = mb.addMenu("运行(&R)")
         self._add_action(run_menu, "运行(&R)", self._run_code, QKeySequence(Qt.Key_F5))
@@ -277,6 +284,8 @@ class MainWindow(QMainWindow):
         self.activity_bar.button_clicked.connect(self._on_activity_clicked)
         self.file_tree.file_selected.connect(self._on_file_selected)
         self.file_tree.open_folder_requested.connect(self._actions.open_folder)
+        self.file_tree.file_renamed.connect(self._on_file_renamed)
+        self.file_tree.file_deleted.connect(self._on_file_deleted)
         self.executor.stdout_ready.connect(self.output_panel.append_stdout)
         self.executor.stderr_ready.connect(self.output_panel.append_stderr)
         self.executor.execution_started.connect(self._on_execution_started)
@@ -312,7 +321,12 @@ class MainWindow(QMainWindow):
         self._bottom_panel.setVisible(not vis)
 
     def _current_editor(self) -> CodeEditor:
-        return self._tabs.current_editor()
+        widget = self._tab_widget.currentWidget()
+        if isinstance(widget, MarkdownSplitView):
+            return widget.get_editor()
+        if isinstance(widget, CodeEditor):
+            return widget
+        return None
 
     def _init_file_tree(self):
         self.file_tree.init_textbook()
@@ -326,16 +340,21 @@ class MainWindow(QMainWindow):
             self.file_tree.expand_first_root()
 
     def _on_tab_changed(self, index):
-        editor = self._current_editor()
-        if isinstance(editor, CodeEditor):
-            self._update_status_pos()
+        widget = self._tab_widget.currentWidget()
+        if isinstance(widget, MarkdownSplitView):
+            editor = widget.get_editor()
             editor.setFocus()
-            if editor.file_path:
-                self.file_tree.select_file(editor.file_path)
+            if widget.file_path:
+                self.file_tree.select_file(widget.file_path)
+        elif isinstance(widget, CodeEditor):
+            self._update_status_pos()
+            widget.setFocus()
+            if widget.file_path:
+                self.file_tree.select_file(widget.file_path)
             else:
                 self.file_tree.clear_tree_selection()
-        elif editor:
-            editor.setFocus()
+        elif widget:
+            widget.setFocus()
 
     def _on_file_selected(self, file_path: str):
         self._open_file_by_path(file_path)
@@ -358,12 +377,13 @@ class MainWindow(QMainWindow):
         editor = self._tabs.new_file()
         editor.cursorPositionChanged.connect(self._update_status_pos)
         editor.file_dropped.connect(self._open_file_by_path)
+        editor.modificationChanged.connect(lambda m, e=editor: self._on_modification_changed(e, m))
 
     def _open_file(self):
         default_dir = os.path.expanduser("~/npworks")
         os.makedirs(default_dir, exist_ok=True)
         paths, _ = QFileDialog.getOpenFileNames(
-            self, "打开文件", default_dir, "Python 文件 (*.py);;Markdown (*.md);;图片 (*.png *.jpg *.bmp *.gif);;所有文件 (*)"
+            self, "打开文件", default_dir, "Python 文件 (*.py);;Markdown (*.md);;PDF (*.pdf);;图片 (*.png *.jpg *.bmp *.gif);;所有文件 (*)"
         )
         for path in paths:
             self._open_file_by_path(path)
@@ -401,10 +421,20 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "打开失败", str(e))
             return
 
+        if is_pdf_file(path):
+            try:
+                preview = PdfPreview(path, self)
+                idx = self._tab_widget.addTab(preview, f"\U0001F4D1 {title}")
+                self._tab_widget.setCurrentIndex(idx)
+                self._actions._add_recent_file(path)
+            except Exception as e:
+                QMessageBox.warning(self, "打开失败", str(e))
+            return
+
         if is_markdown_file(path):
             try:
-                preview = MarkdownPreview(path, self)
-                idx = self._tab_widget.addTab(preview, f"\U0001F4C4 {title}")
+                split_view = MarkdownSplitView(path, self)
+                idx = self._tab_widget.addTab(split_view, f"\U0001F4C4 {title}")
                 self._tab_widget.setCurrentIndex(idx)
                 self._actions._add_recent_file(path)
             except Exception as e:
@@ -422,6 +452,7 @@ class MainWindow(QMainWindow):
             editor = self._tabs.add_editor_tab(tab_title, code, code, file_path=path)
             editor.cursorPositionChanged.connect(self._update_status_pos)
             editor.file_dropped.connect(self._open_file_by_path)
+            editor.modificationChanged.connect(lambda m, e=editor: self._on_modification_changed(e, m))
             self._actions._add_recent_file(path)
         except Exception as e:
             QMessageBox.warning(self, "打开失败", str(e))
@@ -460,6 +491,9 @@ class MainWindow(QMainWindow):
         if text:
             self._bottom_panel.show()
             self._bottom_panel.show_terminal_tab()
+            self._bottom_panel._ensure_terminal()
+            if self.terminal:
+                self.terminal.execute_command(text)
 
     def _run_line_in_shell(self):
         editor = self._current_editor()
@@ -470,6 +504,9 @@ class MainWindow(QMainWindow):
         if text:
             self._bottom_panel.show()
             self._bottom_panel.show_shell_tab()
+            self._bottom_panel._ensure_shell()
+            if self.shell_terminal:
+                self.shell_terminal.execute_command(text)
 
     def _new_terminal(self):
         self._bottom_panel.show()
@@ -536,13 +573,14 @@ class MainWindow(QMainWindow):
         if not text:
             return
         cs = self.find_replace.is_case_sensitive()
+        ww = self.find_replace.is_whole_word()
         line, col = editor.getCursorPosition()
         col += 1
-        found = editor.findFirst(text, False, cs, False, True, line, col)
+        found = editor.findFirst(text, False, cs, ww, True, line, col)
         if found:
             self.find_replace.set_match_count(1, 1)
         else:
-            found = editor.findFirst(text, False, cs, False, True, 0, 0)
+            found = editor.findFirst(text, False, cs, ww, True, 0, 0)
             if found:
                 self.find_replace.set_match_count(1, 1)
             else:
@@ -556,12 +594,13 @@ class MainWindow(QMainWindow):
         if not text:
             return
         cs = self.find_replace.is_case_sensitive()
+        ww = self.find_replace.is_whole_word()
         line, col = editor.getCursorPosition()
-        found = editor.findFirst(text, False, cs, False, False, line, col)
+        found = editor.findFirst(text, False, cs, ww, False, line, col)
         if not found:
             last_line = editor.lines() - 1
             line_len = len(editor.text(last_line))
-            editor.findFirst(text, False, cs, False, False, last_line, line_len)
+            editor.findFirst(text, False, cs, ww, False, last_line, line_len)
 
     def _replace_one(self):
         editor = self._current_editor()
@@ -584,10 +623,11 @@ class MainWindow(QMainWindow):
         if not find_text:
             return
         cs = self.find_replace.is_case_sensitive()
+        ww = self.find_replace.is_whole_word()
         editor.beginUndoAction()
         editor.setCursorPosition(0, 0)
         count = 0
-        found = editor.findFirst(find_text, False, cs, False, True, 0, 0)
+        found = editor.findFirst(find_text, False, cs, ww, True, 0, 0)
         while found:
             editor.replaceSelectedText(replace_text)
             count += 1
@@ -598,6 +638,14 @@ class MainWindow(QMainWindow):
     def _clear_find_highlight(self):
         pass
 
+    def _close_tab(self):
+        idx = self._tab_widget.currentIndex()
+        if idx >= 0:
+            self._tabs.close_tab(idx)
+
+    def _go_to_line(self):
+        self._tabs.go_to_line()
+
     def _toggle_comment(self):
         editor = self._current_editor()
         if editor:
@@ -607,9 +655,11 @@ class MainWindow(QMainWindow):
         from PyQt5.QtWidgets import QApplication
         apply_theme(QApplication.instance(), name)
         for i in range(self._tab_widget.count()):
-            editor = self._tab_widget.widget(i)
-            if isinstance(editor, CodeEditor):
-                editor.apply_theme()
+            widget = self._tab_widget.widget(i)
+            if isinstance(widget, MarkdownSplitView):
+                widget.get_editor().apply_theme()
+            elif isinstance(widget, CodeEditor):
+                widget.apply_theme()
         if self.terminal:
             self.terminal.set_theme(name)
         if self.shell_terminal:
@@ -668,6 +718,48 @@ class MainWindow(QMainWindow):
         editor.setCursorPosition(target, 0)
         editor.ensureLineVisible(target)
         editor.setFocus()
+
+    def _save_all(self):
+        self._actions.save_all()
+
+    def _on_modification_changed(self, editor, modified):
+        for i in range(self._tab_widget.count()):
+            widget = self._tab_widget.widget(i)
+            editor_match = (widget is editor) or (
+                isinstance(widget, MarkdownSplitView) and widget.get_editor() is editor)
+            if editor_match:
+                base = editor.tab_title
+                self._tab_widget.setTabText(i, f"{'*' if modified else ''}{base}")
+                return
+
+    def _on_file_renamed(self, old_path, new_path):
+        norm_old = os.path.normpath(old_path)
+        norm_new = os.path.normpath(new_path)
+        for i in range(self._tab_widget.count()):
+            widget = self._tab_widget.widget(i)
+            fp = getattr(widget, "file_path", None)
+            if fp and os.path.normpath(fp) == norm_old:
+                widget.file_path = norm_new
+                title = os.path.basename(norm_new)
+                if hasattr(widget, "tab_title"):
+                    widget.tab_title = title
+                self._tab_widget.setTabText(i, title)
+
+    def _on_file_deleted(self, path):
+        norm = os.path.normpath(path)
+        tabs_to_close = []
+        for i in range(self._tab_widget.count()):
+            widget = self._tab_widget.widget(i)
+            fp = getattr(widget, "file_path", None)
+            if not fp:
+                continue
+            norm_fp = os.path.normpath(fp)
+            if norm_fp == norm or norm_fp.startswith(norm + os.sep):
+                tabs_to_close.append(i)
+        for i in reversed(tabs_to_close):
+            widget = self._tab_widget.widget(i)
+            self._tab_widget.removeTab(i)
+            widget.deleteLater()
 
     def _restore_geometry(self):
         size = self._settings.value("window_size")

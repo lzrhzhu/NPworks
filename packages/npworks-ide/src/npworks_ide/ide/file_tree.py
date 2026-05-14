@@ -1,11 +1,13 @@
 import os
+import shutil
 from pathlib import Path
 
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QFileSystemWatcher
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QWidget, QVBoxLayout,
     QHBoxLayout, QPushButton, QLabel, QFileDialog, QMenu, QAction,
+    QMessageBox, QInputDialog, QApplication,
 )
 
 try:
@@ -65,9 +67,75 @@ class _FileItem(QTreeWidgetItem):
         self.setData(0, _ROLE_LOADED, True)
 
 
+class _DragTreeWidget(QTreeWidget):
+    file_moved = pyqtSignal(str, str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDragDropMode(QTreeWidget.DragDrop)
+        self.setDefaultDropAction(Qt.MoveAction)
+        self._drag_path = None
+
+    def startDrag(self, supportedActions):
+        item = self.currentItem()
+        if item:
+            path = item.data(0, _ROLE_PATH)
+            is_root = item.data(0, _ROLE_IS_ROOT)
+            if path and not is_root:
+                self._drag_path = path
+        super().startDrag(supportedActions)
+
+    def dropEvent(self, event):
+        if not self._drag_path:
+            event.ignore()
+            return
+
+        pos = event.pos()
+        target_item = self.itemAt(pos)
+        if not target_item:
+            self._drag_path = None
+            event.ignore()
+            return
+
+        target_path = target_item.data(0, _ROLE_PATH) or ""
+        if os.path.isfile(target_path):
+            target_path = os.path.dirname(target_path)
+
+        if not target_path or not os.path.isdir(target_path):
+            self._drag_path = None
+            event.ignore()
+            return
+
+        source_name = os.path.basename(self._drag_path)
+        new_path = os.path.join(target_path, source_name)
+
+        norm_source = os.path.normpath(self._drag_path)
+        norm_new = os.path.normpath(new_path)
+
+        if (norm_new == norm_source
+                or os.path.exists(norm_new)
+                or norm_new.startswith(norm_source + os.sep)):
+            self._drag_path = None
+            event.ignore()
+            return
+
+        try:
+            shutil.move(self._drag_path, new_path)
+            self.file_moved.emit(self._drag_path, new_path)
+        except Exception:
+            pass
+
+        self._drag_path = None
+        event.ignore()
+
+
 class FileTree(QWidget):
     file_selected = pyqtSignal(str)
     open_folder_requested = pyqtSignal()
+    file_renamed = pyqtSignal(str, str)
+    file_deleted = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -75,12 +143,18 @@ class FileTree(QWidget):
         self._textbook_dir = None
         self._textbook_meta = {}
         self._watched_dirs = set()
+        self._show_hidden = False
+        self._clipboard_path = None
+        self._clipboard_is_cut = False
+
+        self._fs_watcher = QFileSystemWatcher(self)
+        self._fs_watcher.directoryChanged.connect(self._on_fs_dir_changed)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        self._tree = QTreeWidget(self)
+        self._tree = _DragTreeWidget(self)
         self._tree.setHeaderHidden(True)
         self._tree.setIndentation(14)
         self._tree.setAnimated(True)
@@ -91,6 +165,7 @@ class FileTree(QWidget):
         self._tree.itemExpanded.connect(self._on_item_expanded)
         self._tree.itemCollapsed.connect(self._on_item_collapsed)
         self._tree.itemClicked.connect(self._on_item_clicked)
+        self._tree.file_moved.connect(self._on_file_moved)
 
         header = self._tree.header()
         header.setMinimumSectionSize(200)
@@ -116,7 +191,22 @@ class FileTree(QWidget):
         self._btn_collapse.clicked.connect(self._collapse_all)
         tb_layout.addWidget(self._btn_collapse)
 
+        self._btn_refresh = QPushButton("刷新")
+        self._btn_refresh.setObjectName("file_tree_btn")
+        self._btn_refresh.setCursor(Qt.PointingHandCursor)
+        self._btn_refresh.clicked.connect(self.refresh_current)
+        tb_layout.addWidget(self._btn_refresh)
+
         tb_layout.addStretch()
+
+        self._btn_hidden = QPushButton(".*")
+        self._btn_hidden.setObjectName("file_tree_btn")
+        self._btn_hidden.setCursor(Qt.PointingHandCursor)
+        self._btn_hidden.setFixedWidth(32)
+        self._btn_hidden.setToolTip("显示/隐藏 dotfiles")
+        self._btn_hidden.clicked.connect(self._toggle_hidden)
+        tb_layout.addWidget(self._btn_hidden)
+
         layout.addWidget(toolbar)
 
     def init_textbook(self):
@@ -183,6 +273,7 @@ class FileTree(QWidget):
             label = os.path.basename(path)
         item = _RootItem(self._tree, path, label, is_textbook)
         self._roots.append(path)
+        self._watch_directory(path)
         return item
 
     def close_root(self, path: str):
@@ -192,6 +283,7 @@ class FileTree(QWidget):
             if os.path.normpath(item.data(0, _ROLE_PATH) or "") == path:
                 self._tree.takeTopLevelItem(i)
                 self._roots.remove(path)
+                self._unwatch_directory(path)
                 return
 
     def close_selected_root(self):
@@ -225,6 +317,10 @@ class FileTree(QWidget):
         while item.parent() is not None:
             item = item.parent()
         return item
+
+    def _is_textbook_child(self, item: QTreeWidgetItem) -> bool:
+        root = self._find_root(item)
+        return bool(root and root.data(0, _ROLE_IS_TEXTBOOK))
 
     def _is_dir_item(self, item: QTreeWidgetItem) -> bool:
         return bool(item.data(0, _ROLE_IS_DIR))
@@ -264,7 +360,7 @@ class FileTree(QWidget):
             return
 
         for entry in entries:
-            if entry.startswith(".") and entry not in (".", ".."):
+            if not self._show_hidden and entry.startswith(".") and entry not in (".", ".."):
                 continue
             full = os.path.join(path, entry)
             is_dir = os.path.isdir(full)
@@ -276,6 +372,7 @@ class FileTree(QWidget):
                 else:
                     name = entry
                 child = _DirItem(item, full, f"\u25B8 {name}")
+                self._watch_directory(full)
             else:
                 if parent_is_textbook_root or parent_is_textbook_ch:
                     sec_title = self._textbook_section_title(full)
@@ -298,12 +395,65 @@ class FileTree(QWidget):
         if text.startswith("\u25BE"):
             item.setText(0, "\u25B8" + text[1:])
 
+    def _watch_directory(self, path: str):
+        path = os.path.normpath(path)
+        if path not in self._watched_dirs and os.path.isdir(path):
+            self._watched_dirs.add(path)
+            self._fs_watcher.addPath(path)
+
+    def _unwatch_directory(self, path: str):
+        path = os.path.normpath(path)
+        if path in self._watched_dirs:
+            self._watched_dirs.discard(path)
+            self._fs_watcher.removePath(path)
+
+    def _on_fs_dir_changed(self, dir_path: str):
+        dir_path = os.path.normpath(dir_path)
+        self._refresh_dir(dir_path)
+
     def _on_item_clicked(self, item: QTreeWidgetItem, _col: int):
         path = self._get_path(item)
         if path and os.path.isfile(path):
             self.file_selected.emit(path)
         elif self._is_dir_item(item):
             item.setExpanded(not item.isExpanded())
+
+    def _copy_path(self, path: str):
+        self._clipboard_path = path
+        self._clipboard_is_cut = False
+
+    def _cut_path(self, path: str):
+        self._clipboard_path = path
+        self._clipboard_is_cut = True
+
+    def _paste_into(self, dir_path: str):
+        if not self._clipboard_path or not os.path.exists(self._clipboard_path):
+            self._clipboard_path = None
+            return
+        src = self._clipboard_path
+        name = os.path.basename(src)
+        dst = os.path.join(dir_path, name)
+        if os.path.normpath(dst) == os.path.normpath(src):
+            return
+        if os.path.exists(dst):
+            QMessageBox.warning(self, "粘贴失败", f"'{name}' 已存在")
+            return
+        try:
+            if os.path.isdir(src):
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+            if self._clipboard_is_cut:
+                if os.path.isdir(src):
+                    shutil.rmtree(src)
+                else:
+                    os.remove(src)
+                self.file_deleted.emit(src)
+                self._clipboard_path = None
+                self._clipboard_is_cut = False
+            self._refresh_dir(dir_path)
+        except Exception as e:
+            QMessageBox.warning(self, "粘贴失败", str(e))
 
     def _on_context_menu(self, pos):
         item = self._tree.itemAt(pos)
@@ -313,6 +463,7 @@ class FileTree(QWidget):
         path = self._get_path(item)
         is_root = bool(item.data(0, _ROLE_IS_ROOT))
         is_textbook = bool(item.data(0, _ROLE_IS_TEXTBOOK))
+        is_tb_child = self._is_textbook_child(item)
 
         if path and os.path.isfile(path):
             action = menu.addAction("打开")
@@ -333,11 +484,27 @@ class FileTree(QWidget):
             action = menu.addAction("新建文件夹")
             action.triggered.connect(lambda: self._new_folder_in(path))
 
+        if not is_root and not is_tb_child and path:
+            menu.addSeparator()
+            action = menu.addAction("重命名")
+            action.triggered.connect(lambda checked, it=item: self._rename_item(it))
+            action = menu.addAction("删除")
+            action.triggered.connect(lambda checked, it=item: self._delete_item(it))
+            menu.addSeparator()
+            action = menu.addAction("复制")
+            action.triggered.connect(lambda checked, p=path: self._copy_path(p))
+            action = menu.addAction("剪切")
+            action.triggered.connect(lambda checked, p=path: self._cut_path(p))
+
+        if not is_root and os.path.isdir(path) and not is_tb_child:
+            if self._clipboard_path is not None:
+                action = menu.addAction("粘贴")
+                action.triggered.connect(lambda checked, d=path: self._paste_into(d))
+
         if menu.actions():
             menu.exec_(self._tree.viewport().mapToGlobal(pos))
 
     def _new_file_in(self, dir_path: str):
-        from PyQt5.QtWidgets import QInputDialog
         name, ok = QInputDialog.getText(self, "新建 Python 文件", "文件名:", text="new_file.py")
         if ok and name:
             full = os.path.join(dir_path, name)
@@ -347,12 +514,55 @@ class FileTree(QWidget):
                 self._refresh_dir(dir_path)
 
     def _new_folder_in(self, dir_path: str):
-        from PyQt5.QtWidgets import QInputDialog
         name, ok = QInputDialog.getText(self, "新建文件夹", "文件夹名:")
         if ok and name:
             full = os.path.join(dir_path, name)
             os.makedirs(full, exist_ok=True)
             self._refresh_dir(dir_path)
+
+    def _rename_item(self, item: QTreeWidgetItem):
+        path = self._get_path(item)
+        if not path:
+            return
+        old_name = os.path.basename(path)
+        new_name, ok = QInputDialog.getText(self, "重命名", "新名称:", text=old_name)
+        if not ok or not new_name or new_name == old_name:
+            return
+        new_path = os.path.join(os.path.dirname(path), new_name)
+        if os.path.exists(new_path):
+            QMessageBox.warning(self, "重命名失败", f"'{new_name}' 已存在")
+            return
+        try:
+            os.rename(path, new_path)
+            self.file_renamed.emit(path, new_path)
+            self._refresh_dir(os.path.dirname(path))
+        except Exception as e:
+            QMessageBox.warning(self, "重命名失败", str(e))
+
+    def _delete_item(self, item: QTreeWidgetItem):
+        path = self._get_path(item)
+        if not path:
+            return
+        name = os.path.basename(path)
+        if self._is_dir_item(item):
+            msg = f"确定要删除文件夹 '{name}' 及其所有内容吗？"
+        else:
+            msg = f"确定要删除文件 '{name}' 吗？"
+        reply = QMessageBox.question(
+            self, "确认删除", msg,
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+        try:
+            if self._is_dir_item(item):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+            self.file_deleted.emit(path)
+            self._refresh_dir(os.path.dirname(path))
+        except Exception as e:
+            QMessageBox.warning(self, "删除失败", str(e))
 
     def _refresh_dir(self, dir_path: str):
         for i in range(self._tree.topLevelItemCount()):
@@ -394,6 +604,36 @@ class FileTree(QWidget):
                 root.child(j).setExpanded(False)
             root.setExpanded(False)
 
+    def _toggle_hidden(self):
+        self._show_hidden = not self._show_hidden
+        self._btn_hidden.setText("●.*" if self._show_hidden else ".*")
+        self._refresh_all()
+
+    def _refresh_all(self):
+        for i in range(self._tree.topLevelItemCount()):
+            self._reload_subtree(self._tree.topLevelItem(i))
+
+    def _reload_subtree(self, item: QTreeWidgetItem):
+        if self._is_loaded(item) and self._is_dir_item(item):
+            was_expanded = item.isExpanded()
+            item.setData(0, _ROLE_LOADED, False)
+            children = [item.child(c) for c in range(item.childCount())]
+            for ch in children:
+                item.removeChild(ch)
+            self._populate_dir(item)
+            item.setExpanded(was_expanded)
+            if was_expanded:
+                for c in range(item.childCount()):
+                    self._reload_subtree(item.child(c))
+
+    def _on_file_moved(self, old_path: str, new_path: str):
+        parent_old = os.path.dirname(old_path)
+        parent_new = os.path.dirname(new_path)
+        self._refresh_dir(parent_old)
+        if parent_new != parent_old:
+            self._refresh_dir(parent_new)
+        self.file_renamed.emit(old_path, new_path)
+
     def select_file(self, file_path: str):
         file_path = os.path.normpath(file_path)
         self._tree.blockSignals(True)
@@ -423,4 +663,6 @@ class FileTree(QWidget):
         return False
 
     def cleanup(self):
-        pass
+        for d in list(self._watched_dirs):
+            self._fs_watcher.removePath(d)
+        self._watched_dirs.clear()

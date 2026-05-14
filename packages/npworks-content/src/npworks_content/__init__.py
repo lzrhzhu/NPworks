@@ -1,6 +1,6 @@
 """npworks-content: NPworks — 计算物理交互式教材内容"""
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 from npworks_content.loader import ContentLoader
 

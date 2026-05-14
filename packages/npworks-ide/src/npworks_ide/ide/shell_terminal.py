@@ -24,6 +24,7 @@ class _TermView(QWidget):
         self._font = QFont("Consolas", 11)
         self.setFont(self._font)
         self.setFocusPolicy(Qt.StrongFocus)
+        self.setMouseTracking(True)
         self._pty = None
         self._screen = None
 
@@ -48,6 +49,10 @@ class _TermView(QWidget):
         self._vscroll.setMaximum(0)
         self._vscroll.setValue(0)
         self._vscroll.valueChanged.connect(self._on_scroll_value)
+
+        self._sel_start = None
+        self._sel_end = None
+        self._selecting = False
 
     def _blink(self):
         self._cursor_on = not self._cursor_on
@@ -87,6 +92,12 @@ class _TermView(QWidget):
         self._vscroll.setGeometry(
             self.width() - sb_w, 0, sb_w, self.height())
         super().resizeEvent(event)
+        parent = self.parent()
+        while parent:
+            if isinstance(parent, ShellTerminalWidget):
+                parent._on_display_resize()
+                break
+            parent = parent.parent()
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
@@ -148,6 +159,8 @@ class _TermView(QWidget):
         if self._scroll_offset == 0:
             cursor_vis = history_len + self._screen.cursor.y - view_start
 
+        sel_lines = self._selection_lines(view_start, view_end - view_start)
+
         for i in range(min(vis, view_end - view_start)):
             src = view_start + i
             if src < 0 or src >= total:
@@ -158,6 +171,15 @@ class _TermView(QWidget):
                 text = self._build_line(
                     self._screen.buffer[src - history_len], columns)
             y = _PAD + self._ascent + i * self._cell_h
+
+            if src in sel_lines:
+                col_start, col_end = sel_lines[src]
+                rx1 = _PAD + col_start * self._cell_w
+                rx2 = _PAD + col_end * self._cell_w
+                sel_color = QColor(self._fg)
+                sel_color.setAlpha(40)
+                p.fillRect(rx1, _PAD + i * self._cell_h, rx2 - rx1, self._cell_h, sel_color)
+
             p.drawText(_PAD, y, text)
 
         if (self._scroll_offset == 0
@@ -168,13 +190,95 @@ class _TermView(QWidget):
             cx = self._screen.cursor.x
             rx = _PAD + cx * self._cell_w
             ry = _PAD + cursor_vis * self._cell_h
-            p.fillRect(rx, ry, self._cell_w, self._cell_h, self._fg)
-            ch = self._screen.buffer[self._screen.cursor.y][cx].data
-            if ch and ch != " ":
-                p.setPen(self._bg)
-                p.drawText(rx, _PAD + self._ascent + cursor_vis * self._cell_h, ch)
+            cursor_w = max(2, self._cell_w // 8)
+            p.fillRect(rx, ry, cursor_w, self._cell_h, self._fg)
 
         p.end()
+
+    def _pos_to_cell(self, pos):
+        col = (pos.x() - _PAD) // self._cell_w
+        vis = self._visible_rows()
+        row = (pos.y() - _PAD) // self._cell_h
+        if self._screen is None:
+            return -1, -1, -1
+        history_len = len(self._screen.history.top)
+        total = history_len + self._screen.lines
+        if self._scroll_offset == 0:
+            abs_row = total - vis + row
+        else:
+            abs_row = total - self._scroll_offset - vis + row
+        return abs_row, col, row
+
+    def _selection_lines(self, view_start, count):
+        if self._sel_start is None or self._sel_end is None:
+            return {}
+        r1, c1 = self._sel_start
+        r2, c2 = self._sel_end
+        if r1 > r2 or (r1 == r2 and c1 > c2):
+            r1, c1, r2, c2 = r2, c2, r1, c1
+        if self._screen is None:
+            return {}
+        columns = self._screen.columns
+        result = {}
+        for row in range(max(r1, view_start), min(r2 + 1, view_start + count)):
+            cs = c1 if row == r1 else 0
+            ce = c2 + 1 if row == r2 else columns
+            cs = max(0, min(cs, columns))
+            ce = max(0, min(ce, columns))
+            if cs < ce:
+                result[row] = (cs, ce)
+        return result
+
+    def _get_selection_text(self):
+        if self._sel_start is None or self._sel_end is None or self._screen is None:
+            return ""
+        r1, c1 = self._sel_start
+        r2, c2 = self._sel_end
+        if r1 > r2 or (r1 == r2 and c1 > c2):
+            r1, c1, r2, c2 = r2, c2, r1, c1
+        history = list(self._screen.history.top)
+        history_len = len(history)
+        columns = self._screen.columns
+        lines = []
+        for row in range(r1, r2 + 1):
+            if row < history_len:
+                line_text = self._build_line(history[row], columns)
+            elif row - history_len < self._screen.lines:
+                line_text = self._build_line(
+                    self._screen.buffer[row - history_len], columns)
+            else:
+                continue
+            cs = c1 if row == r1 else 0
+            ce = c2 + 1 if row == r2 else columns
+            lines.append(line_text[cs:ce])
+        return "\n".join(lines)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            abs_row, col, _ = self._pos_to_cell(event.pos())
+            self._sel_start = (abs_row, col)
+            self._sel_end = (abs_row, col)
+            self._selecting = True
+            self.update()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._selecting and event.buttons() & Qt.LeftButton:
+            abs_row, col, _ = self._pos_to_cell(event.pos())
+            self._sel_end = (abs_row, col)
+            self.update()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._selecting = False
+            text = self._get_selection_text()
+            if text:
+                QApplication.clipboard().setText(text)
+        else:
+            super().mouseReleaseEvent(event)
 
     def keyPressEvent(self, event):
         if self._pty is None:
@@ -233,8 +337,7 @@ class _TermView(QWidget):
         clipboard = QApplication.clipboard()
         text = clipboard.text()
         if text and self._pty:
-            for ch in text:
-                self._pty.write(ch)
+            self._pty.write(text)
 
 
 class ShellTerminalWidget(QWidget):
@@ -255,6 +358,8 @@ class ShellTerminalWidget(QWidget):
         self._render_timer.timeout.connect(self._on_render_tick)
         self._render_timer.start(30)
 
+        QTimer.singleShot(100, self._on_display_resize)
+
     def _setup_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -262,6 +367,26 @@ class ShellTerminalWidget(QWidget):
 
         self._display = _TermView(self)
         layout.addWidget(self._display)
+
+    def _calc_size(self):
+        if self._display is None:
+            return 120, 30
+        dw = self._display.width() - _PAD * 2
+        dh = self._display.height() - _PAD * 2
+        cols = max(1, dw // self._display._cell_w)
+        rows = max(1, dh // self._display._cell_h)
+        return cols, rows
+
+    def _on_display_resize(self):
+        if self._pty is None or self._screen is None:
+            return
+        cols, rows = self._calc_size()
+        if cols != self._screen.columns or rows != self._screen.lines:
+            self._screen.resize(cols, rows)
+            try:
+                self._pty.set_size(cols, rows)
+            except Exception:
+                pass
 
     def _start_pty(self):
         cols = 120

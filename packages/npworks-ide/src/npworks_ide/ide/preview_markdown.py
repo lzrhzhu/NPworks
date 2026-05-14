@@ -1,8 +1,8 @@
 import os
 
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import Qt, QUrl, QTimer
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QTextBrowser
+from PyQt5.QtWidgets import QTextBrowser, QSplitter, QWidget, QVBoxLayout
 
 _MD_EXTS = {".md", ".markdown", ".mkd"}
 
@@ -70,3 +70,98 @@ class MarkdownPreview(QTextBrowser):
     @property
     def file_path(self):
         return self._path
+
+    def set_markdown_text(self, text: str):
+        html = _md_to_html(text)
+        full = f"<html><head><style>{_CSS}</style></head><body>{html}</body></html>"
+        self.setHtml(full)
+
+
+class MarkdownSplitView(QWidget):
+    def __init__(self, file_path: str, parent=None):
+        super().__init__(parent)
+        self._path = file_path
+        self.file_path_prop = file_path
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        self._splitter = QSplitter(Qt.Horizontal, self)
+        self._splitter.setHandleWidth(2)
+
+        from npworks_ide.ide.editor import CodeEditor
+        self._editor = CodeEditor(self._splitter)
+        self._editor.file_path = file_path
+        self._editor._setup_folding()
+        try:
+            from PyQt5.Qsci import QsciLexerMarkdown
+            self._md_lexer = QsciLexerMarkdown(self._editor)
+            self._md_lexer.setFont(QFont("Consolas", 11))
+            self._editor.setLexer(self._md_lexer)
+        except ImportError:
+            self._editor.setLexer(None)
+
+        self._preview = QTextBrowser(self._splitter)
+        self._preview.setOpenExternalLinks(True)
+        self._preview.setFont(QFont("Segoe UI", 10))
+
+        self._splitter.addWidget(self._editor)
+        self._splitter.addWidget(self._preview)
+        self._splitter.setStretchFactor(0, 1)
+        self._splitter.setStretchFactor(1, 1)
+        self._splitter.setSizes([500, 500])
+
+        layout.addWidget(self._splitter)
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                text = f.read()
+        except Exception:
+            text = f"无法读取文件: {file_path}"
+
+        self._editor.set_code(text)
+        self._original_text = text
+        self._update_preview(text)
+
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.setInterval(400)
+        self._timer.timeout.connect(self._on_timer)
+
+        self._editor.textChanged.connect(self._schedule_update)
+
+    @property
+    def file_path(self):
+        return self._path
+
+    def _schedule_update(self):
+        self._timer.start()
+
+    def _on_timer(self):
+        text = self._editor.text()
+        self._update_preview(text)
+
+    def _update_preview(self, text: str):
+        html = _md_to_html(text)
+        full = f"<html><head><style>{_CSS}</style></head><body>{html}</body></html>"
+        self._preview.setHtml(full)
+
+    def get_editor(self):
+        return self._editor
+
+    def is_modified(self):
+        return self._editor.isModified()
+
+    def get_code(self):
+        return self._editor.text()
+
+    def save_content(self):
+        try:
+            with open(self._path, "w", encoding="utf-8") as f:
+                f.write(self._editor.text())
+            self._original_text = self._editor.text()
+            self._editor.setModified(False)
+            return True
+        except Exception:
+            return False

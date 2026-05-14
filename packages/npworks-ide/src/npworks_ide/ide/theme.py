@@ -26,7 +26,7 @@ DARK = {
     "foreground": "#D4D4D4",
     "current_line": "#2A2D2E",
     "line_number_bg": "#1E1E1E",
-    "line_number_fg": "#5A5A5A",
+    "line_number_fg": "#6E7681",
     "line_number_fg_current": "#C6C6C6",
     "selection_bg": "#264F78",
     "bracket_match_bg": "#646400",

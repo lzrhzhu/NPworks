@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "npworks-content"
-version = "0.0.1"
+version = "0.0.2"
 description = "NPworks — 计算物理交互式教材内容"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -27,6 +27,11 @@ classifiers = [
 dependencies = [
     "pyyaml>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lzrhzhu/NPworks"
+Repository = "https://github.com/lzrhzhu/NPworks"
+Issues = "https://github.com/lzrhzhu/NPworks/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

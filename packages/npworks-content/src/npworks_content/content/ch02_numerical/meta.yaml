@@ -12,4 +12,4 @@ sections:
   - file: "05_ode_runge_kutta.py"
     title: "2.5 龙格-库塔法"
   - file: "06_matplotlib.py"
-    title: "2.6 matplotlib 绑图"
+    title: "2.6 matplotlib 绘图"

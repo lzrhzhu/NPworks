@@ -1,8 +1,8 @@
 import sys
 import os
 
-sys.path.insert(0, r'G:\npworks\packages\npworks-ide\src')
-sys.path.insert(0, r'G:\npworks\packages\npworks-content\src')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'packages', 'npworks-ide', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'packages', 'npworks-content', 'src'))
 
 print("Test 1: editor module import")
 from npworks_ide.ide.editor import CodeEditor, PythonLexer
@@ -30,7 +30,8 @@ from npworks_ide.runner.executor import Executor
 print("  OK")
 
 print("Test 5: verify no QPlainTextEdit refs in main_window")
-with open(r'G:\npworks\packages\npworks-ide\src\npworks_ide\ide\main_window.py', 'r', encoding='utf-8') as f:
+main_window_path = os.path.join(os.path.dirname(__file__), '..', 'packages', 'npworks-ide', 'src', 'npworks_ide', 'ide', 'main_window.py')
+with open(main_window_path, 'r', encoding='utf-8') as f:
     content = f.read()
 assert 'QTextCursor' not in content, "QTextCursor still referenced"
 assert 'QTextDocument' not in content, "QTextDocument still referenced"

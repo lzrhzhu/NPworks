@@ -165,15 +165,15 @@ class CodeEditor(QsciScintilla):
         self.setCaretLineBackgroundColor(QColor(c["current_line"]))
         self.setSelectionBackgroundColor(QColor(c["selection_bg"]))
         self.setFoldMarginColors(QColor(c["line_number_bg"]), QColor(c["line_number_bg"]))
-        self.setMarginBackgroundColor(0, QColor(c["line_number_bg"]))
+        self.SendScintilla(QsciScintillaBase.SCI_STYLESETBACK, 33, QColor(c["line_number_bg"]))
         self.setMarginsForegroundColor(QColor(c["line_number_fg"]))
-        is_dark = c.get("background") in ("#1E1E1E",)
+        is_dark = c.get("background") in ("#1E1E1E", "#181818")
         if not is_dark:
             self.setIndentationGuidesBackgroundColor(QColor("#E8E8E8"))
             self.setIndentationGuidesForegroundColor(QColor("#D0D0D0"))
         else:
-            self.setIndentationGuidesBackgroundColor(QColor("#333333"))
-            self.setIndentationGuidesForegroundColor(QColor("#444444"))
+            self.setIndentationGuidesBackgroundColor(QColor("#2A2A2A"))
+            self.setIndentationGuidesForegroundColor(QColor("#3A3A3A"))
         self._lexer.refresh_theme()
         self.setMarkerBackgroundColor(
             QColor(c["line_number_fg_current"]), QsciScintilla.SC_MARKNUM_FOLDEROPEN
@@ -216,8 +216,32 @@ class CodeEditor(QsciScintilla):
     def is_modified(self) -> bool:
         return self.isModified()
 
+    _OPEN_PAIRS = {
+        ord('('): ')',
+        ord('['): ']',
+        ord('{'): '}',
+        ord('"'): '"',
+        ord("'"): "'",
+    }
+    _CLOSE_CHARS = {ord(')'), ord(']'), ord('}'), ord('"'), ord("'")}
+
     def _on_char_added(self, char):
-        pass
+        if char in self._OPEN_PAIRS:
+            close = self._OPEN_PAIRS[char]
+            line, col = self.getCursorPosition()
+            line_text = self.text(line).rstrip('\n').rstrip('\r')
+            if col < len(line_text) and line_text[col] == close:
+                self.setCursorPosition(line, col + 1)
+                return
+            self.insert(close)
+            self.setCursorPosition(line, col)
+        elif char in self._CLOSE_CHARS:
+            line, col = self.getCursorPosition()
+            line_text = self.text(line).rstrip('\n').rstrip('\r')
+            if col > 0 and col < len(line_text):
+                if line_text[col - 1] == chr(char) and line_text[col] == chr(char):
+                    self.SendScintilla(QsciScintillaBase.SCI_DELETEBACK)
+                    self.setCursorPosition(line, col)
 
     def toggle_comment(self):
         line_from, _, line_to, _ = self.getSelection()
@@ -310,7 +334,7 @@ class CodeEditor(QsciScintilla):
             urls = event.mimeData().urls()
             for url in urls:
                 path = url.toLocalFile()
-                if path and path.endswith(".py"):
+                if path and os.path.isfile(path):
                     event.acceptProposedAction()
                     self.file_dropped.emit(path)
                     return
@@ -320,7 +344,7 @@ class CodeEditor(QsciScintilla):
         if event.mimeData().hasUrls():
             for url in event.mimeData().urls():
                 path = url.toLocalFile()
-                if path and path.endswith(".py"):
+                if path and os.path.isfile(path):
                     event.acceptProposedAction()
                     return
         super().dragEnterEvent(event)
@@ -329,7 +353,7 @@ class CodeEditor(QsciScintilla):
         if event.mimeData().hasUrls():
             for url in event.mimeData().urls():
                 path = url.toLocalFile()
-                if path and path.endswith(".py"):
+                if path and os.path.isfile(path):
                     event.acceptProposedAction()
                     return
         super().dragMoveEvent(event)

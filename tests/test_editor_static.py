@@ -1,8 +1,8 @@
 import sys
 import os
 
-sys.path.insert(0, r'G:\npworks\packages\npworks-ide\src')
-sys.path.insert(0, r'G:\npworks\packages\npworks-content\src')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'packages', 'npworks-ide', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'packages', 'npworks-content', 'src'))
 
 print("Step 1: imports")
 from npworks_ide.ide.editor import CodeEditor, PythonLexer

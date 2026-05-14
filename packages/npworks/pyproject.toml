@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "npworks"
-version = "0.0.1"
+version = "0.0.2"
 description = "NPworks — Numerical Physics Works, 计算物理交互式教材"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -25,9 +25,14 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [
-    "npworks-ide>=0.0.1",
-    "npworks-content>=0.0.1",
+    "npworks-ide>=0.0.3",
+    "npworks-content>=0.0.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lzrhzhu/NPworks"
+Repository = "https://github.com/lzrhzhu/NPworks"
+Issues = "https://github.com/lzrhzhu/NPworks/issues"
 
 [project.scripts]
 npworks = "npworks_ide.app:main"

@@ -48,6 +48,11 @@ class FindReplacePanel(QWidget):
         self.case_check.setFixedWidth(42)
         find_row.addWidget(self.case_check)
 
+        self.whole_word_check = QCheckBox("W")
+        self.whole_word_check.setToolTip("全字匹配")
+        self.whole_word_check.setFixedWidth(36)
+        find_row.addWidget(self.whole_word_check)
+
         self.replace_toggle_btn = QPushButton(" ▼ 替换")
         self.replace_toggle_btn.setFixedWidth(68)
         find_row.addWidget(self.replace_toggle_btn)
@@ -129,6 +134,9 @@ class FindReplacePanel(QWidget):
 
     def is_case_sensitive(self):
         return self.case_check.isChecked()
+
+    def is_whole_word(self):
+        return self.whole_word_check.isChecked()
 
     def is_regex(self):
         return False

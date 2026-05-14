@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "npworks-ide"
-version = "0.0.2"
+version = "0.0.3"
 description = "NPworks — 计算物理交互式教材 IDE 界面"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -32,11 +32,17 @@ dependencies = [
     "scipy>=1.7",
     "matplotlib>=3.4",
     "qtconsole>=5.0",
-    "pywinpty>=2.0",
-    "pyte>=0.8",
+    "pywinpty>=2.0; sys_platform == 'win32'",
+    "pyte>=0.8; sys_platform == 'win32'",
     "markdown>=3.4",
+    "pyyaml>=6.0",
     "npworks-content>=0.0.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lzrhzhu/NPworks"
+Repository = "https://github.com/lzrhzhu/NPworks"
+Issues = "https://github.com/lzrhzhu/NPworks/issues"
 
 [project.scripts]
 npworks-ide = "npworks_ide.app:main"

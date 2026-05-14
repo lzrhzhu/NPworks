@@ -1,48 +1,62 @@
-# NPworks — Numerical Physics Works
+# npworks-content — NPworks 教材内容
 
-计算物理交互式教材，基于 PyQt5 的桌面 IDE 应用，内置计算物理教材内容。
+[![PyPI](https://img.shields.io/pypi/v/npworks-content.svg)](https://pypi.org/project/npworks-content/)
+[![Python](https://img.shields.io/pypi/pyversions/npworks-content.svg)](https://pypi.org/project/npworks-content/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/lzrhzhu/NPworks/blob/main/LICENSE)
 
-## 安装
+计算物理交互式教材的内容包，包含 **7 章 27 节** Python 物理计算示例代码及 YAML 元数据。
 
-```bash
-pip install npworks
-```
-
-## 使用
-
-```bash
-npworks
-```
-
-启动后左侧显示教材章节目录，右侧为代码编辑器，点击章节加载对应 Python 程序，可直接编辑和运行。
-
-## 项目结构
-
-本项目由三个 PyPI 包组成：
-
-- **npworks** — 元包，安装后自动引入 IDE 和教材内容
-- **npworks-ide** — 基于 PyQt5 的 IDE 界面
-- **npworks-content** — 教材内容（Python 示例代码 + YAML 元数据）
+> 通常无需单独安装此包，请安装元包 `pip install npworks`。
 
 ## 教材章节
 
-1. Python 基础
-2. 数值计算（NumPy、积分、ODE）
-3. 经典力学（抛体运动、行星轨道、双摆）
-4. 电磁学（电场、磁场）
-5. 热力学与统计物理（随机行走、分子动力学、热传导）
-6. 量子力学（波函数、薛定谔方程、量子隧穿）
-7. 波动与光学（波动方程、干涉、衍射）
+| 章 | 节数 | 内容 |
+|----|------|------|
+| 第1章 Python 基础 | 5 | Hello World, 变量, 控制流, 函数, 文件读写 |
+| 第2章 数值计算 | 6 | NumPy, 梯形积分, 辛普森积分, 欧拉法, RK4, Matplotlib |
+| 第3章 经典力学 | 5 | 抛体运动, 行星轨道, 简谐振子, 阻尼振子, 双摆 |
+| 第4章 电磁学 | 2 | 电场, 磁场 |
+| 第5章 热力学与统计物理 | 3 | 随机行走, 分子动力学, 热传导 |
+| 第6章 量子力学 | 3 | 波函数, 薛定谔方程, 量子隧穿 |
+| 第7章 波动与光学 | 3 | 波动方程, 干涉, 衍射 |
 
-## 依赖
+## 独立安装
 
-- PyQt5 >= 5.15
-- NumPy >= 1.20
-- SciPy >= 1.7
-- Matplotlib >= 3.4
-- Pygments >= 2.0
-- PyYAML >= 6.0
+```bash
+pip install npworks-content
+```
+
+## 公共接口
+
+```python
+import npworks_content
+
+npworks_content.get_chapters()                              # → list[dict]
+npworks_content.get_section_code(chapter_id, filename)      # → str
+npworks_content.get_section_path(chapter_id, filename)      # → Path
+npworks_content.get_version()                                # → str
+```
+
+## 内容格式
+
+每章一个目录，包含 `meta.yaml` 和 Python 脚本：
+
+```yaml
+title: "第1章 Python 基础"
+description: "Python 编程语言基础入门"
+sections:
+  - file: "01_hello.py"
+    title: "1.1 Hello World"
+  - file: "02_variables.py"
+    title: "1.2 变量与数据类型"
+```
+
+## 链接
+
+- **源代码**: <https://github.com/lzrhzhu/NPworks>
+- **问题反馈**: <https://github.com/lzrhzhu/NPworks/issues>
+- **PyPI**: <https://pypi.org/project/npworks-content/>
 
 ## License
 
-MIT
+[MIT](https://github.com/lzrhzhu/NPworks/blob/main/LICENSE)

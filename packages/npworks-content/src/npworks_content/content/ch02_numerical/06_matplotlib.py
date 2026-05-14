@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# 2.6 matplotlib 绑图
-# 学习 matplotlib 基本绑图、子图和标注
+# 2.6 matplotlib 绘图
+# 学习 matplotlib 基本绘图、子图和标注
 
 import numpy as np
 import matplotlib.pyplot as plt

@@ -2,22 +2,22 @@ import pytest
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "packages", "pyphysbook-ide", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "packages", "npworks-ide", "src"))
 
 
 def test_executor_import():
-    from pyphysbook_ide.runner.executor import Executor
+    from npworks_ide.runner.executor import Executor
     assert Executor is not None
 
 
 def test_executor_creation():
-    from pyphysbook_ide.runner.executor import Executor
+    from npworks_ide.runner.executor import Executor
     executor = Executor()
     assert not executor.is_running()
 
 
 def test_executor_signals():
-    from pyphysbook_ide.runner.executor import Executor
+    from npworks_ide.runner.executor import Executor
     executor = Executor()
     assert hasattr(executor, "execution_started")
     assert hasattr(executor, "execution_finished")
@@ -26,10 +26,10 @@ def test_executor_signals():
 
 
 def test_ide_import():
-    from pyphysbook_ide import __version__
-    assert __version__ == "0.1.0"
+    from npworks_ide import __version__
+    assert __version__ == "0.0.3"
 
 
 def test_app_import():
-    from pyphysbook_ide.app import main
+    from npworks_ide.app import main
     assert callable(main)

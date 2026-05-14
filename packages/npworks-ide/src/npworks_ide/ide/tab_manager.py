@@ -1,6 +1,7 @@
 import os
 
-from PyQt5.QtWidgets import QTabWidget, QMessageBox
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTabWidget, QMessageBox, QMenu, QInputDialog
 
 from npworks_ide.ide.editor import CodeEditor
 
@@ -18,6 +19,8 @@ class TabManager:
         self._tabs.setMovable(True)
         self._tabs.tabCloseRequested.connect(self.close_tab)
         self._tabs.currentChanged.connect(self._on_tab_changed)
+        self._tabs.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._tabs.customContextMenuRequested.connect(self._on_tab_context_menu)
 
     @property
     def widget(self):
@@ -47,16 +50,73 @@ class TabManager:
         return editor
 
     def close_tab(self, index):
-        editor = self._tabs.widget(index)
+        widget = self._tabs.widget(index)
+        editor = None
+        if isinstance(widget, CodeEditor):
+            editor = widget
+        elif hasattr(widget, 'get_editor'):
+            editor = widget.get_editor()
+
+        if editor and editor.isModified():
+            title = self._tabs.tabText(index).lstrip('*')
+            reply = QMessageBox.question(
+                self._tabs,
+                "关闭未保存文件",
+                f"文件 \"{title}\" 已修改但未保存。\n是否保存？",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+            )
+            if reply == QMessageBox.Save:
+                if hasattr(editor, 'file_path') and editor.file_path:
+                    try:
+                        with open(editor.file_path, 'w', encoding='utf-8') as f:
+                            f.write(editor.get_code())
+                        editor.setModified(False)
+                    except Exception:
+                        pass
+                else:
+                    return
+            elif reply == QMessageBox.Cancel:
+                return
+
         self._tabs.removeTab(index)
-        editor.deleteLater()
+        widget.deleteLater()
+
+    def close_other_tabs(self, index):
+        for i in range(self._tabs.count() - 1, -1, -1):
+            if i != index:
+                widget = self._tabs.widget(i)
+                self._tabs.removeTab(i)
+                widget.deleteLater()
+
+    def close_all_tabs(self):
+        for i in range(self._tabs.count() - 1, -1, -1):
+            widget = self._tabs.widget(i)
+            self._tabs.removeTab(i)
+            widget.deleteLater()
+
+    def _on_tab_context_menu(self, pos):
+        index = self._tabs.tabBar().tabAt(pos)
+        if index < 0:
+            return
+        menu = QMenu(self._tabs)
+        close_action = menu.addAction("关闭")
+        close_others_action = menu.addAction("关闭其他")
+        close_all_action = menu.addAction("关闭全部")
+        action = menu.exec_(self._tabs.mapToGlobal(pos))
+        if action == close_action:
+            self.close_tab(index)
+        elif action == close_others_action:
+            self.close_other_tabs(index)
+        elif action == close_all_action:
+            self.close_all_tabs()
 
     def find_tab_by_path(self, file_path: str):
         norm = os.path.normpath(file_path)
         for i in range(self._tabs.count()):
-            editor = self._tabs.widget(i)
-            if editor.file_path and os.path.normpath(editor.file_path) == norm:
-                return i, editor
+            widget = self._tabs.widget(i)
+            fp = getattr(widget, "file_path", None)
+            if fp and os.path.normpath(fp) == norm:
+                return i, widget
         return -1, None
 
     def switch_to_tab(self, index):
@@ -66,6 +126,27 @@ class TabManager:
         self._new_file_counter += 1
         title = f"{_UNTITLED}_{self._new_file_counter}"
         return self.add_editor_tab(title, "")
+
+    def go_to_line(self):
+        max_line = 1
+        widget = self._tabs.currentWidget()
+        if isinstance(widget, CodeEditor):
+            max_line = widget.lines()
+        elif hasattr(widget, 'get_editor'):
+            max_line = widget.get_editor().lines()
+        line, ok = QInputDialog.getInt(
+            self._tabs, "跳转到行", f"行号 (1-{max_line}):", 1, 1, max_line,
+        )
+        if ok:
+            editor = None
+            if isinstance(widget, CodeEditor):
+                editor = widget
+            elif hasattr(widget, 'get_editor'):
+                editor = widget.get_editor()
+            if editor:
+                editor.setCursorPosition(line - 1, 0)
+                editor.ensureLineVisible(line - 1)
+                editor.setFocus()
 
     def _on_tab_changed(self, index):
         if self._on_tab_changed_cb:
