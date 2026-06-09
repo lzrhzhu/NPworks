@@ -1,7 +1,0 @@
-title: "第4章 电磁学"
-description: "电磁场模拟"
-sections:
-  - file: "01_electric_field.py"
-    title: "4.1 电场线"
-  - file: "02_magnetic_field.py"
-    title: "4.2 磁场"

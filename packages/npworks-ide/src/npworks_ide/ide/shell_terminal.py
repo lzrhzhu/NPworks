@@ -7,11 +7,17 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont, QPainter, QColor
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QApplication, QScrollBar,
-    QTabBar, QPushButton, QStackedWidget,
+    QTabBar, QPushButton, QStackedWidget, QLabel,
 )
 
-from winpty import PTY
-import pyte
+_HAS_WINPTY = False
+if sys.platform == "win32":
+    try:
+        from winpty import PTY
+        import pyte
+        _HAS_WINPTY = True
+    except ImportError:
+        pass
 
 
 _PAD = 4
@@ -389,6 +395,14 @@ class ShellTerminalWidget(QWidget):
                 pass
 
     def _start_pty(self):
+        if not _HAS_WINPTY:
+            label = QLabel("  Shell 终端需要 winpty，仅支持 Windows。\n  请安装: pip install pywinpty pyte")
+            label.setStyleSheet("color: #CC6666; font-size: 14px; padding: 20px;")
+            layout = self.layout()
+            if layout:
+                layout.addWidget(label)
+            return
+
         cols = 120
         rows = 30
         self._pty = PTY(cols, rows)

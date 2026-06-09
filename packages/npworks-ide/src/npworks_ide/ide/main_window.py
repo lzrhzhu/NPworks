@@ -1,12 +1,11 @@
 import sys
 import os
-from datetime import datetime
 
 from PyQt5.QtCore import Qt, QSettings
-from PyQt5.QtGui import QKeySequence, QFont
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QMainWindow, QSplitter, QFileDialog, QMessageBox,
-    QTabWidget, QMenu, QAction, QLabel, QWidget,
+    QTabWidget, QLabel, QWidget,
     QVBoxLayout,
 )
 
@@ -19,7 +18,11 @@ from npworks_ide.ide.sidebar import Sidebar
 from npworks_ide.ide.bottom_panel import BottomPanel
 from npworks_ide.ide.tab_manager import TabManager
 from npworks_ide.ide.actions import ActionManager
-from npworks_ide.ide.theme import apply_theme
+from npworks_ide.ide.menu_builder import MenuBuilder
+from npworks_ide.ide.run_controller import RunController
+from npworks_ide.ide.find_controller import FindController
+from npworks_ide.ide.edit_controller import EditController
+from npworks_ide.ide.theme_controller import ThemeController
 from npworks_ide.ide.preview_image import is_image_file, ImagePreview
 from npworks_ide.ide.preview_markdown import is_markdown_file, MarkdownSplitView
 from npworks_ide.ide.preview_pdf import is_pdf_file, PdfPreview
@@ -45,13 +48,10 @@ class MainWindow(QMainWindow):
         self.executor = Executor(self)
         self.file_tree = FileTree(self)
         self.output_panel = OutputPanel(self)
-        self.terminal = None
-        self.shell_terminal = None
         self.find_replace = FindReplacePanel(self)
         self.activity_bar = ActivityBar(self)
 
         self._bottom_panel = BottomPanel(self.output_panel, self)
-        self._bottom_panel.set_factories(self._create_terminal, self._create_shell)
 
         self._tab_widget = QTabWidget()
         self._tabs = TabManager(self._tab_widget, on_tab_changed_cb=self._on_tab_changed)
@@ -61,12 +61,24 @@ class MainWindow(QMainWindow):
             self.executor, self._bottom_panel,
         )
 
+        self.run_ctrl = RunController(
+            self, self.executor, self.output_panel, self._bottom_panel,
+        )
+        self._bottom_panel.set_factories(self.run_ctrl.create_terminal, self.run_ctrl.create_shell)
+
+        self.find_ctrl = FindController(self, self.find_replace)
+        self.edit_ctrl = EditController(self)
+        self.theme_ctrl = ThemeController(
+            self, self._tab_widget, self._bottom_panel, self._settings,
+        )
+
         self._setup_layout()
-        self._build_menu_bar()
         self._build_status_bar()
         self._connect_signals()
 
-        self._start_time = None
+        self._menu_builder = MenuBuilder(self)
+        theme_actions = self._menu_builder.build_menu_bar()
+        self.theme_ctrl.set_theme_actions(theme_actions)
 
         self._setup_activity_bar()
         self._init_file_tree()
@@ -158,85 +170,6 @@ class MainWindow(QMainWindow):
     def _is_sidebar2_visible(self):
         return self._h_splitter.sizes()[3] > 50
 
-    def _build_menu_bar(self):
-        mb = self.menuBar()
-
-        file_menu = mb.addMenu("文件(&F)")
-        self._add_action(file_menu, "新建(&N)", self._new_file, QKeySequence.New)
-        self._add_action(file_menu, "打开(&O)...", self._open_file, QKeySequence.Open)
-        self._add_action(file_menu, "打开文件夹(&F)...", self._open_folder)
-        recent_menu = file_menu.addMenu("最近文件(&R)")
-        self._actions.set_recent_menu(recent_menu)
-        file_menu.addSeparator()
-        self._add_action(file_menu, "关闭标签(&C)", self._close_tab,
-                         QKeySequence(Qt.ControlModifier | Qt.Key_W))
-        self._add_action(file_menu, "关闭文件夹(&W)", self._close_current_folder)
-        file_menu.addSeparator()
-        self._add_action(file_menu, "保存(&S)", self._save_code, QKeySequence.Save)
-        self._add_action(file_menu, "全部保存(&L)", self._save_all,
-                         QKeySequence(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_S))
-        self._add_action(file_menu, "另存为(&A)...", self._save_as, QKeySequence.SaveAs)
-        file_menu.addSeparator()
-        self._add_action(file_menu, "退出(&Q)", self.close, QKeySequence.Quit)
-
-        edit_menu = mb.addMenu("编辑(&E)")
-        self._add_action(edit_menu, "撤销(&U)", self._undo, QKeySequence.Undo)
-        self._add_action(edit_menu, "重做(&R)", self._redo, QKeySequence.Redo)
-        edit_menu.addSeparator()
-        self._add_action(edit_menu, "剪切(&X)", self._cut, QKeySequence.Cut)
-        self._add_action(edit_menu, "复制(&C)", self._copy, QKeySequence.Copy)
-        self._add_action(edit_menu, "粘贴(&V)", self._paste, QKeySequence.Paste)
-        edit_menu.addSeparator()
-        self._add_action(edit_menu, "全选(&A)", self._select_all, QKeySequence.SelectAll)
-        edit_menu.addSeparator()
-        self._add_action(edit_menu, "注释/取消注释(&C)", self._toggle_comment,
-                         QKeySequence(Qt.ControlModifier | Qt.Key_Slash))
-        edit_menu.addSeparator()
-        self._add_action(edit_menu, "查找(&F)...", self._show_find, QKeySequence.Find)
-        self._add_action(edit_menu, "查找替换(&H)...", self._show_replace, QKeySequence.Replace)
-        self._add_action(edit_menu, "跳转到行(&G)...", self._go_to_line,
-                         QKeySequence(Qt.ControlModifier | Qt.Key_G))
-
-        run_menu = mb.addMenu("运行(&R)")
-        self._add_action(run_menu, "运行(&R)", self._run_code, QKeySequence(Qt.Key_F5))
-        self._add_action(run_menu, "停止(&S)", self._stop_code, QKeySequence(Qt.ShiftModifier | Qt.Key_F5))
-        run_menu.addSeparator()
-        self._add_action(run_menu, "重置代码(&E)", self._reset_code, QKeySequence(Qt.ControlModifier | Qt.Key_R))
-        run_menu.addSeparator()
-        self._add_action(run_menu, "在终端中运行当前行", self._run_line_in_terminal)
-        self._add_action(run_menu, "在终端中运行当前行 (Shell)", self._run_line_in_shell)
-        run_menu.addSeparator()
-        self._add_action(run_menu, "新建终端", self._new_terminal,
-                         QKeySequence(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_QuoteLeft))
-        self._add_action(run_menu, "关闭当前终端", self._close_terminal)
-
-        view_menu = mb.addMenu("视图(&V)")
-        self._add_action(view_menu, "文件浏览器(&E)", self._toggle_explorer)
-        self._add_action(view_menu, "大纲(&O)", self._toggle_outline)
-        self._add_action(view_menu, "底部面板(&B)", self._toggle_bottom_panel,
-                         QKeySequence(Qt.ControlModifier | Qt.Key_QuoteLeft))
-        view_menu.addSeparator()
-        self._add_action(view_menu, "IPython 终端(&I)", self._show_ipython_terminal)
-        self._add_action(view_menu, "Shell 终端(&S)", self._show_shell_terminal)
-        view_menu.addSeparator()
-
-        light_action = QAction("亮色主题(&L)", self, checkable=True, checked=True)
-        light_action.triggered.connect(lambda: self._set_theme("light"))
-        dark_action = QAction("暗色主题(&D)", self, checkable=True)
-        dark_action.triggered.connect(lambda: self._set_theme("dark"))
-        self._theme_group = [light_action, dark_action]
-        theme_menu = view_menu.addMenu("主题(&T)")
-        theme_menu.addAction(light_action)
-        theme_menu.addAction(dark_action)
-
-        saved_theme = self._settings.value("theme", "light")
-        if saved_theme == "dark":
-            dark_action.setChecked(True)
-            light_action.setChecked(False)
-
-        help_menu = mb.addMenu("帮助(&H)")
-        self._add_action(help_menu, "关于(&A)", self._show_about)
-
     def _build_status_bar(self):
         sb = self.statusBar()
         sb.setStyleSheet("QStatusBar { border: none; }")
@@ -272,14 +205,6 @@ class MainWindow(QMainWindow):
         py_label.setFont(QFont("Consolas", 9))
         sb.addPermanentWidget(py_label)
 
-    def _add_action(self, menu, text, slot, shortcut=None):
-        action = QAction(text, self)
-        if shortcut:
-            action.setShortcut(shortcut)
-        action.triggered.connect(slot)
-        menu.addAction(action)
-        return action
-
     def _connect_signals(self):
         self.activity_bar.button_clicked.connect(self._on_activity_clicked)
         self.file_tree.file_selected.connect(self._on_file_selected)
@@ -288,17 +213,17 @@ class MainWindow(QMainWindow):
         self.file_tree.file_deleted.connect(self._on_file_deleted)
         self.executor.stdout_ready.connect(self.output_panel.append_stdout)
         self.executor.stderr_ready.connect(self.output_panel.append_stderr)
-        self.executor.execution_started.connect(self._on_execution_started)
-        self.executor.execution_finished.connect(self._on_execution_finished)
+        self.executor.execution_started.connect(self.run_ctrl.on_execution_started)
+        self.executor.execution_finished.connect(self.run_ctrl.on_execution_finished)
 
-        self.output_panel.input_submitted.connect(self._send_input)
+        self.output_panel.input_submitted.connect(self.run_ctrl.send_input)
         self.output_panel.jump_to_line.connect(self._on_jump_to_line)
 
-        self.find_replace.find_next_btn.clicked.connect(self._find_next)
-        self.find_replace.find_prev_btn.clicked.connect(self._find_prev)
-        self.find_replace.replace_btn.clicked.connect(self._replace_one)
-        self.find_replace.replace_all_btn.clicked.connect(self._replace_all)
-        self.find_replace.closed.connect(self._clear_find_highlight)
+        self.find_replace.find_next_btn.clicked.connect(self.find_ctrl.find_next)
+        self.find_replace.find_prev_btn.clicked.connect(self.find_ctrl.find_prev)
+        self.find_replace.replace_btn.clicked.connect(self.find_ctrl.replace_one)
+        self.find_replace.replace_all_btn.clicked.connect(self.find_ctrl.replace_all)
+        self.find_replace.closed.connect(self.find_ctrl.clear_find_highlight)
 
     def _on_activity_clicked(self, index: int):
         if index == _IDX_EXPLORER:
@@ -359,20 +284,6 @@ class MainWindow(QMainWindow):
     def _on_file_selected(self, file_path: str):
         self._open_file_by_path(file_path)
 
-    def _create_terminal(self):
-        from npworks_ide.ide.terminal import TerminalWidget
-        self.terminal = TerminalWidget(self)
-        theme = self._settings.value("theme", "light")
-        self.terminal.set_theme(theme)
-        return self.terminal
-
-    def _create_shell(self):
-        from npworks_ide.ide.shell_terminal import TerminalPanel
-        self.shell_terminal = TerminalPanel(self)
-        theme = self._settings.value("theme", "light")
-        self.shell_terminal.set_theme(theme)
-        return self.shell_terminal
-
     def _new_file(self):
         editor = self._tabs.new_file()
         editor.cursorPositionChanged.connect(self._update_status_pos)
@@ -400,6 +311,9 @@ class MainWindow(QMainWindow):
     def _save_as(self):
         self._actions.save_as()
 
+    def _save_all(self):
+        self._actions.save_all()
+
     def _open_file_by_path(self, path):
         if not path or not os.path.isfile(path):
             return
@@ -416,7 +330,7 @@ class MainWindow(QMainWindow):
                 preview = ImagePreview(path, self)
                 idx = self._tab_widget.addTab(preview, f"\U0001F5BC {title}")
                 self._tab_widget.setCurrentIndex(idx)
-                self._actions._add_recent_file(path)
+                self._actions.add_recent_file(path)
             except Exception as e:
                 QMessageBox.warning(self, "打开失败", str(e))
             return
@@ -426,7 +340,7 @@ class MainWindow(QMainWindow):
                 preview = PdfPreview(path, self)
                 idx = self._tab_widget.addTab(preview, f"\U0001F4D1 {title}")
                 self._tab_widget.setCurrentIndex(idx)
-                self._actions._add_recent_file(path)
+                self._actions.add_recent_file(path)
             except Exception as e:
                 QMessageBox.warning(self, "打开失败", str(e))
             return
@@ -436,7 +350,7 @@ class MainWindow(QMainWindow):
                 split_view = MarkdownSplitView(path, self)
                 idx = self._tab_widget.addTab(split_view, f"\U0001F4C4 {title}")
                 self._tab_widget.setCurrentIndex(idx)
-                self._actions._add_recent_file(path)
+                self._actions.add_recent_file(path)
             except Exception as e:
                 QMessageBox.warning(self, "打开失败", str(e))
             return
@@ -453,190 +367,9 @@ class MainWindow(QMainWindow):
             editor.cursorPositionChanged.connect(self._update_status_pos)
             editor.file_dropped.connect(self._open_file_by_path)
             editor.modificationChanged.connect(lambda m, e=editor: self._on_modification_changed(e, m))
-            self._actions._add_recent_file(path)
+            self._actions.add_recent_file(path)
         except Exception as e:
             QMessageBox.warning(self, "打开失败", str(e))
-
-    def _run_code(self):
-        editor = self._current_editor()
-        if not editor:
-            return
-        code = editor.get_code()
-        if not code.strip():
-            return
-        self.output_panel.clear_output()
-        self._start_time = datetime.now()
-        self.output_panel.append_system(">>> 运行中...")
-        self._bottom_panel.show()
-        self._bottom_panel.show_output_tab()
-        if not self.executor.execute(code):
-            self._start_time = None
-
-    def _stop_code(self):
-        self.executor.stop()
-        self.output_panel.append_system("已手动终止")
-
-    def _reset_code(self):
-        editor = self._current_editor()
-        if editor:
-            editor.reset_to_original()
-            self.output_panel.append_system("已重置为原始代码")
-
-    def _run_line_in_terminal(self):
-        editor = self._current_editor()
-        if not editor:
-            return
-        line, _ = editor.getCursorPosition()
-        text = editor.text(line).strip()
-        if text:
-            self._bottom_panel.show()
-            self._bottom_panel.show_terminal_tab()
-            self._bottom_panel._ensure_terminal()
-            if self.terminal:
-                self.terminal.execute_command(text)
-
-    def _run_line_in_shell(self):
-        editor = self._current_editor()
-        if not editor:
-            return
-        line, _ = editor.getCursorPosition()
-        text = editor.text(line).strip()
-        if text:
-            self._bottom_panel.show()
-            self._bottom_panel.show_shell_tab()
-            self._bottom_panel._ensure_shell()
-            if self.shell_terminal:
-                self.shell_terminal.execute_command(text)
-
-    def _new_terminal(self):
-        self._bottom_panel.show()
-        self._bottom_panel.show_shell_tab()
-        if self.shell_terminal:
-            self.shell_terminal.add_terminal()
-
-    def _close_terminal(self):
-        if self.shell_terminal:
-            self.shell_terminal.close_terminal()
-
-    def _show_ipython_terminal(self):
-        self._bottom_panel.show()
-        self._bottom_panel.show_terminal_tab()
-
-    def _show_shell_terminal(self):
-        self._bottom_panel.show()
-        self._bottom_panel.show_shell_tab()
-
-    def _send_input(self, text):
-        self.executor.send_input(text)
-
-    def _undo(self):
-        editor = self._current_editor()
-        if editor:
-            editor.undo()
-
-    def _redo(self):
-        editor = self._current_editor()
-        if editor:
-            editor.redo()
-
-    def _cut(self):
-        editor = self._current_editor()
-        if editor:
-            editor.cut()
-
-    def _copy(self):
-        editor = self._current_editor()
-        if editor:
-            editor.copy()
-
-    def _paste(self):
-        editor = self._current_editor()
-        if editor:
-            editor.paste()
-
-    def _select_all(self):
-        editor = self._current_editor()
-        if editor:
-            editor.selectAll()
-
-    def _show_find(self):
-        self.find_replace.show_find()
-
-    def _show_replace(self):
-        self.find_replace.show_replace()
-
-    def _find_next(self):
-        editor = self._current_editor()
-        if not editor:
-            return
-        text = self.find_replace.get_find_text()
-        if not text:
-            return
-        cs = self.find_replace.is_case_sensitive()
-        ww = self.find_replace.is_whole_word()
-        line, col = editor.getCursorPosition()
-        col += 1
-        found = editor.findFirst(text, False, cs, ww, True, line, col)
-        if found:
-            self.find_replace.set_match_count(1, 1)
-        else:
-            found = editor.findFirst(text, False, cs, ww, True, 0, 0)
-            if found:
-                self.find_replace.set_match_count(1, 1)
-            else:
-                self.find_replace.set_match_count(0, 0)
-
-    def _find_prev(self):
-        editor = self._current_editor()
-        if not editor:
-            return
-        text = self.find_replace.get_find_text()
-        if not text:
-            return
-        cs = self.find_replace.is_case_sensitive()
-        ww = self.find_replace.is_whole_word()
-        line, col = editor.getCursorPosition()
-        found = editor.findFirst(text, False, cs, ww, False, line, col)
-        if not found:
-            last_line = editor.lines() - 1
-            line_len = len(editor.text(last_line))
-            editor.findFirst(text, False, cs, ww, False, last_line, line_len)
-
-    def _replace_one(self):
-        editor = self._current_editor()
-        if not editor:
-            return
-        find_text = self.find_replace.get_find_text()
-        replace_text = self.find_replace.get_replace_text()
-        if not find_text:
-            return
-        if editor.hasSelectedText() and editor.selectedText() == find_text:
-            editor.replaceSelectedText(replace_text)
-        self._find_next()
-
-    def _replace_all(self):
-        editor = self._current_editor()
-        if not editor:
-            return
-        find_text = self.find_replace.get_find_text()
-        replace_text = self.find_replace.get_replace_text()
-        if not find_text:
-            return
-        cs = self.find_replace.is_case_sensitive()
-        ww = self.find_replace.is_whole_word()
-        editor.beginUndoAction()
-        editor.setCursorPosition(0, 0)
-        count = 0
-        found = editor.findFirst(find_text, False, cs, ww, True, 0, 0)
-        while found:
-            editor.replaceSelectedText(replace_text)
-            count += 1
-            found = editor.findNext()
-        editor.endUndoAction()
-        self.find_replace.set_match_count(count, count)
-
-    def _clear_find_highlight(self):
-        pass
 
     def _close_tab(self):
         idx = self._tab_widget.currentIndex()
@@ -646,30 +379,11 @@ class MainWindow(QMainWindow):
     def _go_to_line(self):
         self._tabs.go_to_line()
 
-    def _toggle_comment(self):
-        editor = self._current_editor()
-        if editor:
-            editor.toggle_comment()
+    def _show_find(self):
+        self.find_replace.show_find()
 
-    def _set_theme(self, name):
-        from PyQt5.QtWidgets import QApplication
-        apply_theme(QApplication.instance(), name)
-        for i in range(self._tab_widget.count()):
-            widget = self._tab_widget.widget(i)
-            if isinstance(widget, MarkdownSplitView):
-                widget.get_editor().apply_theme()
-            elif isinstance(widget, CodeEditor):
-                widget.apply_theme()
-        if self.terminal:
-            self.terminal.set_theme(name)
-        if self.shell_terminal:
-            self.shell_terminal.set_theme(name)
-        for action in self._theme_group:
-            action.setChecked(False)
-        if name == "dark":
-            self._theme_group[1].setChecked(True)
-        else:
-            self._theme_group[0].setChecked(True)
+    def _show_replace(self):
+        self.find_replace.show_replace()
 
     def _show_about(self):
         from npworks_ide import __version__
@@ -692,22 +406,6 @@ class MainWindow(QMainWindow):
         line, col = editor.getCursorPosition()
         self._pos_label.setText(f" 行 {line + 1}, 列 {col + 1} ")
 
-    def _on_execution_started(self):
-        self._run_label.setText(" ● 运行中 ")
-        self.output_panel.show_input()
-
-    def _on_execution_finished(self, exit_code, exit_status):
-        self.output_panel.hide_input()
-        if self._start_time:
-            elapsed = (datetime.now() - self._start_time).total_seconds()
-            self._run_label.setText("")
-            self.output_panel.append_system(
-                f"[运行完毕] 退出码={exit_code} 耗时={elapsed:.2f}s"
-            )
-            self._start_time = None
-        else:
-            self._run_label.setText("")
-
     def _on_jump_to_line(self, traceback_line: int):
         editor = self._current_editor()
         if not editor:
@@ -718,9 +416,6 @@ class MainWindow(QMainWindow):
         editor.setCursorPosition(target, 0)
         editor.ensureLineVisible(target)
         editor.setFocus()
-
-    def _save_all(self):
-        self._actions.save_all()
 
     def _on_modification_changed(self, editor, modified):
         for i in range(self._tab_widget.count()):
@@ -782,9 +477,6 @@ class MainWindow(QMainWindow):
         self._settings.setValue("window_pos", self.pos())
         self._settings.setValue("h_splitter_sizes", self._h_splitter.sizes())
         self._settings.setValue("v_splitter_sizes", self._v_splitter.sizes())
-        self._actions._save_open_folders()
-        if self.terminal:
-            self.terminal.cleanup()
-        if self.shell_terminal:
-            self.shell_terminal.cleanup()
+        self._actions.save_open_folders()
+        self.run_ctrl.cleanup()
         super().closeEvent(event)

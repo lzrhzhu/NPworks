@@ -155,9 +155,15 @@ class ActionManager:
         self._file_tree.close_selected_root()
         self._save_open_folders()
 
+    def save_open_folders(self):
+        self._save_open_folders()
+
     def _save_open_folders(self):
         folders = self._file_tree.get_open_folders()
         self._settings.setValue("open_folders", folders)
+
+    def add_recent_file(self, path):
+        self._add_recent_file(path)
 
     def _add_recent_file(self, path):
         recents = self._settings.value("recent_files", [])

@@ -50,6 +50,9 @@ npworks-ide = "npworks_ide.app:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+npworks_ide = ["ide/themes/*.qss"]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",

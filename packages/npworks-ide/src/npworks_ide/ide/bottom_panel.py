@@ -62,6 +62,9 @@ class BottomPanel(QWidget):
         self._terminal_factory = terminal_factory
         self._shell_factory = shell_factory
 
+    def ensure_terminal(self):
+        self._ensure_terminal()
+
     def _ensure_terminal(self):
         if self._terminal is None and self._terminal_factory:
             self._terminal = self._terminal_factory()
@@ -69,6 +72,9 @@ class BottomPanel(QWidget):
             self._stack.removeWidget(old)
             old.deleteLater()
             self._stack.insertWidget(1, self._terminal)
+
+    def ensure_shell(self):
+        self._ensure_shell()
 
     def _ensure_shell(self):
         if self._shell_terminal is None and self._shell_factory:
