@@ -24,27 +24,36 @@ yEs[0] = yE
 xJs[0] = xJ
 yJs[0] = yJ
 
-for i in range(N):
+
+def compute_accelerations(xE, yE, xJ, yJ):
     rE = np.sqrt(xE**2 + yE**2)
     rJ = np.sqrt(xJ**2 + yJ**2)
     dx = xE - xJ
     dy = yE - yJ
     rEJ = np.sqrt(dx**2 + dy**2)
-
     axE = -GM * xE / rE**3 - GM * mass_ratio * dx / rEJ**3
     ayE = -GM * yE / rE**3 - GM * mass_ratio * dy / rEJ**3
     axJ = -GM * xJ / rJ**3
     ayJ = -GM * yJ / rJ**3
+    return axE, ayE, axJ, ayJ
 
-    vxE = vxE + axE * dt
-    vyE = vyE + ayE * dt
-    xE = xE + vxE * dt
-    yE = yE + vyE * dt
 
-    vxJ = vxJ + axJ * dt
-    vyJ = vyJ + ayJ * dt
-    xJ = xJ + vxJ * dt
-    yJ = yJ + vyJ * dt
+axE, ayE, axJ, ayJ = compute_accelerations(xE, yE, xJ, yJ)
+
+for i in range(N):
+    xE = xE + vxE * dt + 0.5 * axE * dt**2
+    yE = yE + vyE * dt + 0.5 * ayE * dt**2
+    xJ = xJ + vxJ * dt + 0.5 * axJ * dt**2
+    yJ = yJ + vyJ * dt + 0.5 * ayJ * dt**2
+
+    axE_new, ayE_new, axJ_new, ayJ_new = compute_accelerations(xE, yE, xJ, yJ)
+
+    vxE = vxE + 0.5 * (axE + axE_new) * dt
+    vyE = vyE + 0.5 * (ayE + ayE_new) * dt
+    vxJ = vxJ + 0.5 * (axJ + axJ_new) * dt
+    vyJ = vyJ + 0.5 * (ayJ + ayJ_new) * dt
+
+    axE, ayE, axJ, ayJ = axE_new, ayE_new, axJ_new, ayJ_new
 
     xEs[i + 1] = xE
     yEs[i + 1] = yE
@@ -59,7 +68,7 @@ ax.plot(xEs[0], yEs[0], 'b^', markersize=6)
 ax.plot(xJs[0], yJs[0], 'r^', markersize=6)
 ax.set_xlabel('x (AU)')
 ax.set_ylabel('y (AU)')
-ax.set_title('Earth-Jupiter Orbits ({} years)'.format(int(T)))
+ax.set_title('Earth-Jupiter Orbits ({}, velocity Verlet)'.format(int(T)))
 ax.set_aspect('equal')
 ax.legend()
 ax.grid(True, alpha=0.3)
