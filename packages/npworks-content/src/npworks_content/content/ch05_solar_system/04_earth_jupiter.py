@@ -77,4 +77,4 @@ plt.tight_layout()
 
 plt.suptitle('earth_jupiter')
 plt.show()
-print('ch04_earth_jupiter.png saved')
+print('ch05_earth_jupiter.png saved')

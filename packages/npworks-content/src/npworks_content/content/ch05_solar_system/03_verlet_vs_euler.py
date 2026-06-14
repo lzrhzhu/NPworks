@@ -99,4 +99,4 @@ plt.tight_layout()
 
 plt.suptitle('verlet_vs_euler')
 plt.show()
-print('ch04_verlet_vs_euler.png saved')
+print('ch05_verlet_vs_euler.png saved')
