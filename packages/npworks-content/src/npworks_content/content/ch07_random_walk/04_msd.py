@@ -30,4 +30,4 @@ plt.tight_layout()
 
 plt.suptitle('msd')
 plt.show()
-print('ch06_msd.png saved')
+print('ch07_msd.png saved')

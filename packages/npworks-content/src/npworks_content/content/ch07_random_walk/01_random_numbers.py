@@ -30,4 +30,4 @@ plt.tight_layout()
 
 plt.suptitle('random_numbers')
 plt.show()
-print('ch06_random_numbers.png saved')
+print('ch07_random_numbers.png saved')

@@ -36,4 +36,4 @@ plt.tight_layout()
 
 plt.suptitle('lj_potential')
 plt.show()
-print('ch05_lj_potential.png saved')
+print('ch06_lj_potential.png saved')

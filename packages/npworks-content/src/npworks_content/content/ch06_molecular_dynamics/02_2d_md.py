@@ -128,6 +128,6 @@ plt.tight_layout()
 
 plt.suptitle('2d_md')
 plt.show()
-print('ch05_2d_md.png saved')
+print('ch06_2d_md.png saved')
 print('Average T = {:.4f}'.format(T_avg))
 print('Energy drift = {:.6f}'.format((sample_E[-1] - sample_E[0]) / abs(sample_E[0])))

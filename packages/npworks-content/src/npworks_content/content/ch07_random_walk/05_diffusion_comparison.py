@@ -35,6 +35,6 @@ plt.tight_layout()
 
 plt.suptitle('diffusion_comparison')
 plt.show()
-print('ch06_diffusion_comparison.png saved')
+print('ch07_diffusion_comparison.png saved')
 print('D = l^2/(2*dt) = {:.4f}'.format(D))
 print('sigma_RW = {:.4f}, sigma_diffusion = {:.4f}'.format(sigma_rw, np.sqrt(2 * D * t)))

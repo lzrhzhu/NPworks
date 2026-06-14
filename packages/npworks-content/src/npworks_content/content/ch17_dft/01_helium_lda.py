@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-15.5.1 Helium atom: KS-DFT with LDA exchange-correlation, minimal basis
+17.5.1 Helium atom: KS-DFT with LDA exchange-correlation, minimal basis
 Single s-type Gaussian: g(r) = (2*alpha/pi)^(3/4) * exp(-alpha*r^2)
 
 KS-DFT energy:  E = 2*H_core + 2*J + E_xc
@@ -130,7 +130,7 @@ eps_ks = h_core(alpha_lda) + 2.0 * coulomb_J(alpha_lda) + V_xc_val
 print(f"\nEnergy decomposition (LDA, alpha*={alpha_lda:.6f}):")
 print(f"  2*H_core  = {2*h_core(alpha_lda):.6f}")
 print(f"  2*J       = {2*coulomb_J(alpha_lda):.6f}")
-print(f"  E_xc      = {E_xc_val:.6f}  (E_x={compute_exc.__module__})")
+print(f"  E_xc      = {E_xc_val:.6f}  (LDA exchange-correlation)")
 E_x_only = 4*np.pi*quad(lambda r: gaussian_density(r, alpha_lda)*epsilon_x(gaussian_density(r, alpha_lda))*r**2 if gaussian_density(r, alpha_lda)>1e-30 else 0, 0, 20, limit=200)[0]
 E_c_only = E_xc_val - E_x_only
 print(f"    E_x     = {E_x_only:.6f}  (LDA exchange)")

@@ -7,10 +7,12 @@ t_end = 5.0
 t = np.arange(0, t_end, dt)
 N = len(t)
 
-gamma_list = [0.1, 0.5, np.pi, 5.0]
-labels = [r'$\gamma=0.1$ (underdamped)', r'$\gamma=0.5$ (underdamped)',
-          r'$\gamma=\pi$ (critical)', r'$\gamma=5.0$ (overdamped)']
-colors = ['b', 'g', 'r', 'm']
+gamma_crit = 2 * omega0
+gamma_list = [0.5, gamma_crit, 25.0]
+labels = [r'$\gamma=0.5$ (underdamped)',
+          r'$\gamma=2\omega_0$ (critical)',
+          r'$\gamma=25.0$ (overdamped)']
+colors = ['b', 'r', 'm']
 
 fig, ax = plt.subplots(figsize=(10, 5))
 

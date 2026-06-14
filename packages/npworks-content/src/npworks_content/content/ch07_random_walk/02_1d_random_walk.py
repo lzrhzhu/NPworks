@@ -21,4 +21,4 @@ plt.tight_layout()
 
 plt.suptitle('1d_random_walk')
 plt.show()
-print('ch06_1d_random_walk.png saved')
+print('ch07_1d_random_walk.png saved')

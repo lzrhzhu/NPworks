@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-14.6.3 H2 Molecule - Minimal Basis HF/SCF Calculation
+16.4.2 H2 Molecule - Minimal Basis HF/SCF Calculation
 STO-3G basis: 3 primitive Gaussians per H atom, K=2 contracted basis functions
 
 Each primitive is individually normalized: g_i(r) = N_i * exp(-alpha_i * |r-R|^2)

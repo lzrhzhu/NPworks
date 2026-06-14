@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-14.4.1 Helium atom minimal basis HF calculation
+16.4.1 Helium atom minimal basis HF calculation
 Single s-type Gaussian basis: g(r) = (2*alpha/pi)^(3/4) * exp(-alpha*r^2)
 
 Analytical integrals:

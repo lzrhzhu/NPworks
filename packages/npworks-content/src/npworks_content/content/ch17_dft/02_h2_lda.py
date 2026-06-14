@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-15.5.2 H2 Molecule: KS-DFT with LDA, STO-3G basis
-Reuses ch14 Gaussian integrals; replaces HF exchange with LDA V_xc
+17.5.2 H2 Molecule: KS-DFT with LDA, STO-3G basis
+Reuses ch16 Gaussian integrals; replaces HF exchange with LDA V_xc
 
 H_KS[mu,nu] = H_core[mu,nu] + J_H[mu,nu] + V_xc[mu,nu]
   J_H[mu,nu] = sum_{lam,sig} P[lam,sig] * (mu,nu|lam,sig)    [analytic ERI]
@@ -171,7 +171,6 @@ def make_mol_grid(ctrs, n_r=35, n_ang=14):
     return all_pts, all_wts
 
 def compute_xc_quantities(P, phi_grid, grid_wts):
-    rho_grid = np.einsum('mn,mn->', np.einsum('m,mn->mn', P.diagonal(), phi_grid), phi_grid)
     rho_grid = np.zeros(phi_grid.shape[1])
     for mu in range(P.shape[0]):
         for nu in range(P.shape[1]):

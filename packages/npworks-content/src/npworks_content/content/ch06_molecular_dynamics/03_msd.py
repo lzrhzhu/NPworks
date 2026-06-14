@@ -104,5 +104,5 @@ plt.tight_layout()
 
 plt.suptitle('msd')
 plt.show()
-print('ch05_msd.png saved')
+print('ch06_msd.png saved')
 print('D (2D) = {:.6f}'.format(D))

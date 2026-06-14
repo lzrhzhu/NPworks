@@ -45,5 +45,5 @@ plt.tight_layout()
 
 plt.suptitle('multi_walker')
 plt.show()
-print('ch06_multi_walker.png saved')
+print('ch07_multi_walker.png saved')
 print('Sim RMS = {:.4f}, Theory RMS = {:.4f}'.format(rms_sim, rms_theory))
