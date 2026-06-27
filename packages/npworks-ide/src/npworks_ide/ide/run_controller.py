@@ -2,17 +2,35 @@ from datetime import datetime
 
 
 class RunController:
-    def __init__(self, main_window, executor, output_panel, bottom_panel):
+    def __init__(self, main_window, executor, output_panel):
         self._mw = main_window
         self._executor = executor
         self._output = output_panel
-        self._bottom = bottom_panel
         self._start_time = None
-        self.terminal = None
-        self.shell_terminal = None
+        self.terminal = None           # IPython TerminalWidget（懒创建）
+        self.shell_terminal = None     # Shell TerminalPanel（懒创建）
+        self._ipython_panel = None     # _LazyPanel
+        self._shell_panel = None       # _LazyPanel
+
+    def set_terminal_panels(self, ipython_panel, shell_panel):
+        self._ipython_panel = ipython_panel
+        self._shell_panel = shell_panel
 
     def _current_editor(self):
         return self._mw._current_editor()
+
+    def _show_panel(self, panel_id):
+        self._mw._show_panel(panel_id)
+
+    def _ensure_ipython(self):
+        if self.terminal is None and self._ipython_panel is not None:
+            self.terminal = self._ipython_panel.ensure()
+        return self.terminal
+
+    def _ensure_shell(self):
+        if self.shell_terminal is None and self._shell_panel is not None:
+            self.shell_terminal = self._shell_panel.ensure()
+        return self.shell_terminal
 
     def run_code(self):
         editor = self._current_editor()
@@ -24,8 +42,7 @@ class RunController:
         self._output.clear_output()
         self._start_time = datetime.now()
         self._output.append_system(">>> 运行中...")
-        self._bottom.show()
-        self._bottom.show_output_tab()
+        self._show_panel("output")
         if not self._executor.execute(code):
             self._start_time = None
 
@@ -46,11 +63,10 @@ class RunController:
         line, _ = editor.getCursorPosition()
         text = editor.text(line).strip()
         if text:
-            self._bottom.show()
-            self._bottom.show_terminal_tab()
-            self._bottom.ensure_terminal()
-            if self.terminal:
-                self.terminal.execute_command(text)
+            self._show_panel("ipython")
+            terminal = self._ensure_ipython()
+            if terminal:
+                terminal.execute_command(text)
 
     def run_line_in_shell(self):
         editor = self._current_editor()
@@ -59,29 +75,28 @@ class RunController:
         line, _ = editor.getCursorPosition()
         text = editor.text(line).strip()
         if text:
-            self._bottom.show()
-            self._bottom.show_shell_tab()
-            self._bottom.ensure_shell()
-            if self.shell_terminal:
-                self.shell_terminal.execute_command(text)
+            self._show_panel("shell")
+            shell = self._ensure_shell()
+            if shell:
+                shell.execute_command(text)
 
     def new_terminal(self):
-        self._bottom.show()
-        self._bottom.show_shell_tab()
-        if self.shell_terminal:
-            self.shell_terminal.add_terminal()
+        self._show_panel("shell")
+        shell = self._ensure_shell()
+        if shell:
+            shell.add_terminal()
 
     def close_terminal(self):
         if self.shell_terminal:
             self.shell_terminal.close_terminal()
 
     def show_ipython_terminal(self):
-        self._bottom.show()
-        self._bottom.show_terminal_tab()
+        self._show_panel("ipython")
+        self._ensure_ipython()
 
     def show_shell_terminal(self):
-        self._bottom.show()
-        self._bottom.show_shell_tab()
+        self._show_panel("shell")
+        self._ensure_shell()
 
     def send_input(self, text):
         self._executor.send_input(text)
@@ -92,6 +107,7 @@ class RunController:
 
     def on_execution_finished(self, exit_code, exit_status):
         self._output.hide_input()
+        self._output.flush_output()
         if self._start_time:
             elapsed = (datetime.now() - self._start_time).total_seconds()
             self._mw._run_label.setText("")

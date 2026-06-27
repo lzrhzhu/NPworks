@@ -7,23 +7,41 @@ _MAX_RECENT = 10
 
 
 class ActionManager:
-    def __init__(self, main_window, tab_manager, file_tree, output_panel, executor, bottom_panel):
+    def __init__(self, main_window, tab_manager, file_tree, output_panel, executor):
         self._main_window = main_window
         self._tabs = tab_manager
         self._file_tree = file_tree
         self._output = output_panel
         self._executor = executor
-        self._bottom = bottom_panel
         self._settings = QSettings("npworks", "npworks")
         self._recent_actions = []
         self._recent_menu = None
+        self._recent_folder_actions = []
+        self._recent_folders_menu = None
 
     def new_file(self):
         self._tabs.new_file()
 
+    def _default_open_dir(self):
+        """上一次使用的目录；用于打开文件/文件夹对话框的起始目录。"""
+        last = self._settings.value("last_dir", "")
+        if last and os.path.isdir(last):
+            return last
+        folders = self._settings.value("recent_folders", [])
+        if isinstance(folders, str):
+            folders = [folders]
+        for f in folders:
+            if f and os.path.isdir(f):
+                return f
+        for f in self._file_tree.get_open_folders():
+            if os.path.isdir(f):
+                return f
+        d = os.path.expanduser("~/npworks")
+        os.makedirs(d, exist_ok=True)
+        return d
+
     def open_file(self):
-        default_dir = os.path.expanduser("~/npworks")
-        os.makedirs(default_dir, exist_ok=True)
+        default_dir = self._default_open_dir()
         paths, _ = QFileDialog.getOpenFileNames(
             self._main_window, "打开文件", default_dir, "Python 文件 (*.py);;Markdown (*.md);;CSV 表格 (*.csv *.tsv);;PDF (*.pdf);;图片 (*.png *.jpg *.bmp *.gif);;所有文件 (*)"
         )
@@ -31,25 +49,11 @@ class ActionManager:
             self._open_file_by_path(path)
 
     def open_file_by_path(self, path):
-        self._open_file_by_path(path)
+        self._main_window._open_file_by_path(path)
 
     def _open_file_by_path(self, path):
-        if not path or not os.path.isfile(path):
-            return
-        idx, existing = self._tabs.find_tab_by_path(path)
-        if existing:
-            self._tabs.switch_to_tab(idx)
-            existing.setFocus()
-            return
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                code = f.read()
-            title = os.path.basename(path)
-            editor = self._tabs.add_editor_tab(title, code, code, file_path=path)
-            editor.file_dropped.connect(self._open_file_by_path)
-            self._add_recent_file(path)
-        except Exception as e:
-            QMessageBox.warning(self._main_window, "打开失败", str(e))
+        # 统一走注册表（与菜单/文件树一致），保证 .md/.pdf/.csv 等由对应插件渲染
+        self._main_window._open_file_by_path(path)
 
     def save_code(self):
         from npworks_ide.ide.editor_registry import EditorView
@@ -124,10 +128,24 @@ class ActionManager:
 
     def open_folder(self):
         path = QFileDialog.getExistingDirectory(
-            self._main_window, "打开文件夹", os.path.expanduser("~")
+            self._main_window, "打开文件夹", self._default_open_dir()
         )
         if not path:
             return
+        self._settings.setValue("last_dir", path)
+        self._add_recent_folder(path)
+        if self._file_tree.is_content_source_dir(path):
+            self._file_tree.focus_textbook_root()
+            return
+        self._file_tree.add_root(path)
+        self._save_open_folders()
+
+    def open_folder_path(self, path):
+        """打开一个历史记录中的文件夹。"""
+        if not path or not os.path.isdir(path):
+            return
+        self._settings.setValue("last_dir", path)
+        self._add_recent_folder(path)
         if self._file_tree.is_content_source_dir(path):
             self._file_tree.focus_textbook_root()
             return
@@ -191,6 +209,54 @@ class ActionManager:
             return
         self._open_file_by_path(path)
 
+    def _add_recent_folder(self, path):
+        path = os.path.normpath(path)
+        folders = self._settings.value("recent_folders", [])
+        if isinstance(folders, str):
+            folders = [folders]
+        folders = [f for f in folders if os.path.normpath(f) != path]
+        folders.insert(0, path)
+        folders = folders[:_MAX_RECENT]
+        self._settings.setValue("recent_folders", folders)
+        self._update_recent_folders_menu()
+
+    def update_recent_folders_menu(self):
+        self._update_recent_folders_menu()
+
+    def _update_recent_folders_menu(self):
+        if self._recent_folders_menu is None:
+            return
+        self._recent_folders_menu.clear()
+        self._recent_folder_actions.clear()
+        folders = self._settings.value("recent_folders", [])
+        if isinstance(folders, str):
+            folders = [folders]
+        for path in folders:
+            if not os.path.isdir(path):
+                continue
+            action = QAction(os.path.basename(path), self._main_window)
+            action.setToolTip(path)
+            action.setData(path)
+            action.triggered.connect(self._open_recent_folder)
+            self._recent_folders_menu.addAction(action)
+            self._recent_folder_actions.append(action)
+
+    def _open_recent_folder(self):
+        action = self._main_window.sender()
+        if not action:
+            return
+        path = action.data()
+        if not path:
+            return
+        if not os.path.isdir(path):
+            QMessageBox.warning(self._main_window, "文件夹不存在", path)
+            return
+        self.open_folder_path(path)
+
     def set_recent_menu(self, menu):
         self._recent_menu = menu
         self._update_recent_menu()
+
+    def set_recent_folders_menu(self, menu):
+        self._recent_folders_menu = menu
+        self._update_recent_folders_menu()

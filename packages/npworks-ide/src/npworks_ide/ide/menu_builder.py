@@ -14,6 +14,8 @@ class MenuBuilder:
         self._add_action(file_menu, "新建(&N)", self._mw._new_file, QKeySequence.New)
         self._add_action(file_menu, "打开(&O)...", self._mw._open_file, QKeySequence.Open)
         self._add_action(file_menu, "打开文件夹(&F)...", self._mw._open_folder)
+        recent_folders_menu = file_menu.addMenu("最近文件夹(&H)")
+        self._mw._actions.set_recent_folders_menu(recent_folders_menu)
         recent_menu = file_menu.addMenu("最近文件(&R)")
         self._mw._actions.set_recent_menu(recent_menu)
         file_menu.addSeparator()
@@ -62,10 +64,25 @@ class MenuBuilder:
         self._add_action(run_menu, "关闭当前终端", self._mw.run_ctrl.close_terminal)
 
         view_menu = mb.addMenu("视图(&V)")
+        self._add_action(view_menu, "命令面板(&C)", self._mw._open_command_palette,
+                         QKeySequence(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_P))
+        self._add_action(view_menu, "转到文件(&G)", self._mw._open_quick_open,
+                         QKeySequence(Qt.ControlModifier | Qt.Key_P))
+        view_menu.addSeparator()
+        # 三个固定栏位的显示/隐藏
+        self._add_zone_toggle(view_menu, "第一侧边栏(&P)",
+                              self._mw.is_primary_sidebar,
+                              self._mw.set_primary_sidebar, "left")
+        self._add_zone_toggle(view_menu, "第二侧边栏(&S)",
+                              self._mw.is_secondary_sidebar,
+                              self._mw.set_secondary_sidebar, "right")
+        self._add_zone_toggle(view_menu, "底部面板(&B)",
+                              self._mw.is_panel,
+                              self._mw.set_panel, "bottom",
+                              QKeySequence(Qt.ControlModifier | Qt.Key_QuoteLeft))
+        view_menu.addSeparator()
         self._add_action(view_menu, "文件浏览器(&E)", self._mw._toggle_explorer)
         self._add_action(view_menu, "大纲(&O)", self._mw._toggle_outline)
-        self._add_action(view_menu, "底部面板(&B)", self._mw._toggle_bottom_panel,
-                         QKeySequence(Qt.ControlModifier | Qt.Key_QuoteLeft))
         view_menu.addSeparator()
         self._add_action(view_menu, "IPython 终端(&I)", self._mw.run_ctrl.show_ipython_terminal)
         self._add_action(view_menu, "Shell 终端(&S)", self._mw.run_ctrl.show_shell_terminal)
@@ -95,4 +112,15 @@ class MenuBuilder:
             action.setShortcut(shortcut)
         action.triggered.connect(slot)
         menu.addAction(action)
+        return action
+
+    def _add_zone_toggle(self, menu, text, getter, setter, zone, shortcut=None):
+        """添加一个栏位显示/隐藏的可勾选菜单项，并与实际状态保持同步。"""
+        action = QAction(text, self._mw, checkable=True)
+        action.setChecked(getter())
+        if shortcut:
+            action.setShortcut(shortcut)
+        action.triggered.connect(lambda checked: setter(checked))
+        menu.addAction(action)
+        self._mw._zone_actions[zone] = action
         return action

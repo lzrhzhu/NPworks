@@ -22,9 +22,8 @@ class PluginAPI:
         registry.register(provider)
 
     def register_view(self, view, side="primary"):
-        """把一个 SideView 挂载到主/次侧边栏。"""
-        panel = self._mw._primary if side == "primary" else self._mw._secondary
-        panel.add_view(view)
+        """把一个 SideView 挂载为可停靠面板（默认左栏）。"""
+        self._mw.add_plugin_view(view, side)
 
     def register_activity(self, icon_key, tooltip, view_id=None,
                           on_activate=None, bottom=False):

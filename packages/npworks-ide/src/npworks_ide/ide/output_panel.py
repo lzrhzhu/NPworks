@@ -1,7 +1,7 @@
 import re
 
 from PyQt5.QtCore import pyqtSignal, QSettings
-from PyQt5.QtGui import QFont, QTextCharFormat, QColor
+from PyQt5.QtGui import QFont, QTextCharFormat, QColor, QImage
 from PyQt5.QtWidgets import (
     QTextBrowser, QWidget, QHBoxLayout, QLineEdit,
     QPushButton, QVBoxLayout, QLabel, QFrame,
@@ -10,11 +10,13 @@ from PyQt5.QtWidgets import (
 from npworks_ide.ide.theme import get_colors
 
 _TRACEBACK_RE = re.compile(r'(File\s+"[^"]*",\s*line\s+)(\d+)')
+_FIG_MARK = "__NPWORKS_FIG__:"
 
 
 class OutputPanel(QWidget):
     jump_to_line = pyqtSignal(int)
     input_submitted = pyqtSignal(str)
+    figure_ready = pyqtSignal(str)   # 捕获到 matplotlib 图：path
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -73,6 +75,8 @@ class OutputPanel(QWidget):
         self._input_field.returnPressed.connect(self._on_input_submit)
         self._send_btn.clicked.connect(self._on_input_submit)
 
+        self._out_buf = ""
+
     def _on_input_submit(self):
         text = self._input_field.text()
         if text:
@@ -87,6 +91,26 @@ class OutputPanel(QWidget):
         self._input_row.setVisible(False)
 
     def append_stdout(self, text: str):
+        self._out_buf += text
+        parts = self._out_buf.split("\n")
+        self._out_buf = parts[-1]
+        for line in parts[:-1]:
+            if line.startswith(_FIG_MARK):
+                self.figure_ready.emit(line[len(_FIG_MARK):].strip())
+            else:
+                self._append_text(line + "\n")
+
+    def flush_output(self):
+        """运行结束时冲刷残留缓冲。"""
+        if self._out_buf:
+            line = self._out_buf
+            self._out_buf = ""
+            if line.startswith(_FIG_MARK):
+                self.figure_ready.emit(line[len(_FIG_MARK):].strip())
+            else:
+                self._append_text(line + "\n")
+
+    def _append_text(self, text: str):
         c = get_colors()
         fmt = QTextCharFormat()
         fmt.setForeground(QColor(c["foreground"]))

@@ -67,6 +67,10 @@ class SettingsPanel(DocumentPanel):
         root.addWidget(self._section_label("外观"))
         root.addWidget(self._appearance_card())
 
+        # === 运行 (Run) ===
+        root.addWidget(self._section_label("运行"))
+        root.addWidget(self._run_card())
+
         root.addStretch()
 
         self.apply_theme(self._settings.value("theme", "light"))
@@ -78,6 +82,22 @@ class SettingsPanel(DocumentPanel):
         f.setBold(True)
         lbl.setFont(f)
         return lbl
+
+    def _run_card(self):
+        card = QFrame()
+        card.setObjectName("settings_card")
+        form = QFormLayout(card)
+        form.setLabelAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        form.setContentsMargins(16, 14, 16, 14)
+        form.setSpacing(10)
+
+        cap = QCheckBox("捕获 matplotlib 图表到侧栏（关闭则用外部窗口）")
+        cap.setChecked(self._settings.value("run/capture_figures", "1") != "0")
+        cap.stateChanged.connect(
+            lambda _st: self._settings.setValue(
+                "run/capture_figures", "1" if cap.isChecked() else "0"))
+        form.addRow(cap)
+        return card
 
     def _appearance_card(self):
         mw = self._mw
@@ -96,8 +116,8 @@ class SettingsPanel(DocumentPanel):
 
         form.addRow(chk(mw.is_menu_bar, mw.set_menu_bar, "显示菜单栏"))
         form.addRow(chk(mw.is_primary_sidebar, mw.set_primary_sidebar, "显示第一侧边栏（主侧边栏）"))
-        form.addRow(chk(mw.is_secondary_sidebar, mw.set_secondary_sidebar, "显示第二侧边栏（次侧边栏）"))
-        form.addRow(chk(mw.is_panel, mw.set_panel, "显示底部面板"))
+        form.addRow(chk(mw.is_figures_dock, mw.set_figures_dock, "显示图表栏（可拖拽停靠）"))
+        form.addRow(chk(mw.is_panel, mw.set_panel, "显示输出面板（可拖拽停靠）"))
         form.addRow(chk(mw.is_status_bar, mw.set_status_bar, "显示状态栏"))
 
         form.addRow(self._section_label("视图"))

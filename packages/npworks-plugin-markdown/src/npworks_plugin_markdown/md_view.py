@@ -219,9 +219,10 @@ class MarkdownSplitView(QWidget, EditorView):
         try:
             from PyQt5.Qsci import QsciLexerMarkdown
             self._md_lexer = QsciLexerMarkdown(self._editor)
-            self._md_lexer.setFont(QFont("Consolas", 11))
+            self._style_md_lexer()
             self._editor.setLexer(self._md_lexer)
         except ImportError:
+            self._md_lexer = None
             self._editor.setLexer(None)
 
         we = _webengine_classes()
@@ -254,7 +255,7 @@ class MarkdownSplitView(QWidget, EditorView):
 
         self._editor.set_code(text)
         self._original_text = text
-        self._update_preview(text)
+        self._preview_ready = False   # 源码模式下不预渲染，点"分栏/预览"才构建
 
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
@@ -262,8 +263,8 @@ class MarkdownSplitView(QWidget, EditorView):
         self._timer.timeout.connect(self._on_timer)
         self._editor.textChanged.connect(lambda: self._timer.start())
 
-        saved = QSettings("npworks", "npworks").value("markdown/view_mode", MODE_SPLIT)
-        self._set_mode(saved if saved in (MODE_SOURCE, MODE_SPLIT, MODE_PREVIEW) else MODE_SPLIT)
+        saved = QSettings("npworks", "npworks").value("markdown/view_mode", MODE_SOURCE)
+        self._set_mode(saved if saved in (MODE_SOURCE, MODE_SPLIT, MODE_PREVIEW) else MODE_SOURCE)
         self.apply_theme(QSettings("npworks", "npworks").value("theme", "light"))
 
     def _set_mode(self, mode):
@@ -273,6 +274,10 @@ class MarkdownSplitView(QWidget, EditorView):
             b.setChecked(k == mode)
         self._editor.setVisible(mode in (MODE_SOURCE, MODE_SPLIT))
         self._preview.setVisible(mode in (MODE_SPLIT, MODE_PREVIEW))
+        # 切到分栏/预览时按需构建预览（源码模式不渲染）
+        if mode in (MODE_SPLIT, MODE_PREVIEW) and not self._preview_ready:
+            self._update_preview(self._editor.text())
+            self._preview_ready = True
         # 强制重排 splitter
         self._splitter.setSizes([500, 500] if mode == MODE_SPLIT else [1, 1])
 
@@ -281,7 +286,9 @@ class MarkdownSplitView(QWidget, EditorView):
         return self._path
 
     def _on_timer(self):
-        self._update_preview(self._editor.text())
+        # 仅在预览可见时刷新，避免源码模式下空跑渲染
+        if self._mode in (MODE_SPLIT, MODE_PREVIEW):
+            self._update_preview(self._editor.text())
 
     def _update_preview(self, text):
         base_dir = os.path.dirname(self._path)
@@ -294,6 +301,31 @@ class MarkdownSplitView(QWidget, EditorView):
 
     def get_editor(self):
         return self._editor
+
+    def _style_md_lexer(self):
+        """用主题前景色统一样式（去掉难读的蓝色）：标题加粗、强调斜体。"""
+        if getattr(self, "_md_lexer", None) is None:
+            return
+        from PyQt5.QtGui import QColor
+        from npworks_ide.ide.theme import get_colors
+        c = get_colors()
+        fg, bg = c["foreground"], c["background"]
+        lexer = self._md_lexer
+        for sty in range(128):
+            desc = (lexer.description(sty) or "").lower()
+            if not desc:
+                continue
+            font = QFont("Consolas", 11)
+            if any(k in desc for k in ("header", "heading", "strong", "title", "h1", "h2")):
+                font.setBold(True)
+            if any(k in desc for k in ("emphasis", "italic")):
+                font.setItalic(True)
+            lexer.setColor(QColor(fg), sty)
+            lexer.setPaper(QColor(bg), sty)
+            lexer.setFont(font, sty)
+        lexer.setDefaultColor(QColor(fg))
+        lexer.setDefaultPaper(QColor(bg))
+        lexer.setFont(QFont("Consolas", 11))
 
     # --- EditorView 接口 ---
     def editor_title(self):
@@ -328,6 +360,7 @@ class MarkdownSplitView(QWidget, EditorView):
             f"color: {v['fg']}; border-color: {v['border_input']}; }}"
         )
         self._editor.apply_theme()
+        self._style_md_lexer()
 
     def apply_editor_prefs(self):
         self._editor.apply_editor_prefs()

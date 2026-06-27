@@ -3,10 +3,9 @@ from npworks_ide.ide.editor_registry import EditorView
 
 
 class ThemeController:
-    def __init__(self, main_window, tab_widget, bottom_panel, settings):
+    def __init__(self, main_window, tab_widget, settings):
         self._mw = main_window
         self._tab_widget = tab_widget
-        self._bottom = bottom_panel
         self._settings = settings
         self._theme_actions = []
 

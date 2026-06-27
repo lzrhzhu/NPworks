@@ -137,7 +137,7 @@ class FileTree(QWidget):
     file_renamed = pyqtSignal(str, str)
     file_deleted = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, textbook_only=False):
         super().__init__(parent)
         self._roots = []
         self._textbook_dir = None
@@ -146,6 +146,7 @@ class FileTree(QWidget):
         self._show_hidden = False
         self._clipboard_path = None
         self._clipboard_is_cut = False
+        self._textbook_only = textbook_only
 
         self._fs_watcher = QFileSystemWatcher(self)
         self._fs_watcher.directoryChanged.connect(self._on_fs_dir_changed)
@@ -183,6 +184,7 @@ class FileTree(QWidget):
         self._btn_open.setObjectName("file_tree_btn")
         self._btn_open.setCursor(Qt.PointingHandCursor)
         self._btn_open.clicked.connect(self._on_open_folder_btn)
+        self._btn_open.setVisible(not textbook_only)
         tb_layout.addWidget(self._btn_open)
 
         self._btn_collapse = QPushButton("全部折叠")
@@ -208,6 +210,12 @@ class FileTree(QWidget):
         tb_layout.addWidget(self._btn_hidden)
 
         layout.addWidget(toolbar)
+
+        if textbook_only:
+            # 教材专用：只加载 NPWORKS 内容（教材配套程序），不加载用户文件夹
+            self.init_textbook()
+            if self.root_count() > 0:
+                self.expand_first_root()
 
     def init_textbook(self):
         try:

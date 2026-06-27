@@ -46,6 +46,14 @@ _COMPLETION_WORDS = sorted(set(
         "append", "extend", "insert", "remove", "pop", "sort", "reverse",
         "keys", "values", "items", "get", "update",
         "numpy", "np", "scipy", "matplotlib", "plt",
+        # numpy/matplotlib 常用成员（供输入时提示）
+        "array", "linspace", "arange", "zeros", "ones", "empty", "eye", "diag",
+        "meshgrid", "dot", "matmul", "cross", "exp", "log", "sqrt", "sin", "cos",
+        "tan", "arctan2", "sum", "mean", "std", "max", "min", "abs", "where",
+        "reshape", "transpose", "rand", "randn", "seed", "randint",
+        "figure", "plot", "scatter", "imshow", "contour", "xlabel", "ylabel",
+        "title", "legend", "colorbar", "show", "savefig", "subplot", "xlim",
+        "ylim", "grid", "hist", "pcolormesh", "quiver",
     ]
 ))
 
@@ -152,7 +160,7 @@ class CodeEditor(QsciScintilla, EditorView):
         self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
         self.setAnnotationDisplay(QsciScintilla.AnnotationHidden)
         self.setAutoCompletionThreshold(2)
-        self.setAutoCompletionSource(QsciScintilla.AcsAPIs)
+        self.setAutoCompletionSource(QsciScintilla.AcsAll)
         self.setAutoCompletionCaseSensitivity(False)
         self.setSelectionBackgroundColor(QColor("#ADD6FF"))
         self.setSelectionForegroundColor(QColor("#000000"))

@@ -101,6 +101,9 @@ class SideBarPanel(QWidget):
         self._move_icon = icon
         self._move_btn.setIcon(icon)
 
+    def set_move_visible(self, visible):
+        self._move_btn.setVisible(visible)
+
     def _emit_move(self):
         if self._current and self._on_move:
             self._on_move(self._current)

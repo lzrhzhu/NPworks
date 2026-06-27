@@ -461,6 +461,37 @@ QStackedWidget {
     padding: 20px;
 }
 
+#figures_view {
+    background: {bg_main};
+}
+
+/* === Dock Zones (可拖拽停靠栏位) === */
+QTabWidget#dock_zone::pane {
+    border: none;
+    background: {bg_main};
+}
+QTabWidget#dock_zone > QTabBar {
+    background: {bg_menu};
+    qproperty-drawBase: 0;
+}
+QTabWidget#dock_zone > QTabBar::tab {
+    background: transparent;
+    color: {fg_dim};
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+QTabWidget#dock_zone > QTabBar::tab:hover {
+    color: {fg};
+    background: {hover};
+}
+QTabWidget#dock_zone > QTabBar::tab:selected {
+    color: {activity_checked_fg};
+    border-bottom: 2px solid {accent};
+}
+
 /* === Window Control Buttons === */
 #wc_btn {
     background: transparent;
