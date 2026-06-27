@@ -1,0 +1,11 @@
+title: 第15章 等离子体物理与粒子模拟
+description: PIC、德拜屏蔽与朗道阻尼
+sections:
+- file: 01_debye_shielding.py
+  title: 01 Debye Shielding
+- file: 02_plasma_oscillation.py
+  title: 02 Plasma Oscillation
+- file: 03_pic_two_stream.py
+  title: 03 Pic Two Stream
+- file: 04_landau_damping.py
+  title: 04 Landau Damping

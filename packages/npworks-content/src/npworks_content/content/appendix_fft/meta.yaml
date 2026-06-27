@@ -1,0 +1,9 @@
+title: 附录A 傅里叶分析与FFT
+description: 离散傅里叶变换与 FFT
+sections:
+- file: 01_fft_spectrum.py
+  title: 01 Fft Spectrum
+- file: 02_fft_noisy.py
+  title: 02 Fft Noisy
+- file: 03_fft_convolution.py
+  title: 03 Fft Convolution

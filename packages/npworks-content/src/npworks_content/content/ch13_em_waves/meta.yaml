@@ -1,0 +1,7 @@
+title: 第13章 电磁波
+description: FDTD、Yee 网格与 PML
+sections:
+- file: 01_fdtd_1d_gaussian.py
+  title: 01 Fdtd 1d Gaussian
+- file: 02_fdtd_2d_point_source.py
+  title: 02 Fdtd 2d Point Source

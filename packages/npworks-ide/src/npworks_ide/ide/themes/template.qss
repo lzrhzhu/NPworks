@@ -8,12 +8,15 @@ QMenuBar {
     background: {bg_menu};
     color: {fg};
     border-bottom: 1px solid {border};
-    padding: 1px;
+    padding: 0px;
+    min-height: 32px;
     font-size: 13px;
 }
 QMenuBar::item {
-    padding: 4px 10px;
+    padding: 0px 10px;
     border-radius: 4px;
+    margin: 4px 0px;
+    background: transparent;
 }
 QMenuBar::item:selected {
     background: {accent_bg};
@@ -77,42 +80,45 @@ QToolBar::separator {
 QTabWidget::pane {
     border: none;
     background: {bg_main};
+    border-top: 1px solid {border};
 }
 QTabBar {
     background: {bg_menu};
-    border-bottom: 1px solid {border};
+    border: none;
     font-size: 13px;
+    qproperty-drawBase: 0;
 }
 QTabBar::tab {
-    background: transparent;
+    background: {bg_menu};
     color: {fg_dim};
-    padding: 7px 16px;
+    padding: 5px 8px 5px 14px;
     border: none;
-    border-bottom: 2px solid transparent;
-    margin-right: 0px;
-    min-width: 80px;
+    border-top: 1px solid transparent;
+    border-right: 1px solid {border};
+    margin: 0;
+    min-width: 100px;
 }
 QTabBar::tab:hover {
     color: {fg};
     background: {hover};
 }
 QTabBar::tab:selected {
-    color: {activity_checked_fg};
-    border-bottom: 2px solid {accent};
+    color: {fg};
     background: {bg_main};
+    border-top: 1px solid {accent};
 }
 QTabBar::close-button {
+    image: url({res_dir}/tab_close_dim.svg);
     subcontrol-position: right;
-    image: none;
-    width: 18px; height: 18px;
+    width: 14px; height: 14px;
+    margin: 0 2px;
+    padding: 0;
     border-radius: 3px;
-    color: {fg_dim};
-    font-size: 14px;
-    font-weight: bold;
 }
 QTabBar::close-button:hover {
-    background: {close_hover};
-    color: {close_hover_fg};
+    image: url({res_dir}/tab_close_bright.svg);
+    background: {hover};
+    border-radius: 3px;
 }
 
 /* === Splitter === */
@@ -229,12 +235,12 @@ QTextEdit#output_text {
 /* === Scroll Bar === */
 QScrollBar:vertical {
     background: transparent;
-    width: 10px;
+    width: 12px;
     margin: 0;
 }
 QScrollBar::handle:vertical {
     background: {scrollbar};
-    border-radius: 5px;
+    border-radius: 6px;
     min-height: 30px;
 }
 QScrollBar::handle:vertical:hover { background: {scrollbar_hover}; }
@@ -243,12 +249,12 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none;
 
 QScrollBar:horizontal {
     background: transparent;
-    height: 10px;
+    height: 12px;
     margin: 0;
 }
 QScrollBar::handle:horizontal {
     background: {scrollbar};
-    border-radius: 5px;
+    border-radius: 6px;
     min-width: 30px;
 }
 QScrollBar::handle:horizontal:hover { background: {scrollbar_hover}; }
@@ -453,4 +459,32 @@ QStackedWidget {
     color: {placeholder_fg};
     font-size: 13px;
     padding: 20px;
+}
+
+/* === Window Control Buttons === */
+#wc_btn {
+    background: transparent;
+    border: none;
+    width: 46px;
+    height: 32px;
+    qproperty-iconSize: 12px 12px;
+}
+#wc_btn:hover {
+    background: {hover};
+}
+#wc_btn:pressed {
+    background: {pressed};
+}
+#wc_close {
+    background: transparent;
+    border: none;
+    width: 46px;
+    height: 32px;
+    qproperty-iconSize: 12px 12px;
+}
+#wc_close:hover {
+    background: {close_hover};
+}
+#wc_close:pressed {
+    background: #A83333;
 }

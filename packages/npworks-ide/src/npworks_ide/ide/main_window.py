@@ -1,11 +1,11 @@
 import sys
 import os
 
-from PyQt5.QtCore import Qt, QSettings
-from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt, QSettings, QSize, QPoint, QEvent
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
     QMainWindow, QSplitter, QFileDialog, QMessageBox,
-    QTabWidget, QLabel, QWidget,
+    QTabWidget, QLabel, QWidget, QFrame, QAction,
     QVBoxLayout,
 )
 
@@ -26,12 +26,15 @@ from npworks_ide.ide.theme_controller import ThemeController
 from npworks_ide.ide.preview_image import is_image_file, ImagePreview
 from npworks_ide.ide.preview_markdown import is_markdown_file, MarkdownSplitView
 from npworks_ide.ide.preview_pdf import is_pdf_file, PdfPreview
+from npworks_ide.ide.editor_registry import registry
+from npworks_ide.ide.builtin_editors import register_builtin_editors
 from npworks_ide.runner.executor import Executor, _RC_LINE_COUNT
 
 import npworks_content
 
 _IDX_EXPLORER = 0
 _IDX_OUTLINE = 1
+_IDX_SETTINGS = 2
 
 _SIDEBAR_WIDTH = 260
 
@@ -41,11 +44,16 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("NPworks")
         self.resize(1280, 860)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self._win_controls = None
 
         self._settings = QSettings("npworks", "npworks")
         self._restore_geometry()
 
         self.executor = Executor(self)
+        register_builtin_editors()
+        from npworks_ide.ide import plugin_csv
+        plugin_csv.register()
         self.file_tree = FileTree(self)
         self.output_panel = OutputPanel(self)
         self.find_replace = FindReplacePanel(self)
@@ -80,10 +88,27 @@ class MainWindow(QMainWindow):
         theme_actions = self._menu_builder.build_menu_bar()
         self.theme_ctrl.set_theme_actions(theme_actions)
 
+        self._setup_window_controls()
+
         self._setup_activity_bar()
+        self._build_toolbar()
         self._init_file_tree()
 
         self._restore_layout()
+
+        self.theme_ctrl.apply_window_icon()
+        self.activity_bar.apply_theme_icons(self.theme_ctrl.get_current_theme())
+        self._apply_titlebar(self.theme_ctrl.get_current_theme())
+
+    def _apply_titlebar(self, theme):
+        from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
+        from npworks_ide.ide.native_window import apply_titlebar_theme
+        v = DARK_VARS if theme == "dark" else LIGHT_VARS
+        apply_titlebar_theme(self, theme, v["bg_menu"], v["border"])
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._apply_titlebar(self.theme_ctrl.get_current_theme())
 
     def _setup_layout(self):
         self._outline_placeholder = QLabel("\n\n    大纲视图\n    （开发中）")
@@ -139,10 +164,150 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._v_splitter)
 
     def _setup_activity_bar(self):
-        self.activity_bar.add_button("📁", "文件浏览器")
-        self.activity_bar.add_button("📋", "大纲")
-        self.activity_bar.add_button("⚙", "设置", bottom=True)
+        self.activity_bar.add_button("explorer", "文件浏览器")
+        self.activity_bar.add_button("outline", "大纲")
+        self.activity_bar.add_button("settings", "设置", bottom=True)
         self.activity_bar.set_checked(0)
+
+    def _setup_window_controls(self):
+        from npworks_ide.ide.window_controls import WindowControls
+        self._win_controls = WindowControls(self, self)
+        self._win_controls.refresh_icons(self.theme_ctrl.get_current_theme())
+        self.menuBar().setCornerWidget(self._win_controls, Qt.TopRightCorner)
+
+    def _handle_nchittest(self, lparam):
+        import ctypes
+        x = ctypes.c_short(lparam & 0xFFFF).value
+        y = ctypes.c_short((lparam >> 16) & 0xFFFF).value
+        local = self.mapFromGlobal(QPoint(x, y))
+        b = 6
+        w, h = self.width(), self.height()
+        on_l = local.x() <= b
+        on_r = local.x() >= w - b
+        on_t = local.y() <= b
+        on_b = local.y() >= h - b
+        HT = {"L": 0xA, "R": 0xB, "T": 0xC, "B": 0xF,
+              "TL": 0xD, "TR": 0xE, "BL": 0x10, "BR": 0x11}
+        if on_t and on_l:
+            return (True, HT["TL"])
+        if on_t and on_r:
+            return (True, HT["TR"])
+        if on_b and on_l:
+            return (True, HT["BL"])
+        if on_b and on_r:
+            return (True, HT["BR"])
+        if on_l:
+            return (True, HT["L"])
+        if on_r:
+            return (True, HT["R"])
+        if on_t:
+            return (True, HT["T"])
+        if on_b:
+            return (True, HT["B"])
+        # 菜单栏空白区域作为标题栏（拖动移动 + 双击最大化）
+        mb = self.menuBar()
+        mbl = mb.mapFrom(self, local)
+        if mb.rect().contains(mbl) and mb.actionAt(mbl) is None:
+            corner = mb.cornerWidget(Qt.TopRightCorner)
+            if corner is not None and corner.geometry().contains(mbl):
+                return (False, 0)
+            return (True, 0x2)   # HTCAPTION
+        return (False, 0)
+
+    def nativeEvent(self, eventType, message):
+        if eventType == b"windows_generic_MSG":
+            try:
+                import ctypes
+                from ctypes import wintypes
+                msg = wintypes.MSG.from_address(int(message))
+                if msg.message == 0x0084:   # WM_NCHITTEST
+                    return self._handle_nchittest(msg.lParam)
+            except Exception:
+                pass
+        return super().nativeEvent(eventType, message)
+
+    def changeEvent(self, event):
+        if event.type() == QEvent.WindowStateChange and self._win_controls is not None:
+            self._win_controls.update_icons()
+        super().changeEvent(event)
+
+    def _build_toolbar(self):
+        from npworks_ide.ide import icons
+
+        tb = self.addToolBar("main")
+        tb.setMovable(False)
+        tb.setIconSize(QSize(18, 18))
+        tb.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self._toolbar = tb
+        self._toolbar_actions = {}
+
+        def add(key, slot, tip):
+            act = QAction(self)
+            act.setToolTip(tip)
+            act.triggered.connect(slot)
+            tb.addAction(act)
+            self._toolbar_actions[key] = act
+            return act
+
+        add("new", self._new_file, "新建 (Ctrl+N)")
+        add("open", self._open_file, "打开 (Ctrl+O)")
+        add("save", self._save_code, "保存 (Ctrl+S)")
+        tb.addSeparator()
+        add("run", self.run_ctrl.run_code, "运行 (F5)")
+        add("stop", self.run_ctrl.stop_code, "停止 (Shift+F5)")
+        add("reset", self.run_ctrl.reset_code, "重置代码 (Ctrl+R)")
+        self._refresh_toolbar_icons()
+        self._update_toolbar_state()
+
+    def _refresh_toolbar_icons(self):
+        from npworks_ide.ide import icons
+        from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
+        theme = self.theme_ctrl.get_current_theme()
+        v = DARK_VARS if theme == "dark" else LIGHT_VARS
+        for key, act in self._toolbar_actions.items():
+            act.setIcon(icons.icon(key, v["fg"], 18))
+
+    def _update_toolbar_state(self):
+        from npworks_ide.ide.editor_registry import EditorView
+        widget = self._tab_widget.currentWidget()
+        is_view = isinstance(widget, EditorView)
+        readonly = is_view and widget.is_readonly()
+        has_editor = self._editor_of(widget) is not None
+        self._toolbar_actions["save"].setEnabled(is_view and not readonly)
+        for key in ("run", "stop", "reset"):
+            self._toolbar_actions[key].setEnabled(has_editor)
+
+    def _open_settings(self):
+        from npworks_ide.ide.settings_panel import SettingsPanel
+        self.activity_bar.set_checked(-1)
+        self.open_panel(SettingsPanel(self, self))
+
+    def open_panel(self, panel):
+        """以"文档页面"标签页形式打开任意插件面板（VS Code 风格）。
+
+        面板需继承 DocumentPanel(EditorView)。按 panel_id 去重：已打开则聚焦。
+        """
+        from npworks_ide.ide.editor_registry import EditorView
+        if not isinstance(panel, EditorView):
+            return None
+        pid = getattr(panel, "panel_id", None)
+        if pid:
+            for i in range(self._tab_widget.count()):
+                w = self._tab_widget.widget(i)
+                if getattr(w, "panel_id", None) == pid:
+                    self._tab_widget.setCurrentIndex(i)
+                    return panel
+        idx = self._tab_widget.addTab(panel, panel.editor_title())
+        self._tab_widget.setCurrentIndex(idx)
+        panel.apply_theme(self.theme_ctrl.get_current_theme())
+        return panel
+
+    def _apply_editor_prefs_to_all(self):
+        from npworks_ide.ide.editor_registry import EditorView
+        for i in range(self._tab_widget.count()):
+            widget = self._tab_widget.widget(i)
+            if isinstance(widget, EditorView):
+                widget.apply_editor_prefs()
 
     def _show_sidebar1(self, show=True):
         sizes = self._h_splitter.sizes()
@@ -174,36 +339,38 @@ class MainWindow(QMainWindow):
         sb = self.statusBar()
         sb.setStyleSheet("QStatusBar { border: none; }")
 
-        sep_style = "color: rgba(255,255,255,80); font-size: 12px;"
-
         self._run_label = QLabel("")
         self._run_label.setFont(QFont("Segoe UI", 9))
         sb.addWidget(self._run_label)
 
-        sep1 = QLabel("|")
-        sep1.setStyleSheet(sep_style)
-        sb.addWidget(sep1)
+        sb.addWidget(self._make_status_sep())
 
         self._pos_label = QLabel(" 行 1, 列 1 ")
         self._pos_label.setFont(QFont("Consolas", 9))
         sb.addPermanentWidget(self._pos_label)
 
-        sep2 = QLabel("|")
-        sep2.setStyleSheet(sep_style)
-        sb.addPermanentWidget(sep2)
+        sb.addPermanentWidget(self._make_status_sep())
 
         self._encoding_label = QLabel(" UTF-8 ")
         self._encoding_label.setFont(QFont("Consolas", 9))
         sb.addPermanentWidget(self._encoding_label)
 
-        sep3 = QLabel("|")
-        sep3.setStyleSheet(sep_style)
-        sb.addPermanentWidget(sep3)
+        sb.addPermanentWidget(self._make_status_sep())
 
         py_ver = f" Python {sys.version.split()[0]} "
         py_label = QLabel(py_ver)
         py_label.setFont(QFont("Consolas", 9))
         sb.addPermanentWidget(py_label)
+
+    @staticmethod
+    def _make_status_sep():
+        sep = QFrame()
+        sep.setFrameShape(QFrame.VLine)
+        sep.setFixedHeight(14)
+        sep.setStyleSheet(
+            "QFrame { color: rgba(255,255,255,70); background: transparent; }"
+        )
+        return sep
 
     def _connect_signals(self):
         self.activity_bar.button_clicked.connect(self._on_activity_clicked)
@@ -230,6 +397,8 @@ class MainWindow(QMainWindow):
             self._show_sidebar1(not self._is_sidebar1_visible())
         elif index == _IDX_OUTLINE:
             self._show_sidebar2(not self._is_sidebar2_visible())
+        elif index == _IDX_SETTINGS:
+            self._open_settings()
 
     def _toggle_explorer(self):
         vis = not self._is_sidebar1_visible()
@@ -259,10 +428,15 @@ class MainWindow(QMainWindow):
         if isinstance(saved_folders, str):
             saved_folders = [saved_folders]
         for folder in saved_folders:
-            if os.path.isdir(folder):
-                self.file_tree.add_root(folder)
+            if not os.path.isdir(folder):
+                continue
+            if self.file_tree.is_content_source_dir(folder):
+                continue
+            self.file_tree.add_root(folder)
         if self.file_tree.root_count() > 0:
             self.file_tree.expand_first_root()
+        # 规范化：清掉历史持久化里残留的 content 目录
+        self._actions.save_open_folders()
 
     def _on_tab_changed(self, index):
         widget = self._tab_widget.currentWidget()
@@ -280,6 +454,7 @@ class MainWindow(QMainWindow):
                 self.file_tree.clear_tree_selection()
         elif widget:
             widget.setFocus()
+        self._update_toolbar_state()
 
     def _on_file_selected(self, file_path: str):
         self._open_file_by_path(file_path)
@@ -323,53 +498,36 @@ class MainWindow(QMainWindow):
             existing.setFocus()
             return
 
-        title = os.path.basename(path)
-
-        if is_image_file(path):
-            try:
-                preview = ImagePreview(path, self)
-                idx = self._tab_widget.addTab(preview, f"\U0001F5BC {title}")
-                self._tab_widget.setCurrentIndex(idx)
-                self._actions.add_recent_file(path)
-            except Exception as e:
-                QMessageBox.warning(self, "打开失败", str(e))
-            return
-
-        if is_pdf_file(path):
-            try:
-                preview = PdfPreview(path, self)
-                idx = self._tab_widget.addTab(preview, f"\U0001F4D1 {title}")
-                self._tab_widget.setCurrentIndex(idx)
-                self._actions.add_recent_file(path)
-            except Exception as e:
-                QMessageBox.warning(self, "打开失败", str(e))
-            return
-
-        if is_markdown_file(path):
-            try:
-                split_view = MarkdownSplitView(path, self)
-                idx = self._tab_widget.addTab(split_view, f"\U0001F4C4 {title}")
-                self._tab_widget.setCurrentIndex(idx)
-                self._actions.add_recent_file(path)
-            except Exception as e:
-                QMessageBox.warning(self, "打开失败", str(e))
-            return
-
+        view = None
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                code = f.read()
-            _, ext = os.path.splitext(path)
-            if ext.lower() == ".py":
-                tab_title = f"Py {title}"
-            else:
-                tab_title = title
-            editor = self._tabs.add_editor_tab(tab_title, code, code, file_path=path)
-            editor.cursorPositionChanged.connect(self._update_status_pos)
-            editor.file_dropped.connect(self._open_file_by_path)
-            editor.modificationChanged.connect(lambda m, e=editor: self._on_modification_changed(e, m))
-            self._actions.add_recent_file(path)
+            view = registry.open(path, self)
         except Exception as e:
             QMessageBox.warning(self, "打开失败", str(e))
+            return
+        if view is None:
+            return
+        tab_title = registry.title_for(path)
+        idx = self._tab_widget.addTab(view, tab_title)
+        self._tab_widget.setCurrentIndex(idx)
+        self._actions.add_recent_file(path)
+
+        editor = self._editor_of(view)
+        if editor is not None:
+            editor.cursorPositionChanged.connect(self._update_status_pos)
+            editor.file_dropped.connect(self._open_file_by_path)
+            editor.modificationChanged.connect(
+                lambda m, e=editor: self._on_modification_changed(e, m)
+            )
+
+    def _editor_of(self, widget):
+        """返回某标签视图底层用于编辑/光标/查找的 CodeEditor（查看器返回 None）。"""
+        from npworks_ide.ide.editor import CodeEditor
+        from npworks_ide.ide.preview_markdown import MarkdownSplitView
+        if isinstance(widget, CodeEditor):
+            return widget
+        if isinstance(widget, MarkdownSplitView):
+            return widget.get_editor()
+        return None
 
     def _close_tab(self):
         idx = self._tab_widget.currentIndex()
@@ -423,7 +581,7 @@ class MainWindow(QMainWindow):
             editor_match = (widget is editor) or (
                 isinstance(widget, MarkdownSplitView) and widget.get_editor() is editor)
             if editor_match:
-                base = editor.tab_title
+                base = registry.title_for(getattr(widget, "file_path", "") or "")
                 self._tab_widget.setTabText(i, f"{'*' if modified else ''}{base}")
                 return
 

@@ -1,0 +1,13 @@
+title: 第22章 分形几何
+description: 分形维数与自相似
+sections:
+- file: 01_koch_sierpinski.py
+  title: 01 Koch Sierpinski
+- file: 02_chaos_game.py
+  title: 02 Chaos Game
+- file: 03_mandelbrot_julia.py
+  title: 03 Mandelbrot Julia
+- file: 04_dla.py
+  title: 04 Dla
+- file: 05_lorenz_correlation.py
+  title: 05 Lorenz Correlation

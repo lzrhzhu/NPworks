@@ -1,0 +1,9 @@
+title: 第6章 分子动力学
+description: LJ 势、周期边界与 MSD
+sections:
+- file: 01_lj_potential.py
+  title: 01 Lj Potential
+- file: 02_2d_md.py
+  title: 02 2d Md
+- file: 03_msd.py
+  title: 03 Msd

@@ -27,7 +27,7 @@ class ActionManager:
         default_dir = os.path.expanduser("~/npworks")
         os.makedirs(default_dir, exist_ok=True)
         paths, _ = QFileDialog.getOpenFileNames(
-            self._main_window, "打开文件", default_dir, "Python 文件 (*.py);;Markdown (*.md);;PDF (*.pdf);;图片 (*.png *.jpg *.bmp *.gif);;所有文件 (*)"
+            self._main_window, "打开文件", default_dir, "Python 文件 (*.py);;Markdown (*.md);;CSV 表格 (*.csv *.tsv);;PDF (*.pdf);;图片 (*.png *.jpg *.bmp *.gif);;所有文件 (*)"
         )
         for path in paths:
             self._open_file_by_path(path)
@@ -54,24 +54,15 @@ class ActionManager:
             QMessageBox.warning(self._main_window, "打开失败", str(e))
 
     def save_code(self):
+        from npworks_ide.ide.editor_registry import EditorView
         widget = self._tabs.widget.currentWidget()
-        if isinstance(widget, MarkdownSplitView):
-            if widget.save_content():
+        if not isinstance(widget, EditorView) or widget.is_readonly():
+            return
+        if widget.file_path:
+            if widget.save():
                 self._output.append_system(f"已保存到: {widget.file_path}")
             else:
                 QMessageBox.warning(self._main_window, "保存失败", "无法保存文件")
-            return
-        editor = self._tabs.current_editor()
-        if not editor:
-            return
-        if editor.file_path:
-            try:
-                with open(editor.file_path, "w", encoding="utf-8") as f:
-                    f.write(editor.get_code())
-                editor.setModified(False)
-                self._output.append_system(f"已保存到: {editor.file_path}")
-            except Exception as e:
-                QMessageBox.warning(self._main_window, "保存失败", str(e))
         else:
             self.save_as()
 
@@ -124,32 +115,26 @@ class ActionManager:
                 QMessageBox.warning(self._main_window, "保存失败", str(e))
 
     def save_all(self):
-        from npworks_ide.ide.editor import CodeEditor
+        from npworks_ide.ide.editor_registry import EditorView
         for i in range(self._tabs.widget.count()):
             widget = self._tabs.widget.widget(i)
-            if isinstance(widget, MarkdownSplitView):
-                editor = widget.get_editor()
-                if editor and editor.isModified():
-                    if widget.save_content():
-                        self._output.append_system(f"已保存到: {widget.file_path}")
-                    continue
-            if isinstance(widget, CodeEditor) and widget.isModified():
-                if widget.file_path:
-                    try:
-                        with open(widget.file_path, "w", encoding="utf-8") as f:
-                            f.write(widget.get_code())
-                        widget.setModified(False)
-                        self._output.append_system(f"已保存到: {widget.file_path}")
-                    except Exception as e:
-                        QMessageBox.warning(self._main_window, "保存失败", str(e))
+            if (isinstance(widget, EditorView)
+                    and not widget.is_readonly()
+                    and widget.is_modified()):
+                if widget.file_path and widget.save():
+                    self._output.append_system(f"已保存到: {widget.file_path}")
 
     def open_folder(self):
         path = QFileDialog.getExistingDirectory(
             self._main_window, "打开文件夹", os.path.expanduser("~")
         )
-        if path:
-            self._file_tree.add_root(path)
-            self._save_open_folders()
+        if not path:
+            return
+        if self._file_tree.is_content_source_dir(path):
+            self._file_tree.focus_textbook_root()
+            return
+        self._file_tree.add_root(path)
+        self._save_open_folders()
 
     def close_current_folder(self):
         self._file_tree.close_selected_root()
@@ -159,7 +144,8 @@ class ActionManager:
         self._save_open_folders()
 
     def _save_open_folders(self):
-        folders = self._file_tree.get_open_folders()
+        folders = [f for f in self._file_tree.get_open_folders()
+                   if not self._file_tree.is_content_source_dir(f)]
         self._settings.setValue("open_folders", folders)
 
     def add_recent_file(self, path):

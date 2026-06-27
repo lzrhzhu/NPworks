@@ -2,7 +2,7 @@ import keyword
 import builtins
 import os
 
-from PyQt5.QtCore import Qt, QMimeData, QUrl, pyqtSignal
+from PyQt5.QtCore import Qt, QMimeData, QUrl, pyqtSignal, QSettings
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QApplication
 from PyQt5.Qsci import (
@@ -11,6 +11,30 @@ from PyQt5.Qsci import (
 )
 
 from npworks_ide.ide.theme import get_colors
+from npworks_ide.ide.editor_registry import EditorView
+
+
+_FONT_FAMILY = "Consolas"
+
+
+def _editor_font_size():
+    s = QSettings("npworks", "npworks")
+    try:
+        return max(8, min(28, int(s.value("editor/font_size", 11))))
+    except (TypeError, ValueError):
+        return 11
+
+
+def _tab_width():
+    s = QSettings("npworks", "npworks")
+    try:
+        return max(2, min(8, int(s.value("editor/tab_width", 4))))
+    except (TypeError, ValueError):
+        return 4
+
+
+def _editor_font():
+    return QFont(_FONT_FAMILY, _editor_font_size())
 
 
 _COMPLETION_WORDS = sorted(set(
@@ -50,12 +74,12 @@ class PythonLexer(QsciLexerPython):
         self._set_style_color(c["comment"], QsciLexerPython.CommentBlock)
         self._set_style_color(c["number"], QsciLexerPython.Number)
         self._set_style_color(c["operator"], QsciLexerPython.Operator)
-        self.setFont(QFont("Consolas", 11))
+        self.setFont(_editor_font())
 
     def _set_style_color(self, color_tuple, style_id):
         color, bold, italic = color_tuple
         self.setColor(QColor(color), style_id)
-        font = QFont("Consolas", 11)
+        font = _editor_font()
         if bold:
             font.setBold(True)
         if italic:
@@ -66,7 +90,7 @@ class PythonLexer(QsciLexerPython):
         self._apply_colors()
 
 
-class CodeEditor(QsciScintilla):
+class CodeEditor(QsciScintilla, EditorView):
     file_dropped = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -103,8 +127,8 @@ class CodeEditor(QsciScintilla):
         self._tab_title = value
 
     def _setup_editor(self):
-        self.setFont(QFont("Consolas", 11))
-        self.setTabWidth(4)
+        self.setFont(_editor_font())
+        self.setTabWidth(_tab_width())
         self.setIndentationsUseTabs(False)
         self.setTabIndents(True)
         self.setBackspaceUnindents(True)
@@ -167,6 +191,8 @@ class CodeEditor(QsciScintilla):
         self.setFoldMarginColors(QColor(c["line_number_bg"]), QColor(c["line_number_bg"]))
         self.SendScintilla(QsciScintillaBase.SCI_STYLESETBACK, 33, QColor(c["line_number_bg"]))
         self.setMarginsForegroundColor(QColor(c["line_number_fg"]))
+        self.setMatchedBraceBackgroundColor(QColor(c["bracket_match_bg"]))
+        self.setUnmatchedBraceBackgroundColor(QColor("#C14545"))
         is_dark = c.get("background") in ("#1E1E1E", "#181818")
         if not is_dark:
             self.setIndentationGuidesBackgroundColor(QColor("#E8E8E8"))
@@ -182,8 +208,30 @@ class CodeEditor(QsciScintilla):
             QColor(c["line_number_fg_current"]), QsciScintilla.SC_MARKNUM_FOLDER
         )
 
-    def apply_theme(self):
+    def apply_theme(self, theme_name=None):
         self._apply_theme()
+
+    def apply_editor_prefs(self):
+        self.setFont(_editor_font())
+        self.setTabWidth(_tab_width())
+        self._lexer.refresh_theme()
+
+    def editor_title(self):
+        return self._tab_title
+
+    def is_readonly(self):
+        return False
+
+    def save(self):
+        if not self._file_path:
+            return False
+        try:
+            with open(self._file_path, "w", encoding="utf-8") as f:
+                f.write(self.text())
+            self.setModified(False)
+            return True
+        except Exception:
+            return False
 
     def set_code(self, code: str, original: str = None):
         self.setText(code)

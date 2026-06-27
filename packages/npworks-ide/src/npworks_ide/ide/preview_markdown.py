@@ -4,6 +4,8 @@ from PyQt5.QtCore import Qt, QUrl, QTimer
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QTextBrowser, QSplitter, QWidget, QVBoxLayout
 
+from npworks_ide.ide.editor_registry import EditorView
+
 _MD_EXTS = {".md", ".markdown", ".mkd"}
 
 
@@ -77,7 +79,7 @@ class MarkdownPreview(QTextBrowser):
         self.setHtml(full)
 
 
-class MarkdownSplitView(QWidget):
+class MarkdownSplitView(QWidget, EditorView):
     def __init__(self, file_path: str, parent=None):
         super().__init__(parent)
         self._path = file_path
@@ -165,3 +167,22 @@ class MarkdownSplitView(QWidget):
             return True
         except Exception:
             return False
+
+    # --- EditorView 接口 ---
+    def editor_title(self):
+        return os.path.basename(self._path)
+
+    def is_modified(self):
+        return self._editor.isModified()
+
+    def is_readonly(self):
+        return False
+
+    def save(self):
+        return self.save_content()
+
+    def apply_theme(self, theme_name):
+        self._editor.apply_theme()
+
+    def apply_editor_prefs(self):
+        self._editor.apply_editor_prefs()

@@ -1,0 +1,9 @@
+title: 第16章 定态薛定谔方程
+description: 矩阵对角化、打靶与 Chebyshev 谱
+sections:
+- file: 01_infinite_well.py
+  title: 01 Infinite Well
+- file: 02_harmonic_oscillator.py
+  title: 02 Harmonic Oscillator
+- file: 03_finite_well_tunneling.py
+  title: 03 Finite Well Tunneling

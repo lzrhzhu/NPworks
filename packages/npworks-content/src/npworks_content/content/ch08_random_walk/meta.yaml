@@ -1,0 +1,13 @@
+title: 第8章 随机游走与扩散
+description: 随机数、随机游走与 MSD
+sections:
+- file: 01_random_numbers.py
+  title: 01 Random Numbers
+- file: 02_1d_random_walk.py
+  title: 02 1d Random Walk
+- file: 03_multi_walker.py
+  title: 03 Multi Walker
+- file: 04_msd.py
+  title: 04 Msd
+- file: 05_diffusion_comparison.py
+  title: 05 Diffusion Comparison

@@ -1,0 +1,7 @@
+title: 第17章 含时薛定谔方程
+description: 蛙跳、Crank-Nicolson 与分裂算符 FFT
+sections:
+- file: 01_leapfrog_free.py
+  title: 01 Leapfrog Free
+- file: 02_cn_wave_packet.py
+  title: 02 Cn Wave Packet

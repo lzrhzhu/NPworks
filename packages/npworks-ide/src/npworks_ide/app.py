@@ -9,6 +9,8 @@ from PyQt5.QtCore import QSettings
 
 from npworks_ide.ide.main_window import MainWindow
 from npworks_ide.ide.theme import apply_theme
+from npworks_ide.ide import icons
+from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
 
 
 def main():
@@ -23,6 +25,9 @@ def main():
     settings = QSettings("npworks", "npworks")
     theme = settings.value("theme", "dark")
     apply_theme(app, theme)
+
+    v = DARK_VARS if theme == "dark" else LIGHT_VARS
+    app.setWindowIcon(icons.logo_icon(v["activity_checked_fg"], 64))
 
     window = MainWindow()
     window.show()

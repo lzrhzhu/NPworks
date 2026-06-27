@@ -1,0 +1,11 @@
+title: 第3章 振动
+description: 辛积分、简正模与声子
+sections:
+- file: 01_euler_explicit.py
+  title: 01 Euler Explicit
+- file: 02_euler_implicit.py
+  title: 02 Euler Implicit
+- file: 03_euler_cromer.py
+  title: 03 Euler Cromer
+- file: 04_damped_pendulum.py
+  title: 04 Damped Pendulum

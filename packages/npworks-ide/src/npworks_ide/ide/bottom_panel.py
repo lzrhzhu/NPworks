@@ -25,7 +25,7 @@ class BottomPanel(QWidget):
         h_layout.setContentsMargins(8, 0, 8, 0)
         h_layout.setSpacing(0)
 
-        self._btn_output = QPushButton("  输出  ")
+        self._btn_output = QPushButton("输出")
         self._btn_output.setObjectName("bottom_tab_btn")
         self._btn_output.setCheckable(True)
         self._btn_output.setChecked(True)
@@ -33,14 +33,14 @@ class BottomPanel(QWidget):
         self._btn_output.clicked.connect(lambda: self._switch(0))
         h_layout.addWidget(self._btn_output)
 
-        self._btn_terminal = QPushButton("  IPython  ")
+        self._btn_terminal = QPushButton("IPython")
         self._btn_terminal.setObjectName("bottom_tab_btn")
         self._btn_terminal.setCheckable(True)
         self._btn_terminal.setCursor(Qt.PointingHandCursor)
         self._btn_terminal.clicked.connect(lambda: self._switch(1))
         h_layout.addWidget(self._btn_terminal)
 
-        self._btn_shell = QPushButton("  终端  ")
+        self._btn_shell = QPushButton("终端")
         self._btn_shell.setObjectName("bottom_tab_btn")
         self._btn_shell.setCheckable(True)
         self._btn_shell.setCursor(Qt.PointingHandCursor)

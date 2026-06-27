@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import (
     QPushButton, QSizePolicy,
 )
 
+from npworks_ide.ide.editor_registry import EditorView
+
 _PDF_EXTS = {".pdf"}
 
 
@@ -15,7 +17,7 @@ def is_pdf_file(path: str) -> bool:
     return ext.lower() in _PDF_EXTS
 
 
-class PdfPreview(QWidget):
+class PdfPreview(QWidget, EditorView):
     def __init__(self, file_path: str, parent=None):
         super().__init__(parent)
         self._path = file_path

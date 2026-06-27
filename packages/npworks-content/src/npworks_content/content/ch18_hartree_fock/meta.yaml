@@ -1,0 +1,7 @@
+title: 第18章 Hartree-Fock 方法
+description: SCF、Roothaan 与 DIIS
+sections:
+- file: 01_helium_hf.py
+  title: 01 Helium Hf
+- file: 02_h2_scf.py
+  title: 02 H2 Scf

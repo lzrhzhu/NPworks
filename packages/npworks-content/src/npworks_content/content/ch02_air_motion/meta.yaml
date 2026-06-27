@@ -1,0 +1,21 @@
+title: 第2章 物体在空气中的运动
+description: Euler 法、RK4、空气阻力与打靶法
+sections:
+- file: 01_bicycle_no_drag.py
+  title: 01 Bicycle No Drag
+- file: 02_bicycle_dt_comparison.py
+  title: 02 Bicycle Dt Comparison
+- file: 03_bicycle_with_drag.py
+  title: 03 Bicycle With Drag
+- file: 04_cannonball_no_drag.py
+  title: 04 Cannonball No Drag
+- file: 05_cannonball_with_drag.py
+  title: 05 Cannonball With Drag
+- file: 06_cannonball_range_angle.py
+  title: 06 Cannonball Range Angle
+- file: 07_cannonball_bisection.py
+  title: 07 Cannonball Bisection
+- file: 08_cannonball_variable_density.py
+  title: 08 Cannonball Variable Density
+- file: 09_rk4_cannonball.py
+  title: 09 Rk4 Cannonball

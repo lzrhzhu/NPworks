@@ -1,0 +1,9 @@
+title: 第10章 静电场
+description: Jacobi、SOR 与电容器
+sections:
+- file: 01_laplace_jacobi.py
+  title: 01 Laplace Jacobi
+- file: 02_sor_method.py
+  title: 02 Sor Method
+- file: 03_capacitor_2d.py
+  title: 03 Capacitor 2d

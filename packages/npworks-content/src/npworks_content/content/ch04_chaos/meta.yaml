@@ -1,0 +1,17 @@
+title: 第4章 非线性动力学与混沌
+description: Lyapunov 指数与分叉图
+sections:
+- file: 01_driven_pendulum.py
+  title: 01 Driven Pendulum
+- file: 02_linear_vs_nonlinear.py
+  title: 02 Linear Vs Nonlinear
+- file: 03_chaos_sensitivity.py
+  title: 03 Chaos Sensitivity
+- file: 04_phase_portrait.py
+  title: 04 Phase Portrait
+- file: 05_poincare_section.py
+  title: 05 Poincare Section
+- file: 06_bifurcation.py
+  title: 06 Bifurcation
+- file: 07_logistic_map.py
+  title: 07 Logistic Map

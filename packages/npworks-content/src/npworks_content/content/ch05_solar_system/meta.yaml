@@ -1,0 +1,11 @@
+title: 第5章 太阳系的天体运动
+description: velocity Verlet 与辛算法
+sections:
+- file: 01_circular_orbit.py
+  title: 01 Circular Orbit
+- file: 02_elliptical_orbits.py
+  title: 02 Elliptical Orbits
+- file: 03_verlet_vs_euler.py
+  title: 03 Verlet Vs Euler
+- file: 04_earth_jupiter.py
+  title: 04 Earth Jupiter

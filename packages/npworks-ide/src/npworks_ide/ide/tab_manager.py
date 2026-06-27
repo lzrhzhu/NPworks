@@ -51,14 +51,10 @@ class TabManager:
 
     def close_tab(self, index):
         widget = self._tabs.widget(index)
-        editor = None
-        if isinstance(widget, CodeEditor):
-            editor = widget
-        elif hasattr(widget, 'get_editor'):
-            editor = widget.get_editor()
+        from npworks_ide.ide.editor_registry import EditorView
 
-        if editor and editor.isModified():
-            title = self._tabs.tabText(index).lstrip('*')
+        if isinstance(widget, EditorView) and widget.is_modified():
+            title = widget.editor_title()
             reply = QMessageBox.question(
                 self._tabs,
                 "关闭未保存文件",
@@ -66,17 +62,13 @@ class TabManager:
                 QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
             )
             if reply == QMessageBox.Save:
-                if hasattr(editor, 'file_path') and editor.file_path:
-                    try:
-                        with open(editor.file_path, 'w', encoding='utf-8') as f:
-                            f.write(editor.get_code())
-                        editor.setModified(False)
-                    except Exception:
-                        pass
-                else:
+                if not widget.save():
                     return
             elif reply == QMessageBox.Cancel:
                 return
+
+        if isinstance(widget, EditorView):
+            widget.cleanup()
 
         self._tabs.removeTab(index)
         widget.deleteLater()

@@ -1,0 +1,9 @@
+title: 第11章 热传导
+description: FTCS、Crank-Nicolson 与 ADI
+sections:
+- file: 01_ftcs_1d.py
+  title: 01 Ftcs 1d
+- file: 02_cn_method.py
+  title: 02 Cn Method
+- file: 03_adi_2d.py
+  title: 03 Adi 2d

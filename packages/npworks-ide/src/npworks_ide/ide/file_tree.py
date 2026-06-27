@@ -2,7 +2,7 @@ import os
 import shutil
 from pathlib import Path
 
-from PyQt5.QtCore import pyqtSignal, Qt, QFileSystemWatcher
+from PyQt5.QtCore import pyqtSignal, Qt, QFileSystemWatcher, QSettings
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QWidget, QVBoxLayout,
@@ -217,9 +217,35 @@ class FileTree(QWidget):
                 return
             self._textbook_dir = str(content_dir)
             self._load_textbook_meta()
-            self.add_root(self._textbook_dir, "NPWORKS 教材", is_textbook=True)
+            root = self.add_root(self._textbook_dir, "教材 · NPWORKS", is_textbook=True)
+            if root is not None:
+                from npworks_ide.ide import icons
+                from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
+                theme = QSettings("npworks", "npworks").value("theme", "light")
+                v = DARK_VARS if theme == "dark" else LIGHT_VARS
+                root.setIcon(0, icons.icon("book", v["accent"], 16))
         except Exception:
             pass
+
+    def is_content_source_dir(self, path):
+        """判断路径是否为 content 教材源目录（解析目录或任意 content 包副本）。"""
+        if not path:
+            return False
+        norm = os.path.normpath(path)
+        if self._textbook_dir and norm == os.path.normpath(self._textbook_dir):
+            return True
+        suffix = os.path.join("npworks_content", "content")
+        return norm == suffix or norm.endswith(os.sep + suffix)
+
+    def focus_textbook_root(self):
+        for i in range(self._tree.topLevelItemCount()):
+            item = self._tree.topLevelItem(i)
+            if item.data(0, _ROLE_IS_TEXTBOOK):
+                self._tree.setCurrentItem(item)
+                item.setExpanded(True)
+                self._tree.scrollToItem(item)
+                return True
+        return False
 
     def _load_textbook_meta(self):
         if not self._textbook_dir or not yaml:

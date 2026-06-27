@@ -1,0 +1,15 @@
+title: 第20章 机器学习与物理
+description: Hopfield、MLP 与 PINN
+sections:
+- file: 01_hopfield_retrieval.py
+  title: 01 Hopfield Retrieval
+- file: 02_mlp_function_fit.py
+  title: 02 Mlp Function Fit
+- file: 03_ising_phase_classification.py
+  title: 03 Ising Phase Classification
+- file: 04_ising_pca.py
+  title: 04 Ising Pca
+- file: 05_nn_potential_fit.py
+  title: 05 Nn Potential Fit
+- file: 06_pinn_heat.py
+  title: 06 Pinn Heat

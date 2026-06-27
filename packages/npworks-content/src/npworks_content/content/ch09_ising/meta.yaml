@@ -1,0 +1,13 @@
+title: 第9章 相变与 Ising 模型
+description: Metropolis、Wolff 与有限尺度标度
+sections:
+- file: 01_1d_ising.py
+  title: 01 1d Ising
+- file: 02_2d_ising_observables.py
+  title: 02 2d Ising Observables
+- file: 03_2d_ising_snapshots.py
+  title: 03 2d Ising Snapshots
+- file: 04_finite_size_scaling.py
+  title: 04 Finite Size Scaling
+- file: 05_monte_carlo_pi.py
+  title: 05 Monte Carlo Pi

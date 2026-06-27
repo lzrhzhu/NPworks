@@ -1,0 +1,7 @@
+title: 第19章 密度泛函理论
+description: KS 方程、LDA 与平面波
+sections:
+- file: 01_helium_lda.py
+  title: 01 Helium Lda
+- file: 02_h2_lda.py
+  title: 02 H2 Lda
