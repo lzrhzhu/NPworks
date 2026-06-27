@@ -56,7 +56,7 @@ class ActionManager:
         self._main_window._open_file_by_path(path)
 
     def save_code(self):
-        from npworks_ide.ide.editor_registry import EditorView
+        from npworks_ide.ide.plugin.editor_registry import EditorView
         widget = self._tabs.widget.currentWidget()
         if not isinstance(widget, EditorView) or widget.is_readonly():
             return
@@ -117,7 +117,7 @@ class ActionManager:
                 QMessageBox.warning(self._main_window, "保存失败", str(e))
 
     def save_all(self):
-        from npworks_ide.ide.editor_registry import EditorView
+        from npworks_ide.ide.plugin.editor_registry import EditorView
         for i in range(self._tabs.widget.count()):
             widget = self._tabs.widget.widget(i)
             if (isinstance(widget, EditorView)

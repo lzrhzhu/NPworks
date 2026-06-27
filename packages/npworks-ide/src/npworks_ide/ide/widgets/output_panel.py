@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QVBoxLayout, QLabel, QFrame,
 )
 
-from npworks_ide.ide.theme import get_colors
+from npworks_ide.ide.themes import get_colors
 
 _TRACEBACK_RE = re.compile(r'(File\s+"[^"]*",\s*line\s+)(\d+)')
 _FIG_MARK = "__NPWORKS_FIG__:"

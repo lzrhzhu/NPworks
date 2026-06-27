@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QFrame,
 )
 
-from npworks_ide.ide.document_panel import DocumentPanel
+from npworks_ide.ide.dock.document_panel import DocumentPanel
 
 
 class _PluginRow(QFrame):

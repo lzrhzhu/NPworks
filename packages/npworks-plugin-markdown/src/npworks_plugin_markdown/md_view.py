@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
 )
 
-from npworks_ide.ide.editor_registry import EditorView, EditorProvider
+from npworks_ide.ide.plugin.editor_registry import EditorView, EditorProvider
 
 
 MODE_SOURCE = "source"
@@ -212,7 +212,7 @@ class MarkdownSplitView(QWidget, EditorView):
         self._splitter = QSplitter(Qt.Horizontal, self)
         self._splitter.setHandleWidth(2)
 
-        from npworks_ide.ide.editor import CodeEditor
+        from npworks_ide.ide.widgets.editor import CodeEditor
         self._editor = CodeEditor(self._splitter)
         self._editor.file_path = file_path
         self._editor._setup_folding()

@@ -6,29 +6,30 @@ from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
     QMainWindow, QSplitter, QFileDialog, QMessageBox,
     QTabWidget, QLabel, QWidget, QFrame, QAction,
-    QVBoxLayout,
+    QVBoxLayout, QToolButton, QMenu,
 )
 
-from npworks_ide.ide.activity_bar import ActivityBar
-from npworks_ide.ide.file_tree import FileTree
-from npworks_ide.ide.editor import CodeEditor
-from npworks_ide.ide.output_panel import OutputPanel
-from npworks_ide.ide.find_replace import FindReplacePanel
-from npworks_ide.ide.outline_view import OutlineView
-from npworks_ide.ide.explorer_view import ExplorerView
-from npworks_ide.ide.dock_manager import DockManager, DockZone
-from npworks_ide.ide.tab_manager import TabManager
-from npworks_ide.ide.actions import ActionManager
-from npworks_ide.ide.menu_builder import MenuBuilder
-from npworks_ide.ide.run_controller import RunController
-from npworks_ide.ide.find_controller import FindController
-from npworks_ide.ide.edit_controller import EditController
-from npworks_ide.ide.theme_controller import ThemeController
-from npworks_ide.ide.editor_registry import registry
-from npworks_ide.ide.builtin_editors import register_builtin_editors
-from npworks_ide.ide.command_registry import CommandRegistry
-from npworks_ide.ide.plugin_api import PluginAPI
-from npworks_ide.ide.plugin_loader import PluginLoader
+from npworks_ide.ide.widgets.activity_bar import ActivityBar
+from npworks_ide.ide.panels.file_tree import FileTree
+from npworks_ide.ide.widgets.editor import CodeEditor
+from npworks_ide.ide.widgets.output_panel import OutputPanel
+from npworks_ide.ide.widgets.find_replace import FindReplacePanel
+from npworks_ide.ide.panels.explorer_view import ExplorerView
+from npworks_ide.ide.dock.dock_manager import DockManager, DockZone
+from npworks_ide.ide.widgets.tab_manager import TabManager
+from npworks_ide.ide.controllers.actions import ActionManager
+from npworks_ide.ide.workbench.menu_builder import MenuBuilder
+from npworks_ide.ide.controllers.run_controller import RunController
+from npworks_ide.ide.controllers.find_controller import FindController
+from npworks_ide.ide.controllers.edit_controller import EditController
+from npworks_ide.ide.controllers.theme_controller import ThemeController
+from npworks_ide.ide.plugin.editor_registry import registry
+from npworks_ide.ide.plugin.builtin_editors import register_builtin_editors
+from npworks_ide.ide.controllers.command_registry import CommandRegistry
+from npworks_ide.ide.plugin.plugin_api import PluginAPI
+from npworks_ide.ide.plugin.plugin_loader import PluginLoader
+from npworks_ide.ide.controllers.env_controller import EnvController
+from npworks_ide.ide.workbench.layout_manager import LayoutManager
 from npworks_ide.runner.executor import Executor, _RC_LINE_COUNT
 
 import npworks_content
@@ -40,13 +41,6 @@ _IDX_SETTINGS = 2
 _SIDEBAR_WIDTH = 260
 _RIGHT_WIDTH = 320
 _BOTTOM_HEIGHT = 240
-
-# 固定栏位 -> (所在 splitter 属性名, 在 splitter 中的索引, 默认尺寸)
-_ZONE_LAYOUT = {
-    "left": ("_h_splitter", 1, _SIDEBAR_WIDTH),
-    "right": ("_h_splitter", 3, _RIGHT_WIDTH),
-    "bottom": ("_v_splitter", 1, _BOTTOM_HEIGHT),
-}
 
 
 class _LazyPanel(QWidget):
@@ -88,6 +82,8 @@ class MainWindow(QMainWindow):
         self._zone_actions = {}   # zone name -> checkable QAction（视图菜单栏位开关）
 
         self.executor = Executor(self)
+        self.env_ctrl = EnvController(self, self.executor)
+        self.venv_manager = self.env_ctrl.manager
         register_builtin_editors()
         self._activity_handlers = {}
         self.command_registry = CommandRegistry()
@@ -133,8 +129,7 @@ class MainWindow(QMainWindow):
 
         self.theme_ctrl.apply_window_icon()
         self.activity_bar.apply_theme_icons(self.theme_ctrl.get_current_theme())
-        self._refresh_sidebar_icons()
-        self._outline_view.refresh()
+        self.layout.refresh_sidebar_icons()
         self._restore_appearance()
         self._load_plugins()
         self._apply_titlebar(self.theme_ctrl.get_current_theme())
@@ -146,16 +141,16 @@ class MainWindow(QMainWindow):
         self.plugin_loader.load(self.plugin_api)
 
     def _open_plugins(self):
-        from npworks_ide.ide.plugins_panel import PluginsPanel
+        from npworks_ide.ide.panels.plugins_panel import PluginsPanel
         self.activity_bar.set_checked(-1)
         self.open_panel(PluginsPanel(self, self))
 
     def _open_command_palette(self):
-        from npworks_ide.ide.command_palette import CommandPalette
+        from npworks_ide.ide.panels.command_palette import CommandPalette
         CommandPalette(self, "commands", self).exec_()
 
     def _open_quick_open(self):
-        from npworks_ide.ide.command_palette import CommandPalette
+        from npworks_ide.ide.panels.command_palette import CommandPalette
         CommandPalette(self, "files", self).exec_()
 
     def _palette_commands(self):
@@ -168,11 +163,13 @@ class MainWindow(QMainWindow):
             ("运行: 运行 (F5)", self.run_ctrl.run_code),
             ("运行: 停止 (Shift+F5)", self.run_ctrl.stop_code),
             ("运行: 重置代码 (Ctrl+R)", self.run_ctrl.reset_code),
+            ("环境: 切换 Python 环境", self.env_ctrl.switch_palette),
+            ("环境: 新建虚拟环境", self.env_ctrl.create_new),
+            ("环境: 安装 Python 包", self.env_ctrl.install_packages),
             ("编辑: 查找 (Ctrl+F)", self._show_find),
             ("编辑: 查找替换 (Ctrl+H)", self._show_replace),
             ("编辑: 跳转到行 (Ctrl+G)", self._go_to_line),
             ("视图: 文件浏览器", self._toggle_explorer),
-            ("视图: 大纲", self._toggle_outline),
             ("视图: 底部面板 (Ctrl+`)", self._toggle_bottom_panel),
             ("视图: 设置", self._open_settings),
             ("视图: 插件", self._open_plugins),
@@ -207,7 +204,7 @@ class MainWindow(QMainWindow):
 
     def _apply_titlebar(self, theme):
         from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
-        from npworks_ide.ide.native_window import apply_titlebar_theme
+        from npworks_ide.ide.platform.native_window import apply_titlebar_theme
         v = DARK_VARS if theme == "dark" else LIGHT_VARS
         apply_titlebar_theme(self, theme, v["bg_menu"], v["border"])
 
@@ -216,7 +213,6 @@ class MainWindow(QMainWindow):
         self._apply_titlebar(self.theme_ctrl.get_current_theme())
 
     def _setup_layout(self):
-        self._outline_view = OutlineView(self)
         self.dock = DockManager(self)
 
         # 三个固定的停靠栏位
@@ -238,7 +234,7 @@ class MainWindow(QMainWindow):
         self._textbook_tree.file_deleted.connect(self._on_file_deleted)
 
         # 可拖拽停靠的组件
-        from npworks_ide.ide.figures_view import FiguresView
+        from npworks_ide.ide.widgets.figures_view import FiguresView
         self._figures_view = FiguresView(self)
 
         # IPython / Shell 终端：懒创建的独立可停靠面板
@@ -246,12 +242,11 @@ class MainWindow(QMainWindow):
         self._shell_panel = _LazyPanel(self.run_ctrl.create_shell, self)
         self.run_ctrl.set_terminal_panels(self._ipython_panel, self._shell_panel)
 
-        self._all_panels = ("explorer", "outline", "textbook", "figures",
+        self._all_panels = ("explorer", "textbook", "figures",
                             "output", "ipython", "shell")
         self._hidden_panels = {}
         self._panel_titles = {
             "explorer": "文件浏览器",
-            "outline": "大纲",
             "textbook": "教材",
             "figures": "图表",
             "output": "输出",
@@ -261,33 +256,24 @@ class MainWindow(QMainWindow):
         # 面板 -> 图标 key（用于栏位标签图标，随主题刷新）
         self._panel_icon_keys = {
             "explorer": "explorer",
-            "outline": "outline",
             "textbook": "book",
             "figures": "chart",
             "output": None,
             "ipython": None,
             "shell": None,
         }
-        self.dock.register_panel(
-            "explorer", self._explorer_view, "文件浏览器", "left",
-            icon=self._icon_for_key("explorer"))
-        self.dock.register_panel(
-            "outline", self._outline_view, "大纲", "left",
-            icon=self._icon_for_key("outline"))
-        self.dock.register_panel(
-            "textbook", self._textbook_tree, "教材", "left",
-            icon=self._icon_for_key("book"))
-        self.dock.register_panel(
-            "figures", self._figures_view, "图表", "right",
-            icon=self._icon_for_key("chart"))
-        self.dock.register_panel(
-            "output", self.output_panel, "输出", "bottom")
-        self.dock.register_panel(
-            "ipython", self._ipython_panel, "IPython", "bottom")
-        self.dock.register_panel(
-            "shell", self._shell_panel, "终端", "bottom")
 
-        self.dock.panel_moved.connect(self._on_panel_moved)
+        self.layout = LayoutManager(self)
+        self.layout.register_panels([
+            ("explorer", self._explorer_view, "文件浏览器", "left", "explorer"),
+            ("textbook", self._textbook_tree, "教材", "left", "book"),
+            ("figures", self._figures_view, "图表", "right", "chart"),
+            ("output", self.output_panel, "输出", "bottom", None),
+            ("ipython", self._ipython_panel, "IPython", "bottom", None),
+            ("shell", self._shell_panel, "终端", "bottom", None),
+        ])
+
+        self.dock.panel_moved.connect(self.layout.on_panel_moved)
 
         self._activity_container = QWidget()
         self._activity_container.setObjectName("activity_bar_container")
@@ -332,81 +318,19 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self._v_splitter)
 
-    def _icon_for_key(self, key):
-        from npworks_ide.ide import icons
-        from npworks_ide.ide.themes.variables import LIGHT_VARS
-        if key and key in icons._ICONS:
-            return icons.icon(key, LIGHT_VARS["fg"], 16)
-        return None
-
-    def _on_panel_moved(self, panel_id, zone):
-        self._settings.setValue(f"dock/panel_{panel_id}", zone)
-        self._auto_adjust_zones()
-
-    def _auto_adjust_zones(self):
-        """空栏位自动收起，被拖入面板的栏位自动展开。"""
-        for name, zone in self.dock.zones.items():
-            if zone.count() == 0:
-                self._set_zone_visible(name, False)
-        for panel_id in self.dock.panel_ids():
-            zone = self.dock.zone_of(panel_id)
-            if zone and not self._is_zone_visible(zone):
-                self._set_zone_visible(zone, True)
-        self._sync_zone_actions()
-
-    # --- 栏位可见性（栏位固定，仅控制展开/收起） ---
-    def _zone_splitter_index(self, name):
-        attr, idx, default = _ZONE_LAYOUT[name]
-        return getattr(self, attr), idx, default
-
-    def _is_zone_visible(self, name):
-        splitter, idx, _ = self._zone_splitter_index(name)
-        return splitter.sizes()[idx] > 50
-
-    def _set_zone_visible(self, name, on):
-        splitter, idx, default = self._zone_splitter_index(name)
-        sizes = splitter.sizes()
-        if on:
-            if sizes[idx] < 50:
-                sizes[idx] = default
-                splitter.setSizes(sizes)
-        else:
-            if sizes[idx] > 0:
-                sizes[idx] = 0
-                splitter.setSizes(sizes)
-
-    def _ensure_panel_zone_visible(self, panel_id):
-        zone = self.dock.zone_of(panel_id)
-        if zone and not self._is_zone_visible(zone):
-            self._set_zone_visible(zone, True)
-        return zone
-
-    def _show_panel(self, panel_id):
-        """显示某面板所在的栏位并聚焦该面板。"""
-        zone = self.dock.zone_of(panel_id)
-        if not zone:
-            return
-        self._set_zone_visible(zone, True)
-        self.dock.focus_panel(panel_id)
-        self._sync_zone_actions()
-
-    def _show_output_panel(self):
-        self._show_panel("output")
-
     def _setup_activity_bar(self):
         self.activity_bar.add_button("explorer", "文件浏览器")
-        self.activity_bar.add_button("outline", "大纲")
         self.activity_bar.add_button("book", "教材")
         self.activity_bar.add_button("chart", "图表")
         self.activity_bar.add_button("extensions", "插件", bottom=True)
         self.activity_bar.add_button("settings", "设置", bottom=True)
         self.activity_bar.set_checked(0)
-        self._activity_handlers[3] = self._toggle_figures_dock
-        self._activity_handlers[4] = self._open_plugins
-        self._activity_handlers[5] = self._open_settings
+        self._activity_handlers[2] = self.layout.toggle_figures_dock
+        self._activity_handlers[3] = self._open_plugins
+        self._activity_handlers[4] = self._open_settings
 
     def _setup_window_controls(self):
-        from npworks_ide.ide.window_controls import WindowControls
+        from npworks_ide.ide.widgets.window_controls import WindowControls
         self._win_controls = WindowControls(self, self)
         self._win_controls.refresh_icons(self.theme_ctrl.get_current_theme())
         self.menuBar().setCornerWidget(self._win_controls, Qt.TopRightCorner)
@@ -468,7 +392,7 @@ class MainWindow(QMainWindow):
         super().changeEvent(event)
 
     def _build_toolbar(self):
-        from npworks_ide.ide import icons
+        from npworks_ide.ide.platform import icons
 
         tb = self.addToolBar("main")
         tb.setMovable(False)
@@ -496,7 +420,7 @@ class MainWindow(QMainWindow):
         self._update_toolbar_state()
 
     def _refresh_toolbar_icons(self):
-        from npworks_ide.ide import icons
+        from npworks_ide.ide.platform import icons
         from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
         theme = self.theme_ctrl.get_current_theme()
         v = DARK_VARS if theme == "dark" else LIGHT_VARS
@@ -504,7 +428,7 @@ class MainWindow(QMainWindow):
             act.setIcon(icons.icon(key, v["fg"], 18))
 
     def _update_toolbar_state(self):
-        from npworks_ide.ide.editor_registry import EditorView
+        from npworks_ide.ide.plugin.editor_registry import EditorView
         widget = self._tab_widget.currentWidget()
         is_view = isinstance(widget, EditorView)
         readonly = is_view and widget.is_readonly()
@@ -514,7 +438,7 @@ class MainWindow(QMainWindow):
             self._toolbar_actions[key].setEnabled(has_editor)
 
     def _open_settings(self):
-        from npworks_ide.ide.settings_panel import SettingsPanel
+        from npworks_ide.ide.panels.settings_panel import SettingsPanel
         self.activity_bar.set_checked(-1)
         self.open_panel(SettingsPanel(self, self))
 
@@ -523,7 +447,7 @@ class MainWindow(QMainWindow):
 
         面板需继承 DocumentPanel(EditorView)。按 panel_id 去重：已打开则聚焦。
         """
-        from npworks_ide.ide.editor_registry import EditorView
+        from npworks_ide.ide.plugin.editor_registry import EditorView
         if not isinstance(panel, EditorView):
             return None
         pid = getattr(panel, "panel_id", None)
@@ -539,73 +463,11 @@ class MainWindow(QMainWindow):
         return panel
 
     def _apply_editor_prefs_to_all(self):
-        from npworks_ide.ide.editor_registry import EditorView
+        from npworks_ide.ide.plugin.editor_registry import EditorView
         for i in range(self._tab_widget.count()):
             widget = self._tab_widget.widget(i)
             if isinstance(widget, EditorView):
                 widget.apply_editor_prefs()
-
-    _ACTIVITY_PANEL = {0: "explorer", 1: "outline", 2: "textbook"}
-
-    def _activate_panel(self, panel_id):
-        """活动栏入口：切换/聚焦某面板所在的栏位。"""
-        zone = self.dock.zone_of(panel_id)
-        if zone is None:
-            return
-        same = (self.dock.zones[zone].current_panel_id() == panel_id
-                and self._is_zone_visible(zone))
-        if same:
-            self._set_zone_visible(zone, False)
-            self.activity_bar.set_checked(-1)
-            self._sync_zone_actions()
-            return
-        self._set_zone_visible(zone, True)
-        self.dock.focus_panel(panel_id)
-        idx = next((k for k, v in self._ACTIVITY_PANEL.items()
-                    if v == panel_id), None)
-        if idx is not None:
-            self.activity_bar.set_checked(idx)
-        self._sync_zone_actions()
-
-    # 兼容旧调用名
-    def _activate_view(self, view_id):
-        self._activate_panel(view_id)
-
-    def _toggle_figures_dock(self):
-        zone = self.dock.zone_of("figures")
-        if zone is None:
-            return
-        visible = self._is_zone_visible(zone)
-        self._set_zone_visible(zone, not visible)
-        if not visible:
-            self.dock.focus_panel("figures")
-        self.activity_bar.set_checked(3 if not visible else -1)
-        self._sync_zone_actions()
-
-    def _on_figure_ready(self, path):
-        self._figures_view.add_figure(path)
-        zone = self.dock.zone_of("figures")
-        if zone:
-            self._set_zone_visible(zone, True)
-            self.dock.focus_panel("figures")
-        self.activity_bar.set_checked(3)
-
-    def _refresh_sidebar_icons(self):
-        # 栏位标签图标随主题刷新
-        from npworks_ide.ide import icons
-        from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
-        theme = self.theme_ctrl.get_current_theme()
-        v = DARK_VARS if theme == "dark" else LIGHT_VARS
-        for panel_id, key in self._panel_icon_keys.items():
-            if not key:
-                continue
-            zone_name = self.dock.zone_of(panel_id)
-            if not zone_name:
-                continue
-            zone = self.dock.zones[zone_name]
-            idx = zone.index_of(panel_id)
-            if idx >= 0:
-                zone.setTabIcon(idx, icons.icon(key, v["fg"], 16))
 
     def add_plugin_view(self, view, side="primary"):
         """插件贡献的视图注册为可停靠面板（默认挂到左栏）。"""
@@ -617,43 +479,11 @@ class MainWindow(QMainWindow):
         self._panel_titles[view_id] = title
         self._panel_icon_keys[view_id] = icon_key
         self.dock.register_panel(view_id, view.widget, title, zone,
-                                 icon=self._icon_for_key(icon_key))
+                                 icon=self.layout.icon_for_key(icon_key))
 
     # --- 外观开关（设置页 / 持久化） ---
     def _persist(self, key, on):
         self._settings.setValue(key, "1" if on else "0")
-
-    def _sync_zone_actions(self):
-        """同步视图菜单中三个栏位开关的勾选状态。"""
-        for zone, act in self._zone_actions.items():
-            act.setChecked(self._is_zone_visible(zone))
-
-    def is_primary_sidebar(self):
-        return self._is_zone_visible("left")
-
-    def set_primary_sidebar(self, on):
-        self._set_zone_visible("left", on)
-        self._persist("appearance/primary", on)
-        self._sync_zone_actions()
-
-    def is_figures_dock(self):
-        zone = self.dock.zone_of("figures")
-        return bool(zone) and self._is_zone_visible(zone)
-
-    def set_figures_dock(self, on):
-        zone = self.dock.zone_of("figures")
-        if zone:
-            self._set_zone_visible(zone, on)
-        self._persist("appearance/figures", on)
-        self._sync_zone_actions()
-
-    def is_secondary_sidebar(self):
-        return self._is_zone_visible("right")
-
-    def set_secondary_sidebar(self, on):
-        self._set_zone_visible("right", on)
-        self._persist("appearance/secondary", on)
-        self._sync_zone_actions()
 
     def is_menu_bar(self):
         acts = self.menuBar().actions()
@@ -671,57 +501,11 @@ class MainWindow(QMainWindow):
         self.statusBar().setVisible(on)
         self._persist("appearance/status_bar", on)
 
-    def is_panel(self):
-        return self._is_zone_visible("bottom")
-
-    def set_panel(self, on):
-        self._set_zone_visible("bottom", on)
-        self._persist("appearance/panel", on)
-        self._sync_zone_actions()
-
-    def is_view_visible(self, view_id):
-        return self.dock.zone_of(view_id) is not None
-
-    def set_view_visible(self, view_id, on):
-        if on:
-            info = self._hidden_panels.pop(view_id, None)
-            if info is None:
-                return
-            self.dock.register_panel(
-                view_id, info["widget"], info["title"], info["zone"],
-                icon=info.get("icon"))
-            self._set_zone_visible(info["zone"], True)
-        else:
-            zone = self.dock.zone_of(view_id)
-            if zone is None:
-                return
-            info = self.dock.detach_panel(view_id)
-            if info:
-                self._hidden_panels[view_id] = info
-                if self.dock.zones[zone].count() == 0:
-                    self._set_zone_visible(zone, False)
-        self._persist(f"appearance/view_{view_id}", on)
-
     def _restore_appearance(self):
+        self.layout.restore_appearance()
         s = self._settings
-        # 恢复面板停靠栏位
-        for panel_id in self._all_panels:
-            saved_zone = s.value(f"dock/panel_{panel_id}")
-            if saved_zone in self.dock.zones:
-                self.dock.move_panel(panel_id, saved_zone)
-        # 恢复组件显隐
-        for vid in self._all_panels:
-            if s.value(f"appearance/view_{vid}", "1") != "1":
-                self.set_view_visible(vid, False)
-        # 恢复栏位展开/收起
-        self.set_primary_sidebar(s.value("appearance/primary", "1") == "1")
-        self.set_secondary_sidebar(
-            s.value("appearance/secondary",
-                    s.value("appearance/figures", "0")) == "1")
         self.set_menu_bar(s.value("appearance/menu_bar", "1") == "1")
         self.set_status_bar(s.value("appearance/status_bar", "1") == "1")
-        self.set_panel(s.value("appearance/panel", "1") == "1")
-        self._sync_zone_actions()
 
     def _build_status_bar(self):
         sb = self.statusBar()
@@ -745,10 +529,16 @@ class MainWindow(QMainWindow):
 
         sb.addPermanentWidget(self._make_status_sep())
 
-        py_ver = f" Python {sys.version.split()[0]} "
-        py_label = QLabel(py_ver)
-        py_label.setFont(QFont("Consolas", 9))
-        sb.addPermanentWidget(py_label)
+        self._env_btn = QToolButton()
+        self._env_btn.setFont(QFont("Consolas", 9))
+        self._env_btn.setCursor(Qt.PointingHandCursor)
+        self._env_btn.setPopupMode(QToolButton.InstantPopup)
+        self._env_btn.setToolTip("Python 运行环境（点击切换）")
+        env_menu = QMenu(self._env_btn)
+        env_menu.aboutToShow.connect(self.env_ctrl.populate_menu)
+        self._env_btn.setMenu(env_menu)
+        sb.addPermanentWidget(self._env_btn)
+        self.env_ctrl.setup_status_button(self._env_btn)
 
     @staticmethod
     def _make_status_sep():
@@ -773,7 +563,7 @@ class MainWindow(QMainWindow):
 
         self.output_panel.input_submitted.connect(self.run_ctrl.send_input)
         self.output_panel.jump_to_line.connect(self._on_jump_to_line)
-        self.output_panel.figure_ready.connect(self._on_figure_ready)
+        self.output_panel.figure_ready.connect(self.layout.on_figure_ready)
 
         self.find_replace.find_next_btn.clicked.connect(self.find_ctrl.find_next)
         self.find_replace.find_prev_btn.clicked.connect(self.find_ctrl.find_prev)
@@ -786,19 +576,15 @@ class MainWindow(QMainWindow):
         if index in self._activity_handlers:
             self._activity_handlers[index]()
             return
-        panel_id = self._ACTIVITY_PANEL.get(index)
+        panel_id = self.layout._ACTIVITY_PANEL.get(index)
         if panel_id:
-            self._activate_panel(panel_id)
+            self.layout.activate_panel(panel_id)
 
     def _toggle_explorer(self):
-        self._activate_panel("explorer")
-
-    def _toggle_outline(self):
-        self._activate_panel("outline")
+        self.layout.activate_panel("explorer")
 
     def _toggle_bottom_panel(self):
-        self._set_zone_visible("bottom", not self._is_zone_visible("bottom"))
-        self._sync_zone_actions()
+        self.layout.toggle_bottom_panel()
 
     def _current_editor(self) -> CodeEditor:
         widget = self._tab_widget.currentWidget()
@@ -846,8 +632,6 @@ class MainWindow(QMainWindow):
         elif widget:
             widget.setFocus()
         self._update_toolbar_state()
-        if self._outline_view is not None:
-            self._outline_view.refresh()
         self._open_editors.refresh()
 
     def _on_file_selected(self, file_path: str):
@@ -916,7 +700,7 @@ class MainWindow(QMainWindow):
 
     def _editor_of(self, widget):
         """返回某标签视图底层用于编辑/光标/查找的 CodeEditor（查看器返回 None）。"""
-        from npworks_ide.ide.editor import CodeEditor
+        from npworks_ide.ide.widgets.editor import CodeEditor
         if isinstance(widget, CodeEditor):
             return widget
         if hasattr(widget, "get_editor"):
@@ -1018,12 +802,7 @@ class MainWindow(QMainWindow):
             self.move(pos)
 
     def _restore_layout(self):
-        h_sizes = self._settings.value("dock/h_sizes")
-        if h_sizes and len(h_sizes) == 4:
-            self._h_splitter.setSizes([int(s) for s in h_sizes])
-        v_sizes = self._settings.value("dock/v_sizes")
-        if v_sizes and len(v_sizes) == 2:
-            self._v_splitter.setSizes([int(s) for s in v_sizes])
+        self.layout.restore_splitter_sizes()
 
     def closeEvent(self, event):
         self._settings.setValue("window_size", self.size())

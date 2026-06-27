@@ -18,7 +18,7 @@ class PluginAPI:
 
     def register_editor(self, provider):
         """注册自定义编辑器提供者（EditorProvider）。"""
-        from npworks_ide.ide.editor_registry import registry
+        from npworks_ide.ide.plugin.editor_registry import registry
         registry.register(provider)
 
     def register_view(self, view, side="primary"):
@@ -32,7 +32,7 @@ class PluginAPI:
 
         def handler():
             if view_id:
-                self._mw._activate_view(view_id)
+                self._mw.layout.activate_view(view_id)
             if on_activate:
                 on_activate()
 

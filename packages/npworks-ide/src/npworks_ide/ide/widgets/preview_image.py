@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QScrollArea
 
-from npworks_ide.ide.editor_registry import EditorView
+from npworks_ide.ide.plugin.editor_registry import EditorView
 
 
 _IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".svg", ".webp"}

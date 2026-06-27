@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QSpacerItem, QSizePolicy,
 )
 
-from npworks_ide.ide import icons
+from npworks_ide.ide.platform import icons
 from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
 
 

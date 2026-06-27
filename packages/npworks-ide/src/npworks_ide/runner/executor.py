@@ -73,7 +73,16 @@ class Executor(QObject):
         super().__init__(parent)
         self._process = None
         self._temp_file = None
+        self._interpreter = sys.executable
         _cleanup_stale_temp_files()
+
+    def set_interpreter(self, path):
+        """设置运行用户代码所用的 Python 解释器绝对路径。"""
+        if path and os.path.isfile(path):
+            self._interpreter = path
+
+    def interpreter(self):
+        return self._interpreter
 
     def execute(self, code: str):
         if self.is_running():
@@ -93,7 +102,7 @@ class Executor(QObject):
         self._process.readyReadStandardOutput.connect(self._on_stdout)
         self._process.readyReadStandardError.connect(self._on_stderr)
         self._process.finished.connect(self._on_finished)
-        self._process.start(sys.executable, [self._temp_file.name])
+        self._process.start(self._interpreter, [self._temp_file.name])
         self.execution_started.emit()
         return True
 
@@ -131,4 +140,7 @@ class Executor(QObject):
     def _build_env(self):
         env = QProcessEnvironment.systemEnvironment()
         env.insert("PYTHONIOENCODING", "utf-8")
+        # 清除可能泄漏到子进程的解释器变量，避免串用 IDE 自身环境
+        env.remove("PYTHONHOME")
+        env.remove("PYTHONPATH")
         return env

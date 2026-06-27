@@ -10,8 +10,8 @@ from PyQt5.Qsci import (
     QsciScintillaBase,
 )
 
-from npworks_ide.ide.theme import get_colors
-from npworks_ide.ide.editor_registry import EditorView
+from npworks_ide.ide.themes import get_colors
+from npworks_ide.ide.plugin.editor_registry import EditorView
 
 
 _FONT_FAMILY = "Consolas"

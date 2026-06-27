@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton
 
-from npworks_ide.ide import icons
+from npworks_ide.ide.platform import icons
 from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
 
 

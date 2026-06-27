@@ -1,5 +1,5 @@
 from npworks_ide.ide.themes import apply_theme
-from npworks_ide.ide.editor_registry import EditorView
+from npworks_ide.ide.plugin.editor_registry import EditorView
 
 
 class ThemeController:
@@ -17,7 +17,7 @@ class ThemeController:
         apply_theme(QApplication.instance(), name)
         self._mw.activity_bar.apply_theme_icons(name)
         self._mw._refresh_toolbar_icons()
-        self._mw._refresh_sidebar_icons()
+        self._mw.layout.refresh_sidebar_icons()
         self._apply_window_icon(name)
         self._mw._apply_titlebar(name)
         if self._mw._win_controls is not None:
@@ -42,7 +42,7 @@ class ThemeController:
         return self._settings.value("theme", "light")
 
     def _apply_window_icon(self, theme_name):
-        from npworks_ide.ide import icons
+        from npworks_ide.ide.platform import icons
         from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
         v = DARK_VARS if theme_name == "dark" else LIGHT_VARS
         self._mw.setWindowIcon(icons.logo_icon(v["activity_checked_fg"], 64))

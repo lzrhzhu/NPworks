@@ -11,9 +11,9 @@ from PyQt5.QtCore import QSettings
 # 允许 QtWebEngine 在 QApplication 之后被插件导入（markdown 渲染插件）
 QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 
-from npworks_ide.ide.main_window import MainWindow
-from npworks_ide.ide.theme import apply_theme
-from npworks_ide.ide import icons
+from npworks_ide.ide.workbench.main_window import MainWindow
+from npworks_ide.ide.themes import apply_theme
+from npworks_ide.ide.platform import icons
 from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
 
 

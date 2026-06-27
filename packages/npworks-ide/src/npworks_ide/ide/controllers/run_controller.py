@@ -20,7 +20,7 @@ class RunController:
         return self._mw._current_editor()
 
     def _show_panel(self, panel_id):
-        self._mw._show_panel(panel_id)
+        self._mw.layout.show_panel(panel_id)
 
     def _ensure_ipython(self):
         if self.terminal is None and self._ipython_panel is not None:
@@ -119,14 +119,14 @@ class RunController:
             self._mw._run_label.setText("")
 
     def create_terminal(self):
-        from npworks_ide.ide.terminal import TerminalWidget
+        from npworks_ide.ide.widgets.terminal import TerminalWidget
         self.terminal = TerminalWidget(self._mw)
         theme = self._mw._settings.value("theme", "light")
         self.terminal.set_theme(theme)
         return self.terminal
 
     def create_shell(self):
-        from npworks_ide.ide.shell_terminal import TerminalPanel
+        from npworks_ide.ide.widgets.shell_terminal import TerminalPanel
         self.shell_terminal = TerminalPanel(self._mw)
         theme = self._mw._settings.value("theme", "light")
         self.shell_terminal.set_theme(theme)

@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QHeaderView, QAbstractItemView,
 )
 
-from npworks_ide.ide.editor_registry import EditorView, EditorProvider
+from npworks_ide.ide.plugin.editor_registry import EditorView, EditorProvider
 
 
 def _read_csv(path):

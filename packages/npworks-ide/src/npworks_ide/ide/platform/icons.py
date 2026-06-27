@@ -17,9 +17,6 @@ _ICONS = {
     "explorer": (
         '<path fill="{color}" d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>'
     ),
-    "outline": (
-        '<path fill="{color}" d="M5 5h2v2H5V5zm0 4h2v2H5V9zm0 4h2v2H5v-2zm0 4h2v2H5v-2zM9 5h12v2H9V5zm0 4h12v2H9V9zm0 4h12v2H9v-2zm0 4h12v2H9v-2z"/>'
-    ),
     "search": (
         '<path fill="{color}" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>'
     ),
@@ -81,7 +78,7 @@ _LOGO = (
     '<circle cx="12" cy="12" r="2.4" fill="{color}"/>'
 )
 
-_ICON_KEYS = ("explorer", "outline", "search", "settings", "run", "stop",
+_ICON_KEYS = ("explorer", "search", "settings", "run", "stop",
               "new", "open", "save", "reset", "book",
               "winmin", "winmax", "winrestore", "winclose", "panels", "extensions", "chart")
 

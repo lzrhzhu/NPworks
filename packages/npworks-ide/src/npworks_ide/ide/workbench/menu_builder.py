@@ -71,18 +71,17 @@ class MenuBuilder:
         view_menu.addSeparator()
         # 三个固定栏位的显示/隐藏
         self._add_zone_toggle(view_menu, "第一侧边栏(&P)",
-                              self._mw.is_primary_sidebar,
-                              self._mw.set_primary_sidebar, "left")
+                              self._mw.layout.is_primary_sidebar,
+                              self._mw.layout.set_primary_sidebar, "left")
         self._add_zone_toggle(view_menu, "第二侧边栏(&S)",
-                              self._mw.is_secondary_sidebar,
-                              self._mw.set_secondary_sidebar, "right")
+                              self._mw.layout.is_secondary_sidebar,
+                              self._mw.layout.set_secondary_sidebar, "right")
         self._add_zone_toggle(view_menu, "底部面板(&B)",
-                              self._mw.is_panel,
-                              self._mw.set_panel, "bottom",
+                              self._mw.layout.is_panel,
+                              self._mw.layout.set_panel, "bottom",
                               QKeySequence(Qt.ControlModifier | Qt.Key_QuoteLeft))
         view_menu.addSeparator()
         self._add_action(view_menu, "文件浏览器(&E)", self._mw._toggle_explorer)
-        self._add_action(view_menu, "大纲(&O)", self._mw._toggle_outline)
         view_menu.addSeparator()
         self._add_action(view_menu, "IPython 终端(&I)", self._mw.run_ctrl.show_ipython_terminal)
         self._add_action(view_menu, "Shell 终端(&S)", self._mw.run_ctrl.show_shell_terminal)

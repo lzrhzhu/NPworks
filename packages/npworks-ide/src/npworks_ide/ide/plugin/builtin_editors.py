@@ -5,7 +5,7 @@
 """
 import os
 
-from npworks_ide.ide.editor_registry import registry, EditorProvider
+from npworks_ide.ide.plugin.editor_registry import registry, EditorProvider
 
 
 class CodeProvider(EditorProvider):
@@ -19,7 +19,7 @@ class CodeProvider(EditorProvider):
         return True            # VS Code 风格：未知类型一律按文本打开
 
     def create(self, path, parent=None):
-        from npworks_ide.ide.editor import CodeEditor
+        from npworks_ide.ide.widgets.editor import CodeEditor
         try:
             with open(path, "r", encoding="utf-8") as f:
                 code = f.read()
@@ -39,7 +39,7 @@ class ImageProvider(EditorProvider):
     readonly = True
 
     def create(self, path, parent=None):
-        from npworks_ide.ide.preview_image import ImagePreview
+        from npworks_ide.ide.widgets.preview_image import ImagePreview
         return ImagePreview(path, parent)
 
 

@@ -5,7 +5,7 @@ VS Code 风格：插件可以把任意 UI 作为"文档页面"打开在编辑区
 """
 from PyQt5.QtWidgets import QWidget
 
-from npworks_ide.ide.editor_registry import EditorView
+from npworks_ide.ide.plugin.editor_registry import EditorView
 
 
 class DocumentPanel(QWidget, EditorView):

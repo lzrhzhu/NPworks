@@ -227,7 +227,7 @@ class FileTree(QWidget):
             self._load_textbook_meta()
             root = self.add_root(self._textbook_dir, "教材 · NPWORKS", is_textbook=True)
             if root is not None:
-                from npworks_ide.ide import icons
+                from npworks_ide.ide.platform import icons
                 from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
                 theme = QSettings("npworks", "npworks").value("theme", "light")
                 v = DARK_VARS if theme == "dark" else LIGHT_VARS

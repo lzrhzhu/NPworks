@@ -455,12 +455,6 @@ QStackedWidget {
     color: {fg_title};
 }
 
-#outline_placeholder {
-    color: {placeholder_fg};
-    font-size: 13px;
-    padding: 20px;
-}
-
 #figures_view {
     background: {bg_main};
 }

@@ -3,7 +3,7 @@ import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTabWidget, QMessageBox, QMenu, QInputDialog
 
-from npworks_ide.ide.editor import CodeEditor
+from npworks_ide.ide.widgets.editor import CodeEditor
 
 
 _UNTITLED = "未命名"
@@ -51,7 +51,7 @@ class TabManager:
 
     def close_tab(self, index):
         widget = self._tabs.widget(index)
-        from npworks_ide.ide.editor_registry import EditorView
+        from npworks_ide.ide.plugin.editor_registry import EditorView
 
         if isinstance(widget, EditorView) and widget.is_modified():
             title = widget.editor_title()

@@ -2,10 +2,10 @@
 from PyQt5.QtCore import Qt, QSettings
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QComboBox, QSpinBox,
-    QFrame, QCheckBox,
+    QFrame, QCheckBox, QPushButton, QLineEdit, QMessageBox,
 )
 
-from npworks_ide.ide.document_panel import DocumentPanel
+from npworks_ide.ide.dock.document_panel import DocumentPanel
 
 
 class SettingsPanel(DocumentPanel):
@@ -71,9 +71,17 @@ class SettingsPanel(DocumentPanel):
         root.addWidget(self._section_label("运行"))
         root.addWidget(self._run_card())
 
+        # === Python 环境 ===
+        root.addWidget(self._section_label("Python 环境"))
+        root.addWidget(self._env_card())
+
         root.addStretch()
 
         self.apply_theme(self._settings.value("theme", "light"))
+
+        # 订阅环境变化以刷新下拉
+        self._mw.env_ctrl.manager.environments_changed.connect(self._refresh_env_combo)
+        self._mw.env_ctrl.manager.current_changed.connect(self._refresh_env_combo)
 
     def _section_label(self, text):
         lbl = QLabel(text)
@@ -99,6 +107,100 @@ class SettingsPanel(DocumentPanel):
         form.addRow(cap)
         return card
 
+    # --- Python 环境管理 ---
+    def _env_card(self):
+        mgr = self._mw.env_ctrl.manager
+        card = QFrame()
+        card.setObjectName("settings_card")
+        outer = QVBoxLayout(card)
+        outer.setContentsMargins(16, 14, 16, 14)
+        outer.setSpacing(10)
+
+        hint = QLabel(
+            "选择运行用户代码所用的 Python 环境。可添加已有虚拟环境/解释器，"
+            "或新建虚拟环境（Windows 与 Linux 均支持）。")
+        hint.setWordWrap(True)
+        outer.addWidget(hint)
+
+        row = QHBoxLayout()
+        row.setSpacing(8)
+        row.addWidget(QLabel("当前环境"))
+        self._env_combo = QComboBox()
+        self._env_combo.setMinimumWidth(320)
+        self._populate_env_combo()
+        self._env_combo.currentIndexChanged.connect(self._on_env_selected)
+        row.addWidget(self._env_combo, 1)
+        outer.addLayout(row)
+
+        btns = QHBoxLayout()
+        btns.setSpacing(8)
+        b_add = QPushButton("添加现有…")
+        b_new = QPushButton("新建…")
+        b_pip = QPushButton("安装包…")
+        b_remove = QPushButton("移除")
+        b_add.clicked.connect(self._add_existing_env)
+        b_new.clicked.connect(self._create_new_env)
+        b_pip.clicked.connect(self._install_packages)
+        b_remove.clicked.connect(self._remove_env)
+        for b in (b_add, b_new, b_pip, b_remove):
+            btns.addWidget(b)
+        btns.addStretch()
+        outer.addLayout(btns)
+        return card
+
+    def _populate_env_combo(self):
+        mgr = self._mw.venv_manager
+        self._env_combo.blockSignals(True)
+        self._env_combo.clear()
+        cur = mgr.current_id()
+        select = 0
+        for i, e in enumerate(mgr.all_environments()):
+            ver = e.get("version") or ""
+            label = f"{e.get('name', e['id'])} ({ver})" if ver else e.get("name", e["id"])
+            if not e.get("valid", True):
+                label += "  ⚠ 无效"
+            self._env_combo.addItem(label, e["id"])
+            if e["id"] == cur:
+                select = i
+        self._env_combo.setCurrentIndex(select)
+        self._env_combo.blockSignals(False)
+
+    def _refresh_env_combo(self, *_args):
+        if hasattr(self, "_env_combo"):
+            self._populate_env_combo()
+
+    def _on_env_selected(self, _idx):
+        env_id = self._env_combo.currentData()
+        if env_id:
+            self._mw.venv_manager.set_current(env_id)
+
+    def _add_existing_env(self):
+        self._mw.env_ctrl.add_existing()
+        self._populate_env_combo()
+
+    def _create_new_env(self):
+        self._mw.env_ctrl.create_new()
+        self._populate_env_combo()
+
+    def _install_packages(self):
+        self._mw.env_ctrl.install_packages()
+
+    def _remove_env(self):
+        mgr = self._mw.env_ctrl.manager
+        cur = mgr.current_id()
+        if cur == mgr.BASE_ID:
+            QMessageBox.information(self, "提示", "内置环境不可移除。")
+            return
+        env = mgr.find(cur)
+        name = env.get("name", cur) if env else cur
+        btn = QMessageBox.question(
+            self, "移除环境",
+            f"从环境列表中移除「{name}」？\n（不会删除磁盘上的文件）",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if btn == QMessageBox.Yes:
+            mgr.remove(cur)
+            self._populate_env_combo()
+
     def _appearance_card(self):
         mw = self._mw
         card = QFrame()
@@ -115,18 +217,15 @@ class SettingsPanel(DocumentPanel):
             return c
 
         form.addRow(chk(mw.is_menu_bar, mw.set_menu_bar, "显示菜单栏"))
-        form.addRow(chk(mw.is_primary_sidebar, mw.set_primary_sidebar, "显示第一侧边栏（主侧边栏）"))
-        form.addRow(chk(mw.is_figures_dock, mw.set_figures_dock, "显示图表栏（可拖拽停靠）"))
-        form.addRow(chk(mw.is_panel, mw.set_panel, "显示输出面板（可拖拽停靠）"))
+        form.addRow(chk(mw.layout.is_primary_sidebar, mw.layout.set_primary_sidebar, "显示第一侧边栏（主侧边栏）"))
+        form.addRow(chk(mw.layout.is_figures_dock, mw.layout.set_figures_dock, "显示图表栏（可拖拽停靠）"))
+        form.addRow(chk(mw.layout.is_panel, mw.layout.set_panel, "显示输出面板（可拖拽停靠）"))
         form.addRow(chk(mw.is_status_bar, mw.set_status_bar, "显示状态栏"))
 
         form.addRow(self._section_label("视图"))
-        form.addRow(chk(lambda: mw.is_view_visible("explorer"),
-                        lambda on: mw.set_view_visible("explorer", on),
+        form.addRow(chk(lambda: mw.layout.is_view_visible("explorer"),
+                        lambda on: mw.layout.set_view_visible("explorer", on),
                         "显示文件浏览器"))
-        form.addRow(chk(lambda: mw.is_view_visible("outline"),
-                        lambda on: mw.set_view_visible("outline", on),
-                        "显示大纲"))
         return card
 
     def _on_theme_changed(self):
