@@ -14,7 +14,9 @@ from npworks_ide.ide.file_tree import FileTree
 from npworks_ide.ide.editor import CodeEditor
 from npworks_ide.ide.output_panel import OutputPanel
 from npworks_ide.ide.find_replace import FindReplacePanel
-from npworks_ide.ide.sidebar import Sidebar
+from npworks_ide.ide.sidebar_panel import SideBarPanel, SideView
+from npworks_ide.ide.outline_view import OutlineView
+from npworks_ide.ide.explorer_view import ExplorerView
 from npworks_ide.ide.bottom_panel import BottomPanel
 from npworks_ide.ide.tab_manager import TabManager
 from npworks_ide.ide.actions import ActionManager
@@ -23,11 +25,11 @@ from npworks_ide.ide.run_controller import RunController
 from npworks_ide.ide.find_controller import FindController
 from npworks_ide.ide.edit_controller import EditController
 from npworks_ide.ide.theme_controller import ThemeController
-from npworks_ide.ide.preview_image import is_image_file, ImagePreview
-from npworks_ide.ide.preview_markdown import is_markdown_file, MarkdownSplitView
-from npworks_ide.ide.preview_pdf import is_pdf_file, PdfPreview
 from npworks_ide.ide.editor_registry import registry
 from npworks_ide.ide.builtin_editors import register_builtin_editors
+from npworks_ide.ide.command_registry import CommandRegistry
+from npworks_ide.ide.plugin_api import PluginAPI
+from npworks_ide.ide.plugin_loader import PluginLoader
 from npworks_ide.runner.executor import Executor, _RC_LINE_COUNT
 
 import npworks_content
@@ -52,8 +54,9 @@ class MainWindow(QMainWindow):
 
         self.executor = Executor(self)
         register_builtin_editors()
-        from npworks_ide.ide import plugin_csv
-        plugin_csv.register()
+        self._activity_handlers = {}
+        self.command_registry = CommandRegistry()
+        self.setting_sections = []
         self.file_tree = FileTree(self)
         self.output_panel = OutputPanel(self)
         self.find_replace = FindReplacePanel(self)
@@ -98,7 +101,22 @@ class MainWindow(QMainWindow):
 
         self.theme_ctrl.apply_window_icon()
         self.activity_bar.apply_theme_icons(self.theme_ctrl.get_current_theme())
+        self._refresh_sidebar_icons()
+        self._outline_view.refresh()
+        self._restore_appearance()
+        self._load_plugins()
         self._apply_titlebar(self.theme_ctrl.get_current_theme())
+
+    def _load_plugins(self):
+        self.plugin_loader = PluginLoader()
+        self.plugin_api = PluginAPI(self)
+        self.plugin_loader.discover()
+        self.plugin_loader.load(self.plugin_api)
+
+    def _open_plugins(self):
+        from npworks_ide.ide.plugins_panel import PluginsPanel
+        self.activity_bar.set_checked(-1)
+        self.open_panel(PluginsPanel(self, self))
 
     def _apply_titlebar(self, theme):
         from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
@@ -111,17 +129,24 @@ class MainWindow(QMainWindow):
         self._apply_titlebar(self.theme_ctrl.get_current_theme())
 
     def _setup_layout(self):
-        self._outline_placeholder = QLabel("\n\n    大纲视图\n    （开发中）")
-        self._outline_placeholder.setObjectName("outline_placeholder")
-        self._outline_placeholder.setAlignment(Qt.AlignCenter)
+        self._outline_view = OutlineView(self)
 
-        self._sidebar1 = Sidebar(self.file_tree, "文件浏览器")
-        self._sidebar1.setObjectName("sidebar_left")
-        self._sidebar1.setMinimumWidth(0)
+        self._primary = SideBarPanel("primary", self)
+        self._primary.set_move_callback(self._move_view)
+        self._secondary = SideBarPanel("secondary", self)
+        self._secondary.set_move_callback(self._move_view)
 
-        self._sidebar2 = Sidebar(self._outline_placeholder, "大纲")
-        self._sidebar2.setObjectName("sidebar_right")
-        self._sidebar2.setMinimumWidth(0)
+        self._explorer_view = ExplorerView(self.file_tree)
+        self._open_editors = self._explorer_view.open_editors
+        self._open_editors.bind(self._tab_widget, self._tabs.close_tab)
+
+        self._explorer_sideview = SideView("explorer", "文件浏览器", "explorer", self._explorer_view)
+        self._outline_sideview = SideView("outline", "大纲", "outline", self._outline_view)
+        self._all_side_views = {"explorer": self._explorer_sideview, "outline": self._outline_sideview}
+        self._hidden_side_views = {}
+
+        self._primary.add_view(self._explorer_sideview)
+        self._primary.add_view(self._outline_sideview)
 
         self._activity_container = QWidget()
         self._activity_container.setObjectName("activity_bar_container")
@@ -143,9 +168,9 @@ class MainWindow(QMainWindow):
         self._h_splitter = QSplitter(Qt.Horizontal)
         self._h_splitter.setObjectName("h_splitter")
         self._h_splitter.addWidget(self._activity_container)
-        self._h_splitter.addWidget(self._sidebar1)
+        self._h_splitter.addWidget(self._primary)
         self._h_splitter.addWidget(self._editor_area)
-        self._h_splitter.addWidget(self._sidebar2)
+        self._h_splitter.addWidget(self._secondary)
         self._h_splitter.setStretchFactor(0, 0)
         self._h_splitter.setStretchFactor(1, 0)
         self._h_splitter.setStretchFactor(2, 1)
@@ -166,8 +191,11 @@ class MainWindow(QMainWindow):
     def _setup_activity_bar(self):
         self.activity_bar.add_button("explorer", "文件浏览器")
         self.activity_bar.add_button("outline", "大纲")
+        self.activity_bar.add_button("extensions", "插件", bottom=True)
         self.activity_bar.add_button("settings", "设置", bottom=True)
         self.activity_bar.set_checked(0)
+        self._activity_handlers[2] = self._open_plugins
+        self._activity_handlers[3] = self._open_settings
 
     def _setup_window_controls(self):
         from npworks_ide.ide.window_controls import WindowControls
@@ -309,31 +337,138 @@ class MainWindow(QMainWindow):
             if isinstance(widget, EditorView):
                 widget.apply_editor_prefs()
 
-    def _show_sidebar1(self, show=True):
+    _ACTIVITY_VIEW = {0: "explorer", 1: "outline"}
+
+    def _panel_index(self, panel):
+        return 1 if panel is self._primary else 3
+
+    def _panel_having(self, view_id):
+        if self._primary.has_view(view_id):
+            return self._primary
+        if self._secondary.has_view(view_id):
+            return self._secondary
+        return None
+
+    def _is_sidebar_open(self, panel):
+        return self._h_splitter.sizes()[self._panel_index(panel)] > 50
+
+    def _open_sidebar(self, panel):
         sizes = self._h_splitter.sizes()
-        if show:
-            if sizes[1] < 50:
-                sizes[1] = _SIDEBAR_WIDTH
-                self._h_splitter.setSizes(sizes)
-        else:
-            sizes[1] = 0
+        idx = self._panel_index(panel)
+        if sizes[idx] < 50:
+            sizes[idx] = _SIDEBAR_WIDTH
             self._h_splitter.setSizes(sizes)
 
-    def _show_sidebar2(self, show=True):
+    def _close_sidebar(self, panel):
         sizes = self._h_splitter.sizes()
-        if show:
-            if sizes[3] < 50:
-                sizes[3] = _SIDEBAR_WIDTH
-                self._h_splitter.setSizes(sizes)
+        sizes[self._panel_index(panel)] = 0
+        self._h_splitter.setSizes(sizes)
+
+    def _activate_view(self, view_id):
+        panel = self._panel_having(view_id)
+        if panel is None:
+            return
+        if panel.current_view_id() == view_id and self._is_sidebar_open(panel):
+            self._close_sidebar(panel)
+            self.activity_bar.set_checked(-1)
         else:
-            sizes[3] = 0
-            self._h_splitter.setSizes(sizes)
+            panel.show_view(view_id)
+            self._open_sidebar(panel)
+            idx = next((k for k, v in self._ACTIVITY_VIEW.items() if v == view_id), None)
+            if idx is not None:
+                self.activity_bar.set_checked(idx)
 
-    def _is_sidebar1_visible(self):
-        return self._h_splitter.sizes()[1] > 50
+    def _move_view(self, view_id):
+        src = self._panel_having(view_id)
+        if src is None:
+            return
+        dst = self._secondary if src is self._primary else self._primary
+        view = src.remove_view(view_id)
+        if view is None:
+            return
+        dst.add_view(view)
+        dst.show_view(view_id)
+        self._open_sidebar(dst)
+        self._refresh_sidebar_icons()
 
-    def _is_sidebar2_visible(self):
-        return self._h_splitter.sizes()[3] > 50
+    def _refresh_sidebar_icons(self):
+        from npworks_ide.ide import icons
+        from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
+        theme = self.theme_ctrl.get_current_theme()
+        v = DARK_VARS if theme == "dark" else LIGHT_VARS
+        icon = icons.icon("panels", v["fg"], 14)
+        self._primary.set_move_icon(icon)
+        self._secondary.set_move_icon(icon)
+
+    # --- 外观开关（设置页 / 持久化） ---
+    def _persist(self, key, on):
+        self._settings.setValue(key, "1" if on else "0")
+
+    def is_primary_sidebar(self):
+        return self._is_sidebar_open(self._primary)
+
+    def set_primary_sidebar(self, on):
+        self._open_sidebar(self._primary) if on else self._close_sidebar(self._primary)
+        self._persist("appearance/primary", on)
+
+    def is_secondary_sidebar(self):
+        return self._is_sidebar_open(self._secondary)
+
+    def set_secondary_sidebar(self, on):
+        self._open_sidebar(self._secondary) if on else self._close_sidebar(self._secondary)
+        self._persist("appearance/secondary", on)
+
+    def is_menu_bar(self):
+        acts = self.menuBar().actions()
+        return acts[0].isVisible() if acts else True
+
+    def set_menu_bar(self, on):
+        for a in self.menuBar().actions():
+            a.setVisible(on)
+        self._persist("appearance/menu_bar", on)
+
+    def is_status_bar(self):
+        return self.statusBar().isVisible()
+
+    def set_status_bar(self, on):
+        self.statusBar().setVisible(on)
+        self._persist("appearance/status_bar", on)
+
+    def is_panel(self):
+        return self._bottom_panel.isVisible()
+
+    def set_panel(self, on):
+        self._bottom_panel.setVisible(on)
+        self._persist("appearance/panel", on)
+
+    def is_view_visible(self, view_id):
+        return self._panel_having(view_id) is not None
+
+    def set_view_visible(self, view_id, on):
+        if on:
+            view = self._hidden_side_views.pop(view_id, None) or self._all_side_views.get(view_id)
+            if view is None:
+                return
+            if not self._panel_having(view_id):
+                self._primary.add_view(view)
+                self._primary.show_view(view_id)
+        else:
+            panel = self._panel_having(view_id)
+            if panel:
+                view = panel.remove_view(view_id)
+                if view:
+                    self._hidden_side_views[view_id] = view
+        self._persist(f"appearance/view_{view_id}", on)
+
+    def _restore_appearance(self):
+        s = self._settings
+        self.set_primary_sidebar(s.value("appearance/primary", "1") == "1")
+        self.set_secondary_sidebar(s.value("appearance/secondary", "0") == "1")
+        self.set_menu_bar(s.value("appearance/menu_bar", "1") == "1")
+        self.set_status_bar(s.value("appearance/status_bar", "1") == "1")
+        self.set_panel(s.value("appearance/panel", "1") == "1")
+        for vid in self._all_side_views:
+            self.set_view_visible(vid, s.value(f"appearance/view_{vid}", "1") == "1")
 
     def _build_status_bar(self):
         sb = self.statusBar()
@@ -391,24 +526,21 @@ class MainWindow(QMainWindow):
         self.find_replace.replace_btn.clicked.connect(self.find_ctrl.replace_one)
         self.find_replace.replace_all_btn.clicked.connect(self.find_ctrl.replace_all)
         self.find_replace.closed.connect(self.find_ctrl.clear_find_highlight)
+        self._tab_widget.tabCloseRequested.connect(lambda _i: self._open_editors.refresh())
 
     def _on_activity_clicked(self, index: int):
-        if index == _IDX_EXPLORER:
-            self._show_sidebar1(not self._is_sidebar1_visible())
-        elif index == _IDX_OUTLINE:
-            self._show_sidebar2(not self._is_sidebar2_visible())
-        elif index == _IDX_SETTINGS:
-            self._open_settings()
+        if index in self._activity_handlers:
+            self._activity_handlers[index]()
+            return
+        view_id = self._ACTIVITY_VIEW.get(index)
+        if view_id:
+            self._activate_view(view_id)
 
     def _toggle_explorer(self):
-        vis = not self._is_sidebar1_visible()
-        self._show_sidebar1(vis)
-        self.activity_bar.set_checked(_IDX_EXPLORER if vis else -1)
+        self._activate_view("explorer")
 
     def _toggle_outline(self):
-        vis = not self._is_sidebar2_visible()
-        self._show_sidebar2(vis)
-        self.activity_bar.set_checked(_IDX_OUTLINE if vis else -1)
+        self._activate_view("outline")
 
     def _toggle_bottom_panel(self):
         vis = self._bottom_panel.isVisible()
@@ -416,7 +548,7 @@ class MainWindow(QMainWindow):
 
     def _current_editor(self) -> CodeEditor:
         widget = self._tab_widget.currentWidget()
-        if isinstance(widget, MarkdownSplitView):
+        if hasattr(widget, "get_editor"):
             return widget.get_editor()
         if isinstance(widget, CodeEditor):
             return widget
@@ -440,10 +572,10 @@ class MainWindow(QMainWindow):
 
     def _on_tab_changed(self, index):
         widget = self._tab_widget.currentWidget()
-        if isinstance(widget, MarkdownSplitView):
+        if hasattr(widget, "get_editor"):
             editor = widget.get_editor()
             editor.setFocus()
-            if widget.file_path:
+            if getattr(widget, "file_path", None):
                 self.file_tree.select_file(widget.file_path)
         elif isinstance(widget, CodeEditor):
             self._update_status_pos()
@@ -455,6 +587,9 @@ class MainWindow(QMainWindow):
         elif widget:
             widget.setFocus()
         self._update_toolbar_state()
+        if self._outline_view is not None:
+            self._outline_view.refresh()
+        self._open_editors.refresh()
 
     def _on_file_selected(self, file_path: str):
         self._open_file_by_path(file_path)
@@ -518,14 +653,14 @@ class MainWindow(QMainWindow):
             editor.modificationChanged.connect(
                 lambda m, e=editor: self._on_modification_changed(e, m)
             )
+        self._open_editors.refresh()
 
     def _editor_of(self, widget):
         """返回某标签视图底层用于编辑/光标/查找的 CodeEditor（查看器返回 None）。"""
         from npworks_ide.ide.editor import CodeEditor
-        from npworks_ide.ide.preview_markdown import MarkdownSplitView
         if isinstance(widget, CodeEditor):
             return widget
-        if isinstance(widget, MarkdownSplitView):
+        if hasattr(widget, "get_editor"):
             return widget.get_editor()
         return None
 
@@ -579,10 +714,11 @@ class MainWindow(QMainWindow):
         for i in range(self._tab_widget.count()):
             widget = self._tab_widget.widget(i)
             editor_match = (widget is editor) or (
-                isinstance(widget, MarkdownSplitView) and widget.get_editor() is editor)
+                hasattr(widget, "get_editor") and widget.get_editor() is editor)
             if editor_match:
                 base = registry.title_for(getattr(widget, "file_path", "") or "")
                 self._tab_widget.setTabText(i, f"{'*' if modified else ''}{base}")
+                self._open_editors.refresh()
                 return
 
     def _on_file_renamed(self, old_path, new_path):

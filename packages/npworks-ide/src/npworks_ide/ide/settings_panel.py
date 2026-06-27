@@ -1,8 +1,8 @@
 """设置文档页面：以标签页形式呈现的设置（VS Code 风格），实时生效。"""
 from PyQt5.QtCore import Qt, QSettings
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QFormLayout, QLabel, QComboBox, QSpinBox,
-    QFrame,
+    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QComboBox, QSpinBox,
+    QFrame, QCheckBox,
 )
 
 from npworks_ide.ide.document_panel import DocumentPanel
@@ -62,9 +62,52 @@ class SettingsPanel(DocumentPanel):
         form.addRow("缩进宽度", self._spin_tab)
 
         root.addWidget(card)
+
+        # === 外观 (Appearance) ===
+        root.addWidget(self._section_label("外观"))
+        root.addWidget(self._appearance_card())
+
         root.addStretch()
 
         self.apply_theme(self._settings.value("theme", "light"))
+
+    def _section_label(self, text):
+        lbl = QLabel(text)
+        f = lbl.font()
+        f.setPointSize(13)
+        f.setBold(True)
+        lbl.setFont(f)
+        return lbl
+
+    def _appearance_card(self):
+        mw = self._mw
+        card = QFrame()
+        card.setObjectName("settings_card")
+        form = QFormLayout(card)
+        form.setLabelAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        form.setContentsMargins(16, 14, 16, 14)
+        form.setSpacing(10)
+
+        def chk(getter, setter, label):
+            c = QCheckBox(label)
+            c.setChecked(getter())
+            c.stateChanged.connect(lambda _st, s=setter: s(c.isChecked()))
+            return c
+
+        form.addRow(chk(mw.is_menu_bar, mw.set_menu_bar, "显示菜单栏"))
+        form.addRow(chk(mw.is_primary_sidebar, mw.set_primary_sidebar, "显示第一侧边栏（主侧边栏）"))
+        form.addRow(chk(mw.is_secondary_sidebar, mw.set_secondary_sidebar, "显示第二侧边栏（次侧边栏）"))
+        form.addRow(chk(mw.is_panel, mw.set_panel, "显示底部面板"))
+        form.addRow(chk(mw.is_status_bar, mw.set_status_bar, "显示状态栏"))
+
+        form.addRow(self._section_label("视图"))
+        form.addRow(chk(lambda: mw.is_view_visible("explorer"),
+                        lambda on: mw.set_view_visible("explorer", on),
+                        "显示文件浏览器"))
+        form.addRow(chk(lambda: mw.is_view_visible("outline"),
+                        lambda on: mw.set_view_visible("outline", on),
+                        "显示大纲"))
+        return card
 
     def _on_theme_changed(self):
         theme = self._combo_theme.currentData()

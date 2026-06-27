@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npworks-plugin-csv"
+version = "0.0.1"
+description = "NPworks 示例插件：CSV/TSV 表格查看器"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "ruihua zhu", email = "ruihuazhu@126.com"}]
+dependencies = [
+    "npworks-ide",
+]
+
+[project.entry-points."npworks.plugins"]
+csv = "npworks_plugin_csv:register"
+
+[tool.setuptools.packages.find]
+where = ["src"]

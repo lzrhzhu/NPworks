@@ -60,6 +60,12 @@ _ICONS = {
     "winclose": (
         '<path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="{color}" stroke-width="1.8" stroke-linecap="round"/>'
     ),
+    "panels": (
+        '<path fill="{color}" d="M3 4h7v16H3zM14 4h7v16h-7z"/>'
+    ),
+    "extensions": (
+        '<path fill="{color}" d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/>'
+    ),
 }
 
 # 应用 Logo：原子轨道（计算物理主题）
@@ -74,7 +80,7 @@ _LOGO = (
 
 _ICON_KEYS = ("explorer", "outline", "search", "settings", "run", "stop",
               "new", "open", "save", "reset", "book",
-              "winmin", "winmax", "winrestore", "winclose")
+              "winmin", "winmax", "winrestore", "winclose", "panels", "extensions")
 
 
 def _device_pixel_ratio():

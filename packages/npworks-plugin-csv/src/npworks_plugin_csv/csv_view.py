@@ -1,10 +1,5 @@
-"""示例插件：CSV 表格查看器。
-
-演示可插拔编辑区架构——新增一种文件类型的查看器，只需实现 EditorView
-并注册一个 EditorProvider，无需改动 MainWindow / TabManager。
-"""
+"""CSV 表格查看视图与 provider。"""
 import csv
-import os
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -12,11 +7,10 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QHeaderView, QAbstractItemView,
 )
 
-from npworks_ide.ide.editor_registry import EditorView, EditorProvider, registry
+from npworks_ide.ide.editor_registry import EditorView, EditorProvider
 
 
 def _read_csv(path):
-    """尝试 utf-8 / gbk 读取 CSV，返回 (header, rows)。"""
     for enc in ("utf-8-sig", "utf-8", "gbk", "latin-1"):
         try:
             with open(path, "r", encoding=enc, newline="") as f:
@@ -30,7 +24,7 @@ def _read_csv(path):
 
 
 class CsvView(QWidget, EditorView):
-    def __init__(self, file_path: str, parent=None):
+    def __init__(self, file_path, parent=None):
         super().__init__(parent)
         self._path = file_path
         self._all_rows = []
@@ -95,8 +89,7 @@ class CsvView(QWidget, EditorView):
         for r, row in enumerate(rows):
             for c in range(self._table.columnCount()):
                 val = row[c] if c < len(row) else ""
-                item = QTableWidgetItem(val)
-                self._table.setItem(r, c, item)
+                self._table.setItem(r, c, QTableWidgetItem(val))
 
     def _apply_filter(self, text):
         text = (text or "").lower()
@@ -111,7 +104,8 @@ class CsvView(QWidget, EditorView):
     def apply_theme(self, theme_name):
         from npworks_ide.ide.themes.variables import LIGHT_VARS, DARK_VARS
         v = DARK_VARS if theme_name == "dark" else LIGHT_VARS
-        self.setStyleSheet(f"QWidget#csv_toolbar {{ background: {v['bg_menu']}; border-bottom: 1px solid {v['border']}; }}")
+        self.setStyleSheet(
+            f"QWidget#csv_toolbar {{ background: {v['bg_menu']}; border-bottom: 1px solid {v['border']}; }}")
         self._table.setStyleSheet(
             f"QTableWidget {{ background: {v['bg_input']}; color: {v['fg']}; "
             f"gridline-color: {v['border']}; alternate-background-color: {v['hover']}; }}"
@@ -129,7 +123,3 @@ class CsvProvider(EditorProvider):
 
     def create(self, path, parent=None):
         return CsvView(path, parent)
-
-
-def register():
-    registry.register(CsvProvider())

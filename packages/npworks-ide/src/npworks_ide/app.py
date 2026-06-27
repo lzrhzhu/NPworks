@@ -3,9 +3,13 @@ import sys
 
 os.environ["QT_API"] = "pyqt5"
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import QSettings
+
+# 允许 QtWebEngine 在 QApplication 之后被插件导入（markdown 渲染插件）
+QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 
 from npworks_ide.ide.main_window import MainWindow
 from npworks_ide.ide.theme import apply_theme

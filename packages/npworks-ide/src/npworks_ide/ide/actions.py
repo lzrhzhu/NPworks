@@ -3,8 +3,6 @@ import os
 from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QAction
 
-from npworks_ide.ide.preview_markdown import MarkdownSplitView
-
 _MAX_RECENT = 10
 
 
@@ -68,7 +66,7 @@ class ActionManager:
 
     def save_as(self):
         widget = self._tabs.widget.currentWidget()
-        if isinstance(widget, MarkdownSplitView):
+        if hasattr(widget, "get_editor"):
             editor = widget.get_editor()
             default_dir = os.path.expanduser("~/npworks")
             os.makedirs(default_dir, exist_ok=True)

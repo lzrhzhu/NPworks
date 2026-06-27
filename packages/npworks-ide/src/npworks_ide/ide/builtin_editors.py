@@ -1,4 +1,8 @@
-"""内置 EditorProvider 集合与注册。"""
+"""内置 EditorProvider 集合与注册。
+
+仅保留代码编辑器(兜底)与图片查看器；PDF、Markdown、CSV 等作为可安装插件
+（见 packages/npworks-plugin-*，通过入口点 npworks.plugins 注册）。
+"""
 import os
 
 from npworks_ide.ide.editor_registry import registry, EditorProvider
@@ -28,17 +32,6 @@ class CodeProvider(EditorProvider):
         return editor
 
 
-class MarkdownProvider(EditorProvider):
-    id = "npworks.markdown"
-    extensions = (".md", ".markdown", ".mkd")
-    title_prefix = "\U0001F4C4"
-    readonly = False
-
-    def create(self, path, parent=None):
-        from npworks_ide.ide.preview_markdown import MarkdownSplitView
-        return MarkdownSplitView(path, parent)
-
-
 class ImageProvider(EditorProvider):
     id = "npworks.image"
     extensions = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".svg", ".webp")
@@ -50,21 +43,8 @@ class ImageProvider(EditorProvider):
         return ImagePreview(path, parent)
 
 
-class PdfProvider(EditorProvider):
-    id = "npworks.pdf"
-    extensions = (".pdf",)
-    title_prefix = "\U0001F4D1"
-    readonly = True
-
-    def create(self, path, parent=None):
-        from npworks_ide.ide.preview_pdf import PdfPreview
-        return PdfPreview(path, parent)
-
-
 _builtin_providers = [
-    PdfProvider(),
     ImageProvider(),
-    MarkdownProvider(),
     CodeProvider(),
 ]
 

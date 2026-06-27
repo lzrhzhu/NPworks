@@ -18,6 +18,7 @@ class ThemeController:
         apply_theme(QApplication.instance(), name)
         self._mw.activity_bar.apply_theme_icons(name)
         self._mw._refresh_toolbar_icons()
+        self._mw._refresh_sidebar_icons()
         self._apply_window_icon(name)
         self._mw._apply_titlebar(name)
         if self._mw._win_controls is not None:
