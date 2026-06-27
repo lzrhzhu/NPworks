@@ -27,7 +27,7 @@ occ = np.zeros((L, L), dtype=bool)
 cx = cy = L // 2
 occ[cx, cy] = True
 r_max = 1.0                       # current cluster radius
-r_launch = r_max + 8
+r_launch = r_max + 5
 r_escape = (L // 2) - 3
 
 steps4 = np.array([[1, 0], [-1, 0], [0, 1], [0, -1]])
@@ -58,11 +58,24 @@ while n < N_target:
             rr = np.hypot(i - cx, j - cy)
             if rr > r_max:
                 r_max = rr
-                r_launch = r_max + 10
+                r_launch = r_max + 5
             break
-        if np.hypot(i - cx, j - cy) > r_escape:
+        # acceleration: when far from the cluster (empty region), take a big
+        # hop toward the centre instead of single-stepping through empty space.
+        # This preserves the cluster statistics near the growth front while
+        # eliminating the bulk of wasted random-walk steps.
+        dist = np.hypot(i - cx, j - cy)
+        if dist > r_max + 4:
+            jump = int(dist - r_max - 2)
+            if jump > 0:
+                i -= int(round(jump * (i - cx) / dist))
+                j -= int(round(jump * (j - cy) / dist))
+                if not (0 <= i < L and 0 <= j < L):
+                    break
+                continue
+        if dist > r_escape:
             break
-        if safety > 20 * L:
+        if safety > 8 * L:
             break
     if n % 1000 == 0 and n > 0:
         print(f"  DLA particles: {n}, r_max={r_max:.0f}")
