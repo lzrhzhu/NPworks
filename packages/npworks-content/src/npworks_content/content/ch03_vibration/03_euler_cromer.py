@@ -20,18 +20,23 @@ for i in range(num_steps):
     omega[i + 1] = omega[i] - Omega2 * theta[i] * dt
     theta[i + 1] = theta[i] + omega[i + 1] * dt
 
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
-ax1.plot(t, theta, 'b-', linewidth=0.8)
-ax1.set_ylabel(r'$\theta$ (rad)')
-ax1.set_title('Euler-Cromer: Stable Oscillation (Simple Pendulum)')
-ax1.grid(True, alpha=0.3)
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch03"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch03"); os.makedirs(IMG_DIR, exist_ok=True)
 
-ax2.plot(t, omega, 'r-', linewidth=0.8)
-ax2.set_xlabel('t (s)')
-ax2.set_ylabel(r'$\omega$ (rad/s)')
-ax2.grid(True, alpha=0.3)
+fig, ax = plt.subplots(figsize=(8, 4.5))
+ax.plot(t, theta, 'b-', linewidth=0.8)
+ax.set_xlabel('t (s)'); ax.set_ylabel(r'$\theta$ (rad)')
+ax.set_title('Euler-Cromer: Stable Oscillation (Simple Pendulum)'); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch03_euler_cromer.png"), dpi=130); plt.close(fig)
 
-plt.tight_layout()
-plt.suptitle('euler_cromer')
-plt.show()
+fig, ax = plt.subplots(figsize=(8, 4.5))
+ax.plot(t, omega, 'r-', linewidth=0.8)
+ax.set_xlabel('t (s)'); ax.set_ylabel(r'$\omega$ (rad/s)'); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch03_euler_cromer_omega.png"), dpi=130); plt.close(fig)
 print("03_euler_cromer.py done")

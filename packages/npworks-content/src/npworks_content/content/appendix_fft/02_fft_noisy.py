@@ -1,15 +1,26 @@
-"""
-PSD of a noisy signal: extract hidden 80 Hz sine from white noise.
-"""
+"""PSD of a noisy signal: extract hidden 80 Hz sine from white noise."""
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+
+def _img_dir(ch):
+    d = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(10):
+        if os.path.isdir(os.path.join(d, "markdown")):
+            return os.path.join(d, "markdown", "images", ch)
+        d = os.path.dirname(d)
+    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
+    os.makedirs(out, exist_ok=True)
+    return out
+
+
+IMG_DIR = _img_dir("appendix")
 
 N = 4096
 dt = 0.001
 t = np.arange(N) * dt
-
 signal = 0.5 * np.sin(2 * np.pi * 80 * t)
-
 np.random.seed(42)
 noise = np.random.randn(N)
 noisy_signal = signal + noise
@@ -17,36 +28,21 @@ noisy_signal = signal + noise
 F = np.fft.fft(noisy_signal)
 freqs = np.fft.fftfreq(N, d=dt)
 psd = np.abs(F) ** 2 / N
-
 pos = freqs > 0
 
-fig, axes = plt.subplots(3, 1, figsize=(10, 9))
+fig, ax = plt.subplots(figsize=(9, 4))
+ax.plot(t[:500], signal[:500], 'b', label='Clean signal'); ax.set_xlabel('Time (s)'); ax.set_ylabel('Amplitude')
+ax.set_title('Clean Signal (80 Hz)'); ax.legend(); ax.grid(True)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "appendix_fft_clean.png"), dpi=130); plt.close(fig)
 
-axes[0].plot(t[:500], signal[:500], 'b', label='Clean signal')
-axes[0].set_xlabel('Time (s)')
-axes[0].set_ylabel('Amplitude')
-axes[0].set_title('Clean Signal (80 Hz)')
-axes[0].legend()
-axes[0].grid(True)
+fig, ax = plt.subplots(figsize=(9, 4))
+ax.plot(t[:500], noisy_signal[:500], 'r', alpha=0.7, label='Noisy signal'); ax.set_xlabel('Time (s)'); ax.set_ylabel('Amplitude')
+ax.set_title('Signal + White Noise'); ax.legend(); ax.grid(True)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "appendix_fft_noisy.png"), dpi=130); plt.close(fig)
 
-axes[1].plot(t[:500], noisy_signal[:500], 'r', alpha=0.7, label='Noisy signal')
-axes[1].set_xlabel('Time (s)')
-axes[1].set_ylabel('Amplitude')
-axes[1].set_title('Signal + White Noise')
-axes[1].legend()
-axes[1].grid(True)
-
-axes[2].semilogy(freqs[pos], psd[pos], 'k', linewidth=0.5)
-axes[2].set_xlabel('Frequency (Hz)')
-axes[2].set_ylabel('PSD')
-axes[2].set_title('Power Spectral Density (log scale)')
-axes[2].set_xlim(0, 500)
-axes[2].axvline(x=80, color='r', linestyle='--', alpha=0.7, label='80 Hz')
-axes[2].legend()
-axes[2].grid(True)
-
-fig.tight_layout()
-
-plt.suptitle('fft_noisy')
-plt.show()
+fig, ax = plt.subplots(figsize=(9, 4))
+ax.semilogy(freqs[pos], psd[pos], 'k', linewidth=0.5); ax.set_xlabel('Frequency (Hz)'); ax.set_ylabel('PSD')
+ax.set_title('Power Spectral Density (log scale)'); ax.set_xlim(0, 500)
+ax.axvline(x=80, color='r', linestyle='--', alpha=0.7, label='80 Hz'); ax.legend(); ax.grid(True)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "appendix_fft_psd.png"), dpi=130); plt.close(fig)
 print("02_fft_noisy.py done")

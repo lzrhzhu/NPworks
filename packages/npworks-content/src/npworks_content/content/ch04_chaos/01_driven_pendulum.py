@@ -24,34 +24,30 @@ def rk4_step(state, t_curr, dt_step, FD):
     k4 = pendulum_rhs(state + dt_step * k3, t_curr + dt_step, FD)
     return state + (dt_step / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
 
-fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch04"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch04"); os.makedirs(IMG_DIR, exist_ok=True)
 
 for idx, FD in enumerate([0.5, 1.2]):
     state = np.array([0.2, 0.0])
-    theta_arr = np.zeros(N)
-    omega_arr = np.zeros(N)
-    theta_arr[0] = state[0]
-    omega_arr[0] = state[1]
-
+    theta_arr = np.zeros(N); omega_arr = np.zeros(N)
+    theta_arr[0] = state[0]; omega_arr[0] = state[1]
     for i in range(N - 1):
         state = rk4_step(state, t[i], dt, FD)
-        theta_arr[i + 1] = state[0]
-        omega_arr[i + 1] = state[1]
+        theta_arr[i + 1] = state[0]; omega_arr[i + 1] = state[1]
 
-    axes[idx, 0].plot(t, theta_arr, 'b-', linewidth=0.3)
-    axes[idx, 0].set_ylabel(r'$\theta$ (rad)')
-    axes[idx, 0].set_title(r'$\theta$-t for $F_D={}$'.format(FD))
-    axes[idx, 0].grid(True, alpha=0.3)
-
-    axes[idx, 1].plot(t, omega_arr, 'r-', linewidth=0.3)
-    axes[idx, 1].set_ylabel(r'$\omega$ (rad/s)')
-    axes[idx, 1].set_title(r'$\omega$-t for $F_D={}$'.format(FD))
-    axes[idx, 1].grid(True, alpha=0.3)
-
-axes[1, 0].set_xlabel('t (s)')
-axes[1, 1].set_xlabel('t (s)')
-
-plt.tight_layout()
-plt.suptitle('driven_pendulum')
-plt.show()
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    ax.plot(t, theta_arr, 'b-', linewidth=0.3)
+    ax.set_ylabel(r'$\theta$ (rad)')
+    ax.set_title(r'$\theta$-t for $F_D={}$'.format(FD))
+    ax.set_xlabel('t (s)')
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fname = "ch04_driven_pendulum.png" if FD == 0.5 else "ch04_driven_pendulum_fd12.png"
+    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130); plt.close(fig)
 print("01_driven_pendulum.py done")

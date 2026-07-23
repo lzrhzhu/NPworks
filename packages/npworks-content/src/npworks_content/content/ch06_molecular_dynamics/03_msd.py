@@ -1,5 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+
+def _img_dir(ch):
+    d = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(10):
+        if os.path.isdir(os.path.join(d, "markdown")):
+            return os.path.join(d, "markdown", "images", ch)
+        d = os.path.dirname(d)
+    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
+    os.makedirs(out, exist_ok=True)
+    return out
+
+
+IMG_DIR = _img_dir("ch06")
 
 np.random.seed(42)
 
@@ -31,7 +46,7 @@ T_act = 2.0 * KE0 / f_dof
 vel *= np.sqrt(T_target / T_act)
 
 pos_unwrapped = pos.copy()
-pos_prev = pos.copy()
+
 
 def compute_forces(pos, L, r_cut):
     N = pos.shape[0]
@@ -54,10 +69,9 @@ def compute_forces(pos, L, r_cut):
                 PE += 4.0 * (inv_r12 - inv_r6) - V_cut
     return forces, PE
 
-acc, _ = compute_forces(pos, L, r_cut)
 
+acc, _ = compute_forces(pos, L, r_cut)
 origin = pos_unwrapped.copy()
-n_save = n_sample
 msd_data = []
 
 for step in range(n_total):
@@ -78,31 +92,35 @@ for step in range(n_total):
 
 msd_data = np.array(msd_data)
 times = np.arange(len(msd_data)) * dt
-
 slope, intercept = np.polyfit(times, msd_data, 1)
 D = slope / (2.0 * 2.0)
 
-fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-
-axes[0].plot(times, msd_data, 'b-', linewidth=1, label='MSD from MD')
-axes[0].plot(times, slope * times + intercept, 'r--', linewidth=2, label='Linear fit: slope={:.4f}'.format(slope))
-axes[0].set_xlabel('Time')
-axes[0].set_ylabel('MSD')
-axes[0].set_title('Mean Square Displacement from MD')
-axes[0].legend()
-axes[0].grid(True, alpha=0.3)
-
-axes[1].loglog(times, msd_data, 'b-', linewidth=1, label='MSD')
-axes[1].loglog(times, slope * times, 'r--', linewidth=1.5, label='Slope=1 (diffusive)')
-axes[1].set_xlabel('Time (log)')
-axes[1].set_ylabel('MSD (log)')
-axes[1].set_title('MSD (log-log)')
-axes[1].legend()
-axes[1].grid(True, alpha=0.3)
-
+# --- 图1：MSD 线性图 ---
+fig, ax = plt.subplots(figsize=(8, 5.5))
+ax.plot(times, msd_data, 'b-', linewidth=1, label='MSD from MD')
+ax.plot(times, slope * times + intercept, 'r--', linewidth=2,
+        label='Linear fit: slope={:.4f}'.format(slope))
+ax.set_xlabel('Time')
+ax.set_ylabel('MSD')
+ax.set_title('Mean Square Displacement from MD')
+ax.legend()
+ax.grid(True, alpha=0.3)
 plt.tight_layout()
+plt.savefig(os.path.join(IMG_DIR, "ch06_msd.png"), dpi=130)
+plt.close(fig)
 
-plt.suptitle('msd')
-plt.show()
-print('ch06_msd.png saved')
+# --- 图2：MSD 双对数图 ---
+fig, ax = plt.subplots(figsize=(8, 5.5))
+ax.loglog(times, msd_data, 'b-', linewidth=1, label='MSD')
+ax.loglog(times, slope * times, 'r--', linewidth=1.5, label='Slope=1 (diffusive)')
+ax.set_xlabel('Time (log)')
+ax.set_ylabel('MSD (log)')
+ax.set_title('MSD (log-log)')
+ax.legend()
+ax.grid(True, alpha=0.3, which='both')
+plt.tight_layout()
+plt.savefig(os.path.join(IMG_DIR, "ch06_msd_loglog.png"), dpi=130)
+plt.close(fig)
+
 print('D (2D) = {:.6f}'.format(D))
+print("03_msd.py done")

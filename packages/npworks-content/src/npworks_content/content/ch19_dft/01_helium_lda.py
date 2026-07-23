@@ -151,54 +151,48 @@ alphas = np.linspace(0.1, 3.0, 200)
 E_hf_arr = np.array([total_energy_hf(a) for a in alphas])
 E_lda_arr = np.array([total_energy_dft(a) for a in alphas])
 
-fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch19"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch19"); os.makedirs(IMG_DIR, exist_ok=True)
 
-ax1 = axes[0]
+# --- 图1：HF vs LDA 能量 ---
+fig, ax1 = plt.subplots(figsize=(8, 5.5))
 ax1.plot(alphas, E_hf_arr, 'r-', linewidth=2, label='HF: E = 2$H_{core}$ + J')
 ax1.plot(alphas, E_lda_arr, 'b-', linewidth=2, label='LDA: E = 2$H_{core}$ + 2J + $E_{xc}$')
-ax1.axhline(E_exact, color='purple', linestyle='-.', alpha=0.7,
-            label=f'Exact = {E_exact:.4f}')
+ax1.axhline(E_exact, color='purple', linestyle='-.', alpha=0.7, label=f'Exact = {E_exact:.4f}')
 ax1.plot(alpha_hf, E_hf, 'ro', markersize=10, zorder=5)
 ax1.plot(alpha_lda, E_lda, 'bs', markersize=10, zorder=5)
-ax1.annotate(f'HF: $\\alpha^*$={alpha_hf:.3f}\nE={E_hf:.4f}',
-             xy=(alpha_hf, E_hf), xytext=(1.5, -2.0),
-             arrowprops=dict(arrowstyle='->', color='red'), fontsize=9, color='red')
-ax1.annotate(f'LDA: $\\alpha^*$={alpha_lda:.3f}\nE={E_lda:.4f}',
-             xy=(alpha_lda, E_lda), xytext=(1.5, -2.5),
-             arrowprops=dict(arrowstyle='->', color='blue'), fontsize=9, color='blue')
 ax1.set_xlabel('$\\alpha$ (Gaussian exponent)', fontsize=12)
 ax1.set_ylabel('Energy (Hartree)', fontsize=12)
-ax1.set_title('He Atom: HF vs LDA')
-ax1.legend(fontsize=9)
-ax1.grid(True, alpha=0.3)
+ax1.set_title('He Atom: HF vs LDA'); ax1.legend(fontsize=9); ax1.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_helium_lda.png"), dpi=130); plt.close(fig)
 
-ax2 = axes[1]
+# --- 图2：电子密度 ---
 r = np.linspace(0, 3, 300)
 rho_hf = np.array([gaussian_density(ri, alpha_hf) for ri in r])
 rho_lda = np.array([gaussian_density(ri, alpha_lda) for ri in r])
+fig, ax2 = plt.subplots(figsize=(8, 5.5))
 ax2.plot(r, rho_hf, 'r-', linewidth=2, label=f'HF ($\\alpha$={alpha_hf:.3f})')
 ax2.plot(r, rho_lda, 'b-', linewidth=2, label=f'LDA ($\\alpha$={alpha_lda:.3f})')
-ax2.set_xlabel('r (bohr)', fontsize=12)
-ax2.set_ylabel('$\\rho(r)$ (e/bohr$^3$)', fontsize=12)
-ax2.set_title('He Atom: Electron Density')
-ax2.legend(fontsize=10)
-ax2.grid(True, alpha=0.3)
+ax2.set_xlabel('r (bohr)', fontsize=12); ax2.set_ylabel('$\\rho(r)$ (e/bohr$^3$)', fontsize=12)
+ax2.set_title('He Atom: Electron Density'); ax2.legend(fontsize=10); ax2.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_helium_lda_density.png"), dpi=130); plt.close(fig)
 
-ax3 = axes[2]
+# --- 图3：方法对比 ---
 methods = ['HF\n(1 Gauss)', 'LDA\n(1 Gauss)', 'HF limit', 'PBE\n(ref)', 'B3LYP\n(ref)', 'Exact']
 energies = [E_hf, E_lda, -2.8617, -2.860, -2.907, -2.9037]
 colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c']
-bars = ax3.bar(range(len(methods)), [abs(e) for e in energies],
-               color=colors, alpha=0.7, edgecolor='black')
-ax3.set_xticks(range(len(methods)))
-ax3.set_xticklabels(methods, fontsize=9)
-ax3.set_ylabel('|Energy| (Hartree)', fontsize=12)
-ax3.set_title('He Atom: Method Comparison')
+fig, ax3 = plt.subplots(figsize=(9, 5.5))
+bars = ax3.bar(range(len(methods)), [abs(e) for e in energies], color=colors, alpha=0.7, edgecolor='black')
+ax3.set_xticks(range(len(methods))); ax3.set_xticklabels(methods, fontsize=9)
+ax3.set_ylabel('|Energy| (Hartree)', fontsize=12); ax3.set_title('He Atom: Method Comparison')
 for bar, e in zip(bars, energies):
-    ax3.text(bar.get_width() / 2 + bar.get_x(), bar.get_height() + 0.01,
-             f'{e:.4f}', ha='center', fontsize=8, rotation=45)
+    ax3.text(bar.get_width() / 2 + bar.get_x(), bar.get_height() + 0.01, f'{e:.4f}', ha='center', fontsize=8, rotation=45)
 ax3.grid(True, alpha=0.3, axis='y')
-
-plt.tight_layout()
-fig.suptitle('helium_lda')
-plt.show()
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_helium_lda_comparison.png"), dpi=130); plt.close(fig)
+print("01_helium_lda.py done")

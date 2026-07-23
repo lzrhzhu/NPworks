@@ -1,7 +1,21 @@
 title: 第13章 电磁波
-description: FDTD、Yee 网格与 PML
+description: FDTD、Yee 网格、PML、光子晶体、TMM 与几何光学
 sections:
 - file: 01_fdtd_1d_gaussian.py
   title: 01 Fdtd 1d Gaussian
 - file: 02_fdtd_2d_point_source.py
   title: 02 Fdtd 2d Point Source
+- file: 03_fdtd_instability.py
+  title: 03 Fdtd Instability (CFL)
+- file: 04_fdtd_reflection_spectrum.py
+  title: 04 Fdtd Reflection Spectrum
+- file: 05_photonic_crystal_transmission.py
+  title: 05 Photonic Crystal Transmission
+- file: 06_plane_wave_expansion_bands.py
+  title: 06 Plane Wave Expansion Bands
+- file: 07_tmm_reflection_spectrum.py
+  title: 07 Tmm Reflection Spectrum
+- file: 08_airy_coherent_rays.py
+  title: 08 Airy Coherent Rays
+- file: 09_abcd_ray_tracing.py
+  title: 09 Abcd Ray Tracing

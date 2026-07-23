@@ -117,30 +117,28 @@ for epoch in range(epochs):
 x_plot = np.linspace(0, 1, 80)
 t_plot_vals = [0.0, 0.2, 0.5, 1.0]
 
-fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
 
+fig, ax = plt.subplots(figsize=(8, 5))
 for t_val in t_plot_vals:
     xt_in = np.column_stack([x_plot, np.full_like(x_plot, t_val)])
     T_nn = model.predict(xt_in).flatten()
     T_exact = np.exp(-np.pi**2 * t_val) * np.sin(np.pi * x_plot)
+    ax.plot(x_plot, T_exact, '-', linewidth=2, label=f'$t={t_val:.1f}$ (exact)')
+    ax.plot(x_plot, T_nn, '--', linewidth=2, label=f'$t={t_val:.1f}$ (PINN)')
+ax.set_xlabel('$x$'); ax.set_ylabel('$T(x, t)$')
+ax.set_title('PINN solution vs exact solution'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_pinn_heat.png"), dpi=130); plt.close(fig)
 
-    axes[0].plot(x_plot, T_exact, '-', linewidth=2,
-                 label=f'$t={t_val:.1f}$ (exact)')
-    axes[0].plot(x_plot, T_nn, '--', linewidth=2,
-                 label=f'$t={t_val:.1f}$ (PINN)')
-
-axes[0].set_xlabel('$x$')
-axes[0].set_ylabel('$T(x, t)$')
-axes[0].set_title('PINN solution vs exact solution')
-axes[0].legend(fontsize=7)
-axes[0].grid(True, alpha=0.3)
-
-axes[1].semilogy(losses)
-axes[1].set_xlabel('Epoch')
-axes[1].set_ylabel('Total loss')
-axes[1].set_title('Training loss')
-axes[1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.suptitle('pinn_heat')
-plt.show()
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.semilogy(losses); ax.set_xlabel('Epoch'); ax.set_ylabel('Total loss')
+ax.set_title('Training loss'); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_pinn_loss.png"), dpi=130); plt.close(fig)
+print("06_pinn_heat.py done")

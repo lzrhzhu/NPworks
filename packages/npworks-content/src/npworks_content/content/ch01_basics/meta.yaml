@@ -1,0 +1,7 @@
+title: 第1章 编程基础
+description: 伪代码、变量循环函数与可视化
+sections:
+- file: 01_plot_2d.py
+  title: 01 Plot 2d
+- file: 02_plot_3d.py
+  title: 02 Plot 3d

@@ -59,16 +59,13 @@ for c in c_values:
     julias.append(escape_time(np.full_like(Z0, c), Z0, n_max=150))
 
 # --- plot ---
-fig, axes = plt.subplots(2, 2, figsize=(11, 10))
-axes[0, 0].imshow(mandel, extent=[x[0], x[-1], y[0], y[-1]],
-                  cmap='magma', origin='lower', aspect='equal')
-axes[0, 0].set_title("Mandelbrot set")
-for ax, c, im in zip([axes[0, 1], axes[1, 0], axes[1, 1]], c_values, julias):
-    ax.imshow(im, extent=[xj[0], xj[-1], yj[0], yj[-1]],
-              cmap='magma', origin='lower', aspect='equal')
-    ax.set_title(f"Julia set  c = {c:.4f}")
-for ax in axes.flat:
-    ax.set_xlabel("Re"); ax.set_ylabel("Im")
-plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch22_mandelbrot_julia.png"), dpi=130)
-print("saved ch22_mandelbrot_julia.png")
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.imshow(mandel, extent=[x[0], x[-1], y[0], y[-1]], cmap='magma', origin='lower', aspect='equal')
+ax.set_title("Mandelbrot set"); ax.set_xlabel("Re"); ax.set_ylabel("Im")
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_mandelbrot.png"), dpi=130); plt.close(fig)
+for c, im in zip(c_values, julias):
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.imshow(im, extent=[xj[0], xj[-1], yj[0], yj[-1]], cmap='magma', origin='lower', aspect='equal')
+    ax.set_title(f"Julia set  c = {c:.4f}"); ax.set_xlabel("Re"); ax.set_ylabel("Im")
+    plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, f"ch22_julia_{c:.4f}.png"), dpi=130); plt.close(fig)
+print("saved ch22 mandelbrot + julias")

@@ -1,9 +1,24 @@
 """
 2D FDTD: Point source radiation (TM mode, Ez).
-Saves Ez field snapshots at several time steps.
+Saves Ez field snapshots at several time steps as independent images.
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+
+def _img_dir(ch):
+    d = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(10):
+        if os.path.isdir(os.path.join(d, "markdown")):
+            return os.path.join(d, "markdown", "images", ch)
+        d = os.path.dirname(d)
+    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
+    os.makedirs(out, exist_ok=True)
+    return out
+
+
+IMG_DIR = _img_dir("ch13")
 
 c0 = 3e8
 mu0 = 4e-7 * np.pi
@@ -38,27 +53,24 @@ for n in range(Nt):
                      - CEz_y * (Hx[1:-1, 1:] - Hx[1:-1, :-1])
     t = n * dt
     Ez[src_i, src_j] += np.exp(-((t - t0) / tau) ** 2)
-    Ez[0, :] = 0
-    Ez[Nx, :] = 0
-    Ez[:, 0] = 0
-    Ez[:, Ny] = 0
+    Ez[0, :] = 0; Ez[Nx, :] = 0; Ez[:, 0] = 0; Ez[:, Ny] = 0
     if n in snap_times:
         snapshots.append((n, Ez.copy()))
 
-fig, axes = plt.subplots(1, len(snapshots), figsize=(5 * len(snapshots), 5))
-if len(snapshots) == 1:
-    axes = [axes]
-for ax, (n, field) in zip(axes, snapshots):
+first = True
+for n, field in snapshots:
     vmax = max(0.05, np.max(np.abs(field)) * 0.8)
+    fig, ax = plt.subplots(figsize=(6, 5.5))
     im = ax.imshow(field.T, cmap='RdBu', vmin=-vmax, vmax=vmax,
                    extent=[0, (Nx + 1) * dx * 1e3, 0, (Ny + 1) * dy * 1e3],
                    origin='lower')
-    ax.set_xlabel("x (mm)")
-    ax.set_ylabel("y (mm)")
+    ax.set_xlabel("x (mm)"); ax.set_ylabel("y (mm)")
     ax.set_title(f"Ez at step {n}")
     plt.colorbar(im, ax=ax, shrink=0.8)
-fig.suptitle('fdtd_2d_point')
-fig.tight_layout()
+    plt.tight_layout()
+    fname = "ch13_fdtd_2d_point.png" if first else f"ch13_fdtd_2d_point_step{n}.png"
+    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130)
+    plt.close(fig)
+    first = False
 
-plt.show()
 print("02_fdtd_2d_point_source.py done")

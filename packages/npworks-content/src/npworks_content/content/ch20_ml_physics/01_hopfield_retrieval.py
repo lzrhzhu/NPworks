@@ -39,41 +39,31 @@ for step in range(500):
     overlap_history.append(np.dot(sigma, patterns[0]) / N)
     energy_history.append(net.energy(sigma))
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
 
-axes[0].bar(range(N), patterns[0], color='blue', alpha=0.7)
-axes[0].set_title('Original pattern')
-axes[0].set_ylim(-1.5, 1.5)
-axes[0].set_xlabel('Neuron index')
+for data, title, fname, color in [
+    (patterns[0], 'Original pattern', "ch21_ml_physics_hopfield_patterns.png", 'blue'),
+    (test_pattern, 'Corrupted (30% flipped)', "ch21_ml_physics_hopfield_patterns_corrupted.png", 'red'),
+    (sigma, 'Retrieved (500 steps)', "ch21_ml_physics_hopfield_patterns_retrieved.png", 'green')]:
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.bar(range(N), data, color=color, alpha=0.7)
+    ax.set_title(title); ax.set_ylim(-1.5, 1.5); ax.set_xlabel('Neuron index')
+    plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, fname), dpi=130); plt.close(fig)
 
-axes[1].bar(range(N), test_pattern, color='red', alpha=0.7)
-axes[1].set_title('Corrupted (30% flipped)')
-axes[1].set_ylim(-1.5, 1.5)
-axes[1].set_xlabel('Neuron index')
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.plot(overlap_history); ax.set_xlabel('Update step'); ax.set_ylabel('Overlap with target')
+ax.set_title('Retrieval dynamics'); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_hopfield_dynamics.png"), dpi=130); plt.close(fig)
 
-axes[2].bar(range(N), sigma, color='green', alpha=0.7)
-axes[2].set_title('Retrieved (500 steps)')
-axes[2].set_ylim(-1.5, 1.5)
-axes[2].set_xlabel('Neuron index')
-
-plt.tight_layout()
-plt.suptitle('hopfield_patterns')
-plt.show()
-
-fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-
-axes[0].plot(overlap_history)
-axes[0].set_xlabel('Update step')
-axes[0].set_ylabel('Overlap with target')
-axes[0].set_title('Retrieval dynamics')
-axes[0].grid(True, alpha=0.3)
-
-axes[1].plot(energy_history)
-axes[1].set_xlabel('Update step')
-axes[1].set_ylabel('Energy')
-axes[1].set_title('Energy evolution')
-axes[1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.suptitle('hopfield_dynamics')
-plt.show()
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.plot(energy_history); ax.set_xlabel('Update step'); ax.set_ylabel('Energy')
+ax.set_title('Energy evolution'); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_hopfield_dynamics_energy.png"), dpi=130); plt.close(fig)
+print("01_hopfield_retrieval.py done")

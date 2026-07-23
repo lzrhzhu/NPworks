@@ -283,63 +283,59 @@ print(f"LDA (STO-3G): R_eq = {Rs[i_lda]:.3f} bohr, E_min = {E_lda[i_lda]:.6f}, D
 print(f"Dissociation limit: HF={E_diss_hf:.6f}, LDA={E_diss_lda:.6f}, Exact=-1.0")
 print(f"Exact       : R_eq = 1.401 bohr, D_e = 0.1745 Ha (4.748 eV)")
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 11))
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch19"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch19"); os.makedirs(IMG_DIR, exist_ok=True)
 
-ax1 = axes[0, 0]
+# --- 图1：势能曲线 ---
+fig, ax1 = plt.subplots(figsize=(8, 5.5))
 ax1.plot(Rs, E_hf, 'r-', linewidth=2, label='HF (STO-3G)')
 ax1.plot(Rs, E_lda, 'b-', linewidth=2, label='LDA (STO-3G)')
 ax1.axhline(-1.0, color='gray', linestyle='--', alpha=0.5, label='2H = -1.0')
 ax1.plot(Rs[i_hf], E_hf[i_hf], 'ro', markersize=8)
 ax1.plot(Rs[i_lda], E_lda[i_lda], 'bs', markersize=8)
-ax1.set_xlabel('R (bohr)', fontsize=12)
-ax1.set_ylabel('E (Hartree)', fontsize=12)
-ax1.set_title('H$_2$ Potential Energy Curve: HF vs LDA')
-ax1.legend(fontsize=10)
-ax1.grid(True, alpha=0.3)
+ax1.set_xlabel('R (bohr)', fontsize=12); ax1.set_ylabel('E (Hartree)', fontsize=12)
+ax1.set_title('H$_2$ Potential Energy Curve: HF vs LDA'); ax1.legend(fontsize=10); ax1.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_h2_lda.png"), dpi=130); plt.close(fig)
 
-ax2 = axes[0, 1]
+# --- 图2：LDA 关联能 ---
+fig, ax2 = plt.subplots(figsize=(8, 5.5))
 ax2.plot(Rs, (E_hf - E_lda) * 27.2114, 'g-', linewidth=2)
-ax2.set_xlabel('R (bohr)', fontsize=12)
-ax2.set_ylabel('E$_{LDA}$ - E$_{HF}$ (eV)', fontsize=12)
-ax2.set_title('LDA Correlation Energy')
-ax2.axhline(0, color='gray', linestyle=':', alpha=0.5)
-ax2.grid(True, alpha=0.3)
+ax2.set_xlabel('R (bohr)', fontsize=12); ax2.set_ylabel('E$_{LDA}$ - E$_{HF}$ (eV)', fontsize=12)
+ax2.set_title('LDA Correlation Energy'); ax2.axhline(0, color='gray', linestyle=':', alpha=0.5); ax2.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_h2_lda_correlation.png"), dpi=130); plt.close(fig)
 
-ax3 = axes[1, 0]
+# --- 图3：成键轨道 ---
 S_r, H_r, eri_r, Enuc_r, ctrs_r = build_matrices(R_eq)
 _, _, C_hf, P_hf, _ = run_hf_scf(S_r, H_r, eri_r, Enuc_r)
 _, _, C_lda, P_lda, _, _ = run_dft_scf(S_r, H_r, eri_r, ctrs_r, Enuc_r)
 x = np.linspace(-3, 3, 300)
-chi_A = np.exp(-(x + R_eq / 2) ** 2)
-chi_B = np.exp(-(x - R_eq / 2) ** 2)
+chi_A = np.exp(-(x + R_eq / 2) ** 2); chi_B = np.exp(-(x - R_eq / 2) ** 2)
 psi_hf = C_hf[0, 0] * chi_A + C_hf[1, 0] * chi_B
 psi_lda = C_lda[0, 0] * chi_A + C_lda[1, 0] * chi_B
 psi_hf /= np.max(np.abs(psi_hf)); psi_lda /= np.max(np.abs(psi_lda))
+fig, ax3 = plt.subplots(figsize=(8, 5))
 ax3.plot(x, psi_hf, 'r-', linewidth=2, label='HF $\\sigma_g$')
 ax3.plot(x, psi_lda, 'b--', linewidth=2, label='LDA $\\sigma_g$')
-ax3.axvline(-R_eq / 2, color='gray', linestyle=':', alpha=0.5)
-ax3.axvline(R_eq / 2, color='gray', linestyle=':', alpha=0.5)
-ax3.set_xlabel('x (bohr)', fontsize=12)
-ax3.set_ylabel('$\\psi$ (normalized)', fontsize=12)
-ax3.set_title('Bonding MO: HF vs LDA')
-ax3.legend(fontsize=10)
-ax3.grid(True, alpha=0.3)
+ax3.axvline(-R_eq / 2, color='gray', linestyle=':', alpha=0.5); ax3.axvline(R_eq / 2, color='gray', linestyle=':', alpha=0.5)
+ax3.set_xlabel('x (bohr)', fontsize=12); ax3.set_ylabel('$\\psi$ (normalized)', fontsize=12)
+ax3.set_title('Bonding MO: HF vs LDA'); ax3.legend(fontsize=10); ax3.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_h2_lda_mo.png"), dpi=130); plt.close(fig)
 
-ax4 = axes[1, 1]
+# --- 图4：方法对比 ---
 methods = ['HF\n(STO-3G)', 'LDA\n(STO-3G)', 'HF\n(cc-pVTZ)', 'LDA\n(cc-pVTZ)', 'B3LYP\n(cc-pVTZ)', 'Expt']
 Re_vals = [Rs[i_hf], Rs[i_lda], 1.389, 1.445, 1.410, 1.401]
 De_vals = [D_e_hf*27.2114, D_e_lda*27.2114, 3.64, 5.20, 4.55, 4.75]
-x_pos = np.arange(len(methods))
-w = 0.35
-ax4.bar(x_pos - w/2, [r*0.5292 for r in Re_vals], w, label='$R_e$ (A)',
-        color='#3498db', alpha=0.7, edgecolor='black')
-ax4.bar(x_pos + w/2, De_vals, w, label='$D_e$ (eV)',
-        color='#e74c3c', alpha=0.7, edgecolor='black')
+x_pos = np.arange(len(methods)); w = 0.35
+fig, ax4 = plt.subplots(figsize=(9, 5.5))
+ax4.bar(x_pos - w/2, [r*0.5292 for r in Re_vals], w, label='$R_e$ (A)', color='#3498db', alpha=0.7, edgecolor='black')
+ax4.bar(x_pos + w/2, De_vals, w, label='$D_e$ (eV)', color='#e74c3c', alpha=0.7, edgecolor='black')
 ax4.set_xticks(x_pos); ax4.set_xticklabels(methods, fontsize=8)
-ax4.set_title('H$_2$: Method Comparison')
-ax4.legend(fontsize=9)
-ax4.grid(True, alpha=0.3, axis='y')
-
-plt.tight_layout()
-fig.suptitle('h2_lda')
-plt.show()
+ax4.set_title('H$_2$: Method Comparison'); ax4.legend(fontsize=9); ax4.grid(True, alpha=0.3, axis='y')
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_h2_lda_comparison.png"), dpi=130); plt.close(fig)
+print("02_h2_lda.py done")

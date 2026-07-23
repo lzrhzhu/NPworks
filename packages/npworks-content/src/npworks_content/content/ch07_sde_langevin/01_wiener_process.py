@@ -7,6 +7,21 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+
+def _img_dir(ch):
+    d = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(10):
+        if os.path.isdir(os.path.join(d, "markdown")):
+            return os.path.join(d, "markdown", "images", ch)
+        d = os.path.dirname(d)
+    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
+    os.makedirs(out, exist_ok=True)
+    return out
+
+
+IMG_DIR = _img_dir("ch07")
 
 np.random.seed(0)
 
@@ -23,30 +38,31 @@ W[:, 1:] = np.cumsum(dW, axis=1)                    # 累加得 W(t)
 mean_W = W.mean(axis=0)          # <W(t)>
 msd_W = (W ** 2).mean(axis=0)    # <W^2(t)>
 
-fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
-
-# 左：若干条轨迹 + 均值
+fig, ax = plt.subplots(figsize=(8, 5))
 for i in range(20):
-    axes[0].plot(t, W[i], color='steelblue', alpha=0.4, linewidth=0.8)
-axes[0].plot(t, mean_W, 'r-', linewidth=2.2, label=r'$\langle W(t)\rangle=0$')
-axes[0].plot(t, np.sqrt(t), 'k--', linewidth=1.5, label=r'$\pm\sqrt{t}$')
-axes[0].plot(t, -np.sqrt(t), 'k--', linewidth=1.5)
-axes[0].set_xlabel('time $t$')
-axes[0].set_ylabel('$W(t)$')
-axes[0].set_title('Wiener 过程轨迹（处处连续、处处不可导）')
-axes[0].legend(loc='upper left')
-axes[0].grid(True, alpha=0.3)
-
-# 右：方差 <W^2> vs t
-axes[1].plot(t, msd_W, 'b-', linewidth=2, label=r'模拟 $\langle W^2(t)\rangle$')
-axes[1].plot(t, t, 'r--', linewidth=2, label=r'理论 $=t$')
-axes[1].set_xlabel('time $t$')
-axes[1].set_ylabel(r'$\langle W^2(t)\rangle$')
-axes[1].set_title('方差与时间成正比 → 扩散')
-axes[1].legend()
-axes[1].grid(True, alpha=0.3)
-
+    ax.plot(t, W[i], color='steelblue', alpha=0.4, linewidth=0.8)
+ax.plot(t, mean_W, 'r-', linewidth=2.2, label=r'$\langle W(t)\rangle=0$')
+ax.plot(t, np.sqrt(t), 'k--', linewidth=1.5, label=r'$\pm\sqrt{t}$')
+ax.plot(t, -np.sqrt(t), 'k--', linewidth=1.5)
+ax.set_xlabel('time $t$')
+ax.set_ylabel('$W(t)$')
+ax.set_title('Wiener 过程轨迹（处处连续、处处不可导）')
+ax.legend(loc='upper left')
+ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.suptitle('wiener_process')
-plt.show()
+plt.savefig(os.path.join(IMG_DIR, "ch07_wiener_process.png"), dpi=130)
+plt.close(fig)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.plot(t, msd_W, 'b-', linewidth=2, label=r'模拟 $\langle W^2(t)\rangle$')
+ax.plot(t, t, 'r--', linewidth=2, label=r'理论 $=t$')
+ax.set_xlabel('time $t$')
+ax.set_ylabel(r'$\langle W^2(t)\rangle$')
+ax.set_title('方差与时间成正比 → 扩散')
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(os.path.join(IMG_DIR, "ch07_wiener_msd.png"), dpi=130)
+plt.close(fig)
+
 print("01_wiener_process.py done")

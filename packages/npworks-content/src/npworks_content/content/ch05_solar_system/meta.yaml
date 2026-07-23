@@ -9,3 +9,5 @@ sections:
   title: 03 Verlet Vs Euler
 - file: 04_earth_jupiter.py
   title: 04 Earth Jupiter
+- file: 05_lagrange_points.py
+  title: 05 Lagrange Points

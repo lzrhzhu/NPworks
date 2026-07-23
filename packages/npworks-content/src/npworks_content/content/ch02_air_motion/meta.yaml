@@ -19,3 +19,5 @@ sections:
   title: 08 Cannonball Variable Density
 - file: 09_rk4_cannonball.py
   title: 09 Rk4 Cannonball
+- file: 10_glide_skip.py
+  title: 10 Glide Skip

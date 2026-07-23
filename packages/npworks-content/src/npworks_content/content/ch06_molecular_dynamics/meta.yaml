@@ -7,3 +7,5 @@ sections:
   title: 02 2d Md
 - file: 03_msd.py
   title: 03 Msd
+- file: 04_rdf.py
+  title: 04 Rdf

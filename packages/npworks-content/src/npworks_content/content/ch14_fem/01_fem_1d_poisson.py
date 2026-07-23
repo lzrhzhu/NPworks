@@ -4,17 +4,30 @@ Compares numerical (FEM) solution with analytical solution.
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+
+def _img_dir(ch):
+    d = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(10):
+        if os.path.isdir(os.path.join(d, "markdown")):
+            return os.path.join(d, "markdown", "images", ch)
+        d = os.path.dirname(d)
+    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
+    os.makedirs(out, exist_ok=True)
+    return out
+
+
+IMG_DIR = _img_dir("ch14")
 
 L = 1.0
 N = 10
 q = 1.0
 h = L / N
-
 x_nodes = np.linspace(0, L, N + 1)
 
 K = np.zeros((N + 1, N + 1))
 F = np.zeros(N + 1)
-
 for e in range(N):
     he = x_nodes[e + 1] - x_nodes[e]
     Ke = (1.0 / he) * np.array([[1, -1], [-1, 1]])
@@ -23,41 +36,38 @@ for e in range(N):
         i_global = e + i_local
         F[i_global] += Fe[i_local]
         for j_local in range(2):
-            j_global = e + j_local
-            K[i_global, j_global] += Ke[i_local, j_local]
+            K[i_global, e + j_local] += Ke[i_local, j_local]
 
 inner = np.arange(1, N)
-K_inner = K[np.ix_(inner, inner)]
-F_inner = F[inner]
-
-T_inner = np.linalg.solve(K_inner, F_inner)
-
+T_inner = np.linalg.solve(K[np.ix_(inner, inner)], F[inner])
 T = np.zeros(N + 1)
 T[1:N] = T_inner
 
 x_anal = np.linspace(0, L, 200)
 T_anal = 0.5 * q * x_anal * (L - x_anal)
-
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-axes[0].plot(x_nodes, T, 'ro-', markersize=6, label='FEM (N={})'.format(N))
-axes[0].plot(x_anal, T_anal, 'b-', label='Analytical')
-axes[0].set_xlabel('x')
-axes[0].set_ylabel('T(x)')
-axes[0].set_title('1D Poisson: FEM vs Analytical')
-axes[0].legend()
-axes[0].grid(True)
-
 T_anal_nodes = 0.5 * q * x_nodes * (L - x_nodes)
 error = np.abs(T - T_anal_nodes)
-axes[1].semilogy(x_nodes[1:-1], error[1:-1], 'rs-', markersize=6)
-axes[1].set_xlabel('x')
-axes[1].set_ylabel('|T_FEM - T_analytical|')
-axes[1].set_title('Nodal error')
-axes[1].grid(True)
 
-fig.tight_layout()
+# --- 图1：FEM 解 vs 解析解 ---
+fig, ax = plt.subplots(figsize=(8, 5.5))
+ax.plot(x_nodes, T, 'ro-', markersize=6, label='FEM (N={})'.format(N))
+ax.plot(x_anal, T_anal, 'b-', label='Analytical')
+ax.set_xlabel('x'); ax.set_ylabel('T(x)')
+ax.set_title('1D Poisson: FEM vs Analytical')
+ax.legend(); ax.grid(True)
+plt.tight_layout()
+plt.savefig(os.path.join(IMG_DIR, "ch14_fem_1d.png"), dpi=130)
+plt.close(fig)
 
-plt.suptitle('fem_1d')
-plt.show()
+# --- 图2：节点误差 ---
+fig, ax = plt.subplots(figsize=(8, 5.5))
+ax.semilogy(x_nodes[1:-1], error[1:-1], 'rs-', markersize=6)
+ax.set_xlabel('x'); ax.set_ylabel('|T_FEM - T_analytical|')
+ax.set_title('Nodal error')
+ax.grid(True)
+plt.tight_layout()
+plt.savefig(os.path.join(IMG_DIR, "ch14_fem_1d_error.png"), dpi=130)
+plt.close(fig)
+
 print(f"Max nodal error: {np.max(error[1:-1]):.2e}")
+print("01_fem_1d_poisson.py done")

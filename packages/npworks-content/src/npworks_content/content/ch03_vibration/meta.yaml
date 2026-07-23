@@ -9,3 +9,11 @@ sections:
   title: 03 Euler Cromer
 - file: 04_damped_pendulum.py
   title: 04 Damped Pendulum
+- file: 05_driven_pendulum.py
+  title: 05 Driven Pendulum
+- file: 06_coupled_oscillators.py
+  title: 06 Coupled Oscillators
+- file: 07_lattice_dispersion.py
+  title: 07 Lattice Dispersion
+- file: 08_fput_recurrence.py
+  title: 08 FPUT Recurrence

@@ -38,6 +38,17 @@ def run_script(script_path, save_dir, chapter_id):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
+    # 让图中中文标签正常显示（默认 DejaVu Sans 不含 CJK 字形）。
+    # 这里把一族中文字体设为首选回退；找不到时仍回退到默认无衬线字体。
+    from matplotlib import font_manager
+    _cjk_candidates = ["Microsoft YaHei", "SimHei", "Noto Sans SC", "Source Han Sans SC",
+                       "PingFang SC", "WenQuanYi Zen Hei", "Arial Unicode MS"]
+    _available = {f.name for f in font_manager.fontManager.ttflist}
+    _cjk = [n for n in _cjk_candidates if n in _available]
+    if _cjk:
+        plt.rcParams["font.sans-serif"] = _cjk + plt.rcParams.get("font.sans-serif", [])
+        plt.rcParams["axes.unicode_minus"] = False
+
     os.makedirs(save_dir, exist_ok=True)
 
     counter = [0]
@@ -61,6 +72,21 @@ def run_script(script_path, save_dir, chapter_id):
                 filename = f"{chapter_id}_fig_{counter[0]}.png"
 
             path = os.path.join(save_dir, filename)
+
+            # 为 suptitle 预留顶部空间，避免总标题与子图/坐标轴重叠。
+            # tight_layout(rect=...) 会把坐标轴限制在 [0, 0.93] 区域内，
+            # suptitle（默认 y≈0.98）落在预留的顶部边距中，从而留出清晰间距。
+            has_suptitle = (fig._suptitle is not None
+                            and fig._suptitle.get_text())
+            if has_suptitle:
+                try:
+                    fig.tight_layout(rect=[0, 0, 1, 0.92])
+                except Exception:
+                    try:
+                        fig.subplots_adjust(top=0.88)
+                    except Exception:
+                        pass
+
             fig.savefig(path, dpi=150, bbox_inches='tight')
             print(f"Saved: {path}")
             plt.close(fig)

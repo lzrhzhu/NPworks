@@ -76,23 +76,25 @@ a2 = tanh(z2)
 z3 = a2 @ W3 + b3
 y_nn = z3.flatten()
 
-fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
 
-axes[0].scatter(x_train, y_train, s=10, c='gray', alpha=0.5, label='Training data')
-axes[0].plot(x_test, target_func(x_test), 'b-', label='Target function', linewidth=2)
-axes[0].plot(x_test, y_nn, 'r--', label='Neural network', linewidth=2)
-axes[0].set_title('Function approximation')
-axes[0].legend()
-axes[0].grid(True, alpha=0.3)
-axes[0].set_xlabel('$x$')
-axes[0].set_ylabel('$y$')
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.scatter(x_train, y_train, s=10, c='gray', alpha=0.5, label='Training data')
+ax.plot(x_test, target_func(x_test), 'b-', label='Target function', linewidth=2)
+ax.plot(x_test, y_nn, 'r--', label='Neural network', linewidth=2)
+ax.set_title('Function approximation'); ax.legend(); ax.grid(True, alpha=0.3)
+ax.set_xlabel('$x$'); ax.set_ylabel('$y$')
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_mlp_function_fit.png"), dpi=130); plt.close(fig)
 
-axes[1].semilogy(losses)
-axes[1].set_xlabel('Epoch')
-axes[1].set_ylabel('Loss (MSE)')
-axes[1].set_title('Training loss')
-axes[1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.suptitle('mlp_function_fit')
-plt.show()
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.semilogy(losses); ax.set_xlabel('Epoch'); ax.set_ylabel('Loss (MSE)')
+ax.set_title('Training loss'); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_mlp_loss.png"), dpi=130); plt.close(fig)
+print("02_mlp_function_fit.py done")

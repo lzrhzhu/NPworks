@@ -4,29 +4,24 @@ import matplotlib.pyplot as plt
 
 def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
     rng = np.random.default_rng(seed)
-    N = L * L
     beta = 1.0 / T
     s = np.ones((L, L), dtype=np.int8)
-    exp_table = {dE: np.exp(-beta * dE) for dE in [-8, -4, 0, 4, 8]}
+    ii, jj = np.indices((L, L))
+    red = ((ii + jj) % 2 == 0)
+
+    def sweep():
+        for color in (red, ~red):
+            nb = (np.roll(s, 1, 0) + np.roll(s, -1, 0) +
+                  np.roll(s, 1, 1) + np.roll(s, -1, 1))
+            dE = 2 * s * nb
+            r = rng.random((L, L))
+            accept = (dE <= 0) | (r < np.exp(-beta * np.maximum(dE, 0)))
+            s[color & accept] = -s[color & accept]
 
     for _ in range(N_therm):
-        for _ in range(N):
-            i, j = int(rng.integers(L)), int(rng.integers(L))
-            nb = (int(s[(i-1) % L, j]) + int(s[(i+1) % L, j]) +
-                  int(s[i, (j-1) % L]) + int(s[i, (j+1) % L]))
-            dE = 2 * int(s[i, j]) * nb
-            if dE <= 0 or rng.random() < exp_table[dE]:
-                s[i, j] = np.int8(-s[i, j])
-
+        sweep()
     for _ in range(N_measure):
-        for _ in range(N):
-            i, j = int(rng.integers(L)), int(rng.integers(L))
-            nb = (int(s[(i-1) % L, j]) + int(s[(i+1) % L, j]) +
-                  int(s[i, (j-1) % L]) + int(s[i, (j+1) % L]))
-            dE = 2 * int(s[i, j]) * nb
-            if dE <= 0 or rng.random() < exp_table[dE]:
-                s[i, j] = np.int8(-s[i, j])
-
+        sweep()
     return s.copy()
 
 
@@ -120,23 +115,24 @@ for i in range(len(temp_bins) - 1):
         accuracy_per_T.append(np.mean(y_pred[mask] == y_test[mask]))
         bin_centers.append(0.5 * (temp_bins[i] + temp_bins[i+1]))
 
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+import os
+_d = os.path.dirname(os.path.abspath(__file__))
+for _ in range(10):
+    if os.path.isdir(os.path.join(_d, "markdown")):
+        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
+    _d = os.path.dirname(_d)
+else:
+    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
 
-axes[0].plot(bin_centers, accuracy_per_T, 'o-', markersize=8)
-axes[0].axvline(2.269, color='red', linestyle='--', label=r'$T_c \approx 2.269$')
-axes[0].set_xlabel('Temperature $T$')
-axes[0].set_ylabel('Classification accuracy')
-axes[0].set_title('Supervised Learning: Phase Classification')
-axes[0].legend()
-axes[0].grid(True, alpha=0.3)
-axes[0].set_ylim(0, 1.05)
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.plot(bin_centers, accuracy_per_T, 'o-', markersize=8)
+ax.axvline(2.269, color='red', linestyle='--', label=r'$T_c \approx 2.269$')
+ax.set_xlabel('Temperature $T$'); ax.set_ylabel('Classification accuracy')
+ax.set_title('Supervised Learning: Phase Classification'); ax.legend(); ax.grid(True, alpha=0.3); ax.set_ylim(0, 1.05)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_ising_phase_classification.png"), dpi=130); plt.close(fig)
 
-axes[1].semilogy(losses)
-axes[1].set_xlabel('Epoch')
-axes[1].set_ylabel('Cross-entropy loss')
-axes[1].set_title('Training loss')
-axes[1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.suptitle('ising_phase_classification')
-plt.show()
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.semilogy(losses); ax.set_xlabel('Epoch'); ax.set_ylabel('Cross-entropy loss')
+ax.set_title('Training loss'); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_ising_classification_loss.png"), dpi=130); plt.close(fig)
+print("03_ising_phase_classification.py done")

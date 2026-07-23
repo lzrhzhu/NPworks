@@ -63,16 +63,16 @@ D2 = np.polyfit(np.log(rs[fit]), np.log(C[fit]), 1)[0]
 print(f"Lorenz correlation dimension D2 ~ {D2:.3f}  (expected ~2.05)")
 
 # --- plot ---
-fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
-axes[0].plot(traj[:, 0], traj[:, 2], lw=0.3, color='darkblue')
-axes[0].set_xlabel("x"); axes[0].set_ylabel("z")
-axes[0].set_title("Lorenz strange attractor")
-axes[1].loglog(rs, C, 'o-', color='crimson')
-axes[1].loglog(rs[fit], (rs[fit] ** D2) * np.exp(np.log(C[fit][0]) - D2 * np.log(rs[fit][0])),
-               'k--', label=f"slope D2 = {D2:.3f}")
-axes[1].set_xlabel("r"); axes[1].set_ylabel("C(r)")
-axes[1].set_title("Grassberger-Procaccia")
-axes[1].legend(); axes[1].grid(True, which='both', ls=':', alpha=0.5)
-plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch22_lorenz_correlation.png"), dpi=130)
-print("saved ch22_lorenz_correlation.png")
+fig, ax = plt.subplots(figsize=(7, 6))
+ax.plot(traj[:, 0], traj[:, 2], lw=0.3, color='darkblue')
+ax.set_xlabel("x"); ax.set_ylabel("z"); ax.set_title("Lorenz strange attractor")
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_lorenz_attractor.png"), dpi=130); plt.close(fig)
+
+fig, ax = plt.subplots(figsize=(7, 5.5))
+ax.loglog(rs, C, 'o-', color='crimson')
+ax.loglog(rs[fit], (rs[fit] ** D2) * np.exp(np.log(C[fit][0]) - D2 * np.log(rs[fit][0])),
+          'k--', label=f"slope D2 = {D2:.3f}")
+ax.set_xlabel("r"); ax.set_ylabel("C(r)"); ax.set_title("Grassberger-Procaccia")
+ax.legend(); ax.grid(True, which='both', ls=':', alpha=0.5)
+plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_lorenz_correlation.png"), dpi=130); plt.close(fig)
+print("saved ch22 lorenz attractor + correlation")

@@ -1,5 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+
+def _img_dir(ch):
+    d = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(10):
+        if os.path.isdir(os.path.join(d, "markdown")):
+            return os.path.join(d, "markdown", "images", ch)
+        d = os.path.dirname(d)
+    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
+    os.makedirs(out, exist_ok=True)
+    return out
+
+
+IMG_DIR = _img_dir("ch09")
 
 
 def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
@@ -7,14 +22,13 @@ def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
     N = L * L
     beta = 1.0 / T
     s = np.ones((L, L), dtype=np.int8)
-
     exp_table = {dE: np.exp(-beta * dE) for dE in [-8, -4, 0, 4, 8]}
 
     for _ in range(N_therm):
         for _ in range(N):
             i, j = int(rng.integers(L)), int(rng.integers(L))
-            nb = (int(s[(i-1) % L, j]) + int(s[(i+1) % L, j]) +
-                  int(s[i, (j-1) % L]) + int(s[i, (j+1) % L]))
+            nb = (int(s[(i - 1) % L, j]) + int(s[(i + 1) % L, j]) +
+                  int(s[i, (j - 1) % L]) + int(s[i, (j + 1) % L]))
             dE = 2 * int(s[i, j]) * nb
             if dE <= 0 or rng.random() < exp_table[dE]:
                 s[i, j] = np.int8(-s[i, j])
@@ -24,8 +38,8 @@ def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
     for k in range(N_measure):
         for _ in range(N):
             i, j = int(rng.integers(L)), int(rng.integers(L))
-            nb = (int(s[(i-1) % L, j]) + int(s[(i+1) % L, j]) +
-                  int(s[i, (j-1) % L]) + int(s[i, (j+1) % L]))
+            nb = (int(s[(i - 1) % L, j]) + int(s[(i + 1) % L, j]) +
+                  int(s[i, (j - 1) % L]) + int(s[i, (j + 1) % L]))
             dE = 2 * int(s[i, j]) * nb
             if dE <= 0 or rng.random() < exp_table[dE]:
                 s[i, j] = np.int8(-s[i, j])
@@ -34,51 +48,37 @@ def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
 
     E_avg = np.mean(E_arr) / N
     m_avg = np.mean(np.abs(M_arr)) / N
-    C = np.var(E_arr) / (T**2 * N)
+    C = np.var(E_arr) / (T ** 2 * N)
     chi = np.var(M_arr) / (T * N)
     return E_avg, m_avg, C, chi
 
 
 L = 16
 T_range = np.linspace(1.0, 4.0, 20)
-
 E_list, m_list, C_list, chi_list = [], [], [], []
 for tidx, T in enumerate(T_range):
     E, m, C, chi = ising_2d_mc(L, T, N_therm=800, N_measure=1500, seed=42 + tidx)
-    E_list.append(E)
-    m_list.append(m)
-    C_list.append(C)
-    chi_list.append(chi)
+    E_list.append(E); m_list.append(m); C_list.append(C); chi_list.append(chi)
     print(f"  T={T:.2f} done")
 
-fig, axes = plt.subplots(2, 2, figsize=(10, 8))
 
-axes[0, 0].plot(T_range, E_list, 'o-', markersize=4)
-axes[0, 0].axvline(2.269, color='gray', linestyle='--', label=r'$T_c \approx 2.269$')
-axes[0, 0].set_ylabel(r'$\langle E \rangle / N$')
-axes[0, 0].legend()
-axes[0, 0].set_title('Energy')
-
-axes[0, 1].plot(T_range, m_list, 'o-', color='red', markersize=4)
-axes[0, 1].axvline(2.269, color='gray', linestyle='--')
-axes[0, 1].set_ylabel(r'$\langle |m| \rangle$')
-axes[0, 1].set_title('Magnetization')
-
-axes[1, 0].plot(T_range, C_list, 'o-', color='green', markersize=4)
-axes[1, 0].axvline(2.269, color='gray', linestyle='--')
-axes[1, 0].set_ylabel(r'$C / N$')
-axes[1, 0].set_title('Specific Heat')
-axes[1, 0].set_xlabel(r'$T$')
-
-axes[1, 1].plot(T_range, chi_list, 'o-', color='purple', markersize=4)
-axes[1, 1].axvline(2.269, color='gray', linestyle='--')
-axes[1, 1].set_ylabel(r'$\chi$')
-axes[1, 1].set_title('Susceptibility')
-axes[1, 1].set_xlabel(r'$T$')
-
-for ax in axes.flat:
+def _save(fname, ylabel, vals, color='C0', title=''):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(T_range, vals, 'o-', color=color, markersize=4)
+    ax.axvline(2.269, color='gray', linestyle='--', label=r'$T_c \approx 2.269$')
+    ax.set_xlabel(r'$T$')
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend()
     ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130)
+    plt.close(fig)
 
-plt.tight_layout()
-plt.suptitle('2d_ising_observables')
-plt.show()
+
+_save("ch09_2d_ising_observables.png", r'$\langle E \rangle / N$', E_list, title='Energy')
+_save("ch09_2d_ising_mag.png", r'$\langle |m| \rangle$', m_list, 'red', 'Magnetization')
+_save("ch09_2d_ising_heat.png", r'$C / N$', C_list, 'green', 'Specific Heat')
+_save("ch09_2d_ising_chi.png", r'$\chi$', chi_list, 'purple', 'Susceptibility')
+
+print("02_2d_ising_observables.py done")
