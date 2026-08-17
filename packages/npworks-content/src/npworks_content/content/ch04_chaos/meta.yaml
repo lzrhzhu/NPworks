@@ -1,5 +1,5 @@
 title: 第4章 非线性动力学与混沌
-description: Lyapunov 指数与分叉图
+description: 相空间、庞加莱截面、Lyapunov 指数与分岔图
 sections:
 - file: 01_driven_pendulum.py
   title: 01 Driven Pendulum
@@ -15,3 +15,5 @@ sections:
   title: 06 Bifurcation
 - file: 07_logistic_map.py
   title: 07 Logistic Map
+- file: 08_lyapunov.py
+  title: 08 Lyapunov Exponent

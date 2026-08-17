@@ -87,7 +87,7 @@ def run_script(script_path, save_dir, chapter_id):
                     except Exception:
                         pass
 
-            fig.savefig(path, dpi=150, bbox_inches='tight')
+            fig.savefig(path, dpi=300, bbox_inches='tight')
             print(f"Saved: {path}")
             plt.close(fig)
 

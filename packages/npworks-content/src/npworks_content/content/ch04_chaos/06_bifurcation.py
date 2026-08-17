@@ -118,8 +118,9 @@ for FD in FD_values:
             th = th + (dt / 6.0) * (k1_th + 2 * k2_th + 2 * k3_th + k4_th)
             om = om + (dt / 6.0) * (k1_om + 2 * k2_om + 2 * k3_om + k4_om)
             t += dt
+        # 摆角以 2π 为周期，采样时折回 [-π, π]
         all_FD.append(FD)
-        all_theta.append(th)
+        all_theta.append((th + np.pi) % (2 * np.pi) - np.pi)
 
 ax_bif.plot(all_FD, all_theta, 'k.', markersize=0.3)
 ax_bif.set_xlabel(r'$F_D$')

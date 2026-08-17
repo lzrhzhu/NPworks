@@ -38,7 +38,9 @@ for idx, FD in enumerate([0.5, 1.2]):
             state = state + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
             t += dt
         if n >= n_relay:
-            theta_poincare.append(state[0]); omega_poincare.append(state[1])
+            # 摆角以 2π 为周期，采样时折回 [-π, π]
+            theta_poincare.append((state[0] + np.pi) % (2 * np.pi) - np.pi)
+            omega_poincare.append(state[1])
     fig, ax = plt.subplots(figsize=(7, 6))
     ax.plot(theta_poincare, omega_poincare, '.', markersize=1)
     ax.set_xlabel(r'$\theta$ (rad)'); ax.set_ylabel(r'$\omega$ (rad/s)')

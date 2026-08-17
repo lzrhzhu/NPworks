@@ -41,7 +41,9 @@ for idx, FD in enumerate([0.5, 1.2]):
     for i in range(n_total - 1):
         state = rk4_step(state, i * dt, dt, FD)
         theta_arr[i + 1] = state[0]; omega_arr[i + 1] = state[1]
-    theta_plot = theta_arr[n_trans:]; omega_plot = omega_arr[n_trans:]
+    # 摆角以 2π 为周期，绘制前折回 [-π, π]
+    theta_plot = (theta_arr[n_trans:] + np.pi) % (2 * np.pi) - np.pi
+    omega_plot = omega_arr[n_trans:]
 
     fig, ax = plt.subplots(figsize=(7, 6))
     ax.plot(theta_plot, omega_plot, ',', markersize=0.3, alpha=0.5)
