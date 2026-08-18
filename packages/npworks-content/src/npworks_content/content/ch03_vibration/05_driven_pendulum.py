@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch03")
 
 # 驱动阻尼摆:  d2θ/dt2 = -Ω²θ - q dθ/dt + F_D cos(Ω_D t)
 g = 9.81
@@ -73,8 +59,7 @@ ax1.set_title(rf'Driven Damped Pendulum ($\Omega_D/\Omega={Omega_D/Omega:.2f}$)'
 ax1.legend(loc='upper right')
 ax1.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch03_driven_pendulum.png"), dpi=130)
-plt.close(fig1)
+plt.suptitle('driven_pendulum')
 
 # --- 图2：共振曲线（稳态振幅 vs 驱动频率） ---
 fig2, ax2 = plt.subplots(figsize=(9, 5))
@@ -87,7 +72,8 @@ ax2.set_title('Resonance Curve')
 ax2.legend(loc='upper right')
 ax2.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch03_driven_resonance.png"), dpi=130)
-plt.close(fig2)
+plt.suptitle('driven_resonance')
 
 print("05_driven_pendulum.py done")
+
+plt.show()

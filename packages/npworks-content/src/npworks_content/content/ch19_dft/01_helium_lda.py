@@ -151,15 +151,6 @@ alphas = np.linspace(0.1, 3.0, 200)
 E_hf_arr = np.array([total_energy_hf(a) for a in alphas])
 E_lda_arr = np.array([total_energy_dft(a) for a in alphas])
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch19"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch19"); os.makedirs(IMG_DIR, exist_ok=True)
-
 # --- 图1：HF vs LDA 能量 ---
 fig, ax1 = plt.subplots(figsize=(8, 5.5))
 ax1.plot(alphas, E_hf_arr, 'r-', linewidth=2, label='HF: E = 2$H_{core}$ + J')
@@ -170,8 +161,7 @@ ax1.plot(alpha_lda, E_lda, 'bs', markersize=10, zorder=5)
 ax1.set_xlabel('$\\alpha$ (Gaussian exponent)', fontsize=12)
 ax1.set_ylabel('Energy (Hartree)', fontsize=12)
 ax1.set_title('He Atom: HF vs LDA'); ax1.legend(fontsize=9); ax1.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_helium_lda.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('helium_lda')
 # --- 图2：电子密度 ---
 r = np.linspace(0, 3, 300)
 rho_hf = np.array([gaussian_density(ri, alpha_hf) for ri in r])
@@ -181,8 +171,7 @@ ax2.plot(r, rho_hf, 'r-', linewidth=2, label=f'HF ($\\alpha$={alpha_hf:.3f})')
 ax2.plot(r, rho_lda, 'b-', linewidth=2, label=f'LDA ($\\alpha$={alpha_lda:.3f})')
 ax2.set_xlabel('r (bohr)', fontsize=12); ax2.set_ylabel('$\\rho(r)$ (e/bohr$^3$)', fontsize=12)
 ax2.set_title('He Atom: Electron Density'); ax2.legend(fontsize=10); ax2.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_helium_lda_density.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('helium_lda_density')
 # --- 图3：方法对比 ---
 methods = ['HF\n(1 Gauss)', 'LDA\n(1 Gauss)', 'HF limit', 'PBE\n(ref)', 'B3LYP\n(ref)', 'Exact']
 energies = [E_hf, E_lda, -2.8617, -2.860, -2.907, -2.9037]
@@ -194,5 +183,7 @@ ax3.set_ylabel('|Energy| (Hartree)', fontsize=12); ax3.set_title('He Atom: Metho
 for bar, e in zip(bars, energies):
     ax3.text(bar.get_width() / 2 + bar.get_x(), bar.get_height() + 0.01, f'{e:.4f}', ha='center', fontsize=8, rotation=45)
 ax3.grid(True, alpha=0.3, axis='y')
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch19_helium_lda_comparison.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('helium_lda_comparison')
 print("01_helium_lda.py done")
+
+plt.show()

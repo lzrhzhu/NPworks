@@ -1,20 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch09")
 
 
 def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
@@ -62,7 +47,7 @@ for tidx, T in enumerate(T_range):
     print(f"  T={T:.2f} done")
 
 
-def _save(fname, ylabel, vals, color='C0', title=''):
+def _save(stem, ylabel, vals, color='C0', title=''):
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(T_range, vals, 'o-', color=color, markersize=4)
     ax.axvline(2.269, color='gray', linestyle='--', label=r'$T_c \approx 2.269$')
@@ -72,13 +57,14 @@ def _save(fname, ylabel, vals, color='C0', title=''):
     ax.legend()
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130)
-    plt.close(fig)
+    plt.suptitle(stem)
 
 
-_save("ch09_2d_ising_observables.png", r'$\langle E \rangle / N$', E_list, title='Energy')
-_save("ch09_2d_ising_mag.png", r'$\langle |m| \rangle$', m_list, 'red', 'Magnetization')
-_save("ch09_2d_ising_heat.png", r'$C / N$', C_list, 'green', 'Specific Heat')
-_save("ch09_2d_ising_chi.png", r'$\chi$', chi_list, 'purple', 'Susceptibility')
+_save("2d_ising_observables", r'$\langle E \rangle / N$', E_list, title='Energy')
+_save("2d_ising_mag", r'$\langle |m| \rangle$', m_list, 'red', 'Magnetization')
+_save("2d_ising_heat", r'$C / N$', C_list, 'green', 'Specific Heat')
+_save("2d_ising_chi", r'$\chi$', chi_list, 'purple', 'Susceptibility')
 
 print("02_2d_ising_observables.py done")
+
+plt.show()

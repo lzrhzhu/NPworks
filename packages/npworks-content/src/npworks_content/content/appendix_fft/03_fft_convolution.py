@@ -2,21 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time as _time
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("appendix")
 
 N = 2 ** 18
 np.random.seed(0)
@@ -40,10 +26,11 @@ print(f"Direct (N=5000): {t_direct:.4f} s ; FFT (N={N}): {t_fft:.4f} s")
 fig, ax = plt.subplots(figsize=(9, 4))
 ax.plot(x[:500], alpha=0.5, label='Original'); ax.set_xlabel('Sample index'); ax.set_ylabel('Amplitude')
 ax.set_title('Original Signal'); ax.legend(); ax.grid(True)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "appendix_fft_convolution.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('fft_convolution')
 fig, ax = plt.subplots(figsize=(9, 4))
 ax.plot(y_fft[:500], 'C1', label='After Gaussian smoothing'); ax.set_xlabel('Sample index'); ax.set_ylabel('Amplitude')
 ax.set_title('After FFT Convolution with Gaussian Kernel'); ax.legend(); ax.grid(True)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "appendix_fft_convolution_smoothed.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('fft_convolution_smoothed')
 print("03_fft_convolution.py done")
+
+plt.show()

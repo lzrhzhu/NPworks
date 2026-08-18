@@ -1,21 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch05")
 
 mu = 0.012                     # 质量比（类地-月系统），便于看清各点分离
 x1, x2 = -mu, 1.0 - mu         # 两主天体在旋转系中的位置
@@ -59,8 +45,7 @@ ax.set_ylabel('y')
 ax.set_title('Five Lagrange Points in the Rotating Frame')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch05_lagrange_points.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('lagrange_points')
 
 
 # ---------- 图2：地月系统 L2 附近的三维晕轨道（Halo orbit） ----------
@@ -103,7 +88,8 @@ ax.set_ylabel('y')
 ax.set_zlabel('z')
 ax.set_title('Halo Orbit around L2 (Earth-Moon system)')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch05_halo_orbit.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('halo_orbit')
 
 print("05_lagrange_points.py done")
+
+plt.show()

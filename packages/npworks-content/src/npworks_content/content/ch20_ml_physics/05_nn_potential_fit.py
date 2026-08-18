@@ -87,25 +87,17 @@ E_nn = z3.flatten()
 
 E_exact = lj_potential(r_test) - E_shift
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
-
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(r_test, E_exact, 'b-', label='LJ potential (exact)', linewidth=2)
 ax.plot(r_test, E_nn, 'r--', label='Neural network fit', linewidth=2)
 ax.set_xlabel(r'$r / \sigma$'); ax.set_ylabel(r'$V(r) / \epsilon$')
 ax.set_title('Neural network fit to Lennard-Jones potential'); ax.legend()
 ax.set_ylim(-1.5, 2); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_nn_potential_fit.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('ml_physics_nn_potential_fit')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.semilogy(losses); ax.set_xlabel('Epoch'); ax.set_ylabel('Loss (MSE)')
 ax.set_title('Training loss'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_nn_potential_loss.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('ml_physics_nn_potential_loss')
 print("05_nn_potential_fit.py done")
+
+plt.show()

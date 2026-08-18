@@ -1,21 +1,7 @@
 """Infinite square well: energy levels and wavefunctions via matrix diagonalization."""
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch16")
 
 L = 1.0
 N = 500
@@ -47,8 +33,7 @@ for n in range(n_states):
 ax.set_xlabel("x"); ax.set_ylabel("psi(x) + E_n")
 ax.set_title("Infinite Well: Wavefunctions"); ax.legend(fontsize=8); ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch16_infinite_well.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('infinite_well')
 
 # --- 图2：能级 ---
 n_plot = min(20, len(E_num))
@@ -59,7 +44,8 @@ ax.plot(ns, E_ana[:n_plot], 'b-', label="Analytical n^2*pi^2/(2L^2)")
 ax.set_xlabel("Quantum number n"); ax.set_ylabel("Energy")
 ax.set_title("Energy Levels"); ax.legend(); ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch16_infinite_well_levels.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('infinite_well_levels')
 
 print("01_infinite_well.py done")
+
+plt.show()

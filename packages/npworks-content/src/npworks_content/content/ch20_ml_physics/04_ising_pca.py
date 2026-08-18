@@ -59,23 +59,13 @@ X_pca = X_centered @ eigenvectors[:, :2]
 var_explained = eigenvalues[:2] / np.sum(eigenvalues)
 print(f"Variance explained: PC1={var_explained[0]:.4f}, PC2={var_explained[1]:.4f}")
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
-
 fig, ax = plt.subplots(figsize=(8, 6))
 scatter = ax.scatter(X_pca[:, 0], X_pca[:, 1], c=T_data, cmap='coolwarm', s=15, alpha=0.7)
 plt.colorbar(scatter, ax=ax, label='Temperature $T$')
 ax.set_xlabel(f'PC1 ({var_explained[0]*100:.1f}% variance)')
 ax.set_ylabel(f'PC2 ({var_explained[1]*100:.1f}% variance)')
 ax.set_title('PCA: Ising configurations colored by temperature')
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_ising_pca.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('ml_physics_ising_pca')
 pc1_vs_T = []
 for T in T_range:
     mask = np.abs(T_data - T) < 0.05
@@ -87,5 +77,7 @@ ax.plot(T_arr, pc1_arr, 'o-', color='blue', markersize=6)
 ax.axvline(2.269, color='red', linestyle='--', label=r'$T_c \approx 2.269$')
 ax.set_xlabel('Temperature $T$'); ax.set_ylabel('Mean PC1')
 ax.set_title('First principal component vs temperature'); ax.legend(); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_ising_pca_pc1.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('ml_physics_ising_pca_pc1')
 print("04_ising_pca.py done")
+
+plt.show()

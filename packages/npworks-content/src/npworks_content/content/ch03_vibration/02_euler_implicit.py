@@ -21,23 +21,15 @@ for i in range(num_steps):
     theta[i + 1] = (theta[i] + omega[i] * dt) / denom
     omega[i + 1] = (omega[i] - Omega2 * theta[i] * dt) / denom
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch03"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch03"); os.makedirs(IMG_DIR, exist_ok=True)
-
 fig, ax = plt.subplots(figsize=(8, 4.5))
 ax.plot(t, theta, 'b-', linewidth=0.8)
 ax.set_xlabel('t (s)'); ax.set_ylabel(r'$\theta$ (rad)')
 ax.set_title('Implicit Euler: Energy Decay (Simple Pendulum)'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch03_euler_implicit.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('euler_implicit')
 fig, ax = plt.subplots(figsize=(8, 4.5))
 ax.plot(t, omega, 'r-', linewidth=0.8)
 ax.set_xlabel('t (s)'); ax.set_ylabel(r'$\omega$ (rad/s)'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch03_euler_implicit_omega.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('euler_implicit_omega')
 print("02_euler_implicit.py done")
+
+plt.show()

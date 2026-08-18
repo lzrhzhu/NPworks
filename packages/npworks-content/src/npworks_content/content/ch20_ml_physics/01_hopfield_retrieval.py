@@ -39,31 +39,23 @@ for step in range(500):
     overlap_history.append(np.dot(sigma, patterns[0]) / N)
     energy_history.append(net.energy(sigma))
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
-
 for data, title, fname, color in [
-    (patterns[0], 'Original pattern', "ch21_ml_physics_hopfield_patterns.png", 'blue'),
-    (test_pattern, 'Corrupted (30% flipped)', "ch21_ml_physics_hopfield_patterns_corrupted.png", 'red'),
-    (sigma, 'Retrieved (500 steps)', "ch21_ml_physics_hopfield_patterns_retrieved.png", 'green')]:
+    (patterns[0], 'Original pattern', 'ml_physics_hopfield_patterns', 'blue'),
+    (test_pattern, 'Corrupted (30% flipped)', 'ml_physics_hopfield_patterns_corrupted', 'red'),
+    (sigma, 'Retrieved (500 steps)', 'ml_physics_hopfield_patterns_retrieved', 'green')]:
     fig, ax = plt.subplots(figsize=(9, 4))
     ax.bar(range(N), data, color=color, alpha=0.7)
     ax.set_title(title); ax.set_ylim(-1.5, 1.5); ax.set_xlabel('Neuron index')
-    plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, fname), dpi=130); plt.close(fig)
+    plt.tight_layout(); plt.suptitle(fname)
 
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(overlap_history); ax.set_xlabel('Update step'); ax.set_ylabel('Overlap with target')
 ax.set_title('Retrieval dynamics'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_hopfield_dynamics.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('ml_physics_hopfield_dynamics')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(energy_history); ax.set_xlabel('Update step'); ax.set_ylabel('Energy')
 ax.set_title('Energy evolution'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_hopfield_dynamics_energy.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('ml_physics_hopfield_dynamics_energy')
 print("01_hopfield_retrieval.py done")
+
+plt.show()

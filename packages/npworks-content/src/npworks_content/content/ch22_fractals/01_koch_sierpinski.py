@@ -7,22 +7,6 @@ dimension, verifying the analytical values:
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    # 未找到教材 markdown/images（PyPI 安装或独立运行）：回退到用户可写目录
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch22")
 
 
 def koch_segment(p1, p2, depth, segs):
@@ -129,18 +113,20 @@ for p1, p2 in koch_segs:
     ax.plot([p1[0], p2[0]], [p1[1], p2[1]], 'k-', lw=0.5)
 ax.set_aspect('equal'); ax.axis('off')
 ax.set_title(f"Koch snowflake (D={D_koch:.3f})")
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_koch_snowflake.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('koch_snowflake')
 # sierpinski
 fig, ax = plt.subplots(figsize=(6, 6))
 ax.scatter(sier_pts[:, 0], sier_pts[:, 1], s=0.1, c='k')
 ax.set_aspect('equal'); ax.axis('off')
 ax.set_title(f"Sierpinski triangle (D={D_sier:.3f})")
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_sierpinski.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('sierpinski')
 # box-counting fits
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.loglog(oe_koch, N_koch, 'o-', label=f"Koch (slope={D_koch:.3f})")
 ax.loglog(oe_sier, N_sier, 's-', label=f"Sierpinski (slope={D_sier:.3f})")
 ax.set_xlabel("1 / box size"); ax.set_ylabel("N(boxes)")
 ax.set_title("Box-counting dimension"); ax.legend(); ax.grid(True, which='both', ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_koch_sierpinski.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('koch_sierpinski')
 print("saved ch22 koch/sierpinski/boxcount")
+
+plt.show()

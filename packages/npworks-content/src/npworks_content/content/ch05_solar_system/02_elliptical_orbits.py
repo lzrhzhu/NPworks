@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch05")
 
 GM = 4.0 * np.pi ** 2
 dt = 0.001
@@ -49,12 +35,13 @@ for (xs, ys), vf, c in zip(all_xy, v_factors, colors):
 ax.plot(0, 0, 'yo', markersize=12)
 ax.set_xlabel('x (AU)'); ax.set_ylabel('y (AU)')
 ax.set_title('Elliptical Orbits (Euler-Cromer)'); ax.set_aspect('equal'); ax.legend(); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch05_elliptical_orbits.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('elliptical_orbits')
 fig, ax = plt.subplots(figsize=(8, 5))
 for E, vf, c in zip(all_Et, v_factors, colors):
     ax.plot(ts, E, color=c, linewidth=0.8, label='v0 = {:.1f} * 2pi'.format(vf))
 ax.set_xlabel('Time (year)'); ax.set_ylabel('Total Energy')
 ax.set_title('Energy Conservation'); ax.legend(); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch05_elliptical_orbits_energy.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('elliptical_orbits_energy')
 print('ch05_elliptical_orbits done')
+
+plt.show()

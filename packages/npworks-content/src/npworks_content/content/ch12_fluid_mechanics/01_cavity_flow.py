@@ -5,21 +5,7 @@ Outputs: speed contour, streamlines, and two centerline velocity profiles.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch12")
 
 Nx, Ny = 64, 64
 Lx, Ly = 1.0, 1.0
@@ -90,8 +76,7 @@ ax.set_title(f'Speed |u| (Re={Re:.0f})')
 ax.set_xlabel('x'); ax.set_ylabel('y')
 ax.set_aspect('equal')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch12_cavity_Re100.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cavity_Re100')
 
 # --- 图2：流线 ---
 fig, ax = plt.subplots(figsize=(6.5, 6))
@@ -100,8 +85,7 @@ ax.set_title(f'Streamlines (Re={Re:.0f})')
 ax.set_xlabel('x'); ax.set_ylabel('y')
 ax.set_aspect('equal')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch12_cavity_streamlines.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cavity_streamlines')
 
 # --- 图3：竖直中心线 u(y) ---
 fig, ax = plt.subplots(figsize=(6, 6))
@@ -110,8 +94,7 @@ ax.set_xlabel('y'); ax.set_ylabel('u(y)')
 ax.set_title('u along vertical centerline (x=0.5)')
 ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch12_cavity_centerline.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cavity_centerline')
 
 # --- 图4：水平中心线 v(x) ---
 fig, ax = plt.subplots(figsize=(6, 6))
@@ -120,7 +103,8 @@ ax.set_xlabel('x'); ax.set_ylabel('v(x)')
 ax.set_title('v along horizontal centerline (y=0.5)')
 ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch12_cavity_centerline_v.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cavity_centerline_v')
 
 print("01_cavity_flow.py done")
+
+plt.show()

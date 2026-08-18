@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch03")
 
 # 两个相同质量的耦合摆（小角近似）
 # m x1'' = -k x1 - kc (x1 - x2)
@@ -59,8 +45,7 @@ ax1.set_ylabel('displacement')
 ax1.set_title('Coupled Pendula: Beat Phenomenon (energy shuttles between the two)')
 ax1.legend(loc='upper right', ncol=2)
 ax1.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch03_coupled_oscillators.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('coupled_oscillators')
 fig, ax2 = plt.subplots(figsize=(10, 4.5))
 ax2.plot(t, E1f, 'b-', linewidth=1.0, label=r'$E_1/E_{tot}$')
 ax2.plot(t, E2f, 'r-', linewidth=1.0, label=r'$E_2/E_{tot}$')
@@ -70,6 +55,7 @@ ax2.set_title('Energy Transfer between the Two Oscillators')
 ax2.legend(loc='upper right')
 ax2.set_ylim(-0.05, 1.05)
 ax2.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch03_coupled_oscillators_energy.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('coupled_oscillators_energy')
 print("06_coupled_oscillators.py done")
+
+plt.show()

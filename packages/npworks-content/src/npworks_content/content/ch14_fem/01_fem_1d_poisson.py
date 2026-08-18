@@ -4,21 +4,7 @@ Compares numerical (FEM) solution with analytical solution.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch14")
 
 L = 1.0
 N = 10
@@ -56,8 +42,7 @@ ax.set_xlabel('x'); ax.set_ylabel('T(x)')
 ax.set_title('1D Poisson: FEM vs Analytical')
 ax.legend(); ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch14_fem_1d.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('fem_1d')
 
 # --- 图2：节点误差 ---
 fig, ax = plt.subplots(figsize=(8, 5.5))
@@ -66,8 +51,9 @@ ax.set_xlabel('x'); ax.set_ylabel('|T_FEM - T_analytical|')
 ax.set_title('Nodal error')
 ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch14_fem_1d_error.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('fem_1d_error')
 
 print(f"Max nodal error: {np.max(error[1:-1]):.2e}")
 print("01_fem_1d_poisson.py done")
+
+plt.show()

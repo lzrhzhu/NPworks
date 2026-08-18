@@ -6,22 +6,6 @@ H = -0.5 d^2/dx^2 + 0.5 x^2). Also checks the time-step extrapolation.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    # 未找到教材 markdown/images（PyPI 安装或独立运行）：回退到用户可写目录
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch20")
 
 
 def dmc_harmonic(dtau, n_target=2000, n_steps=6000, seed=0):
@@ -77,8 +61,7 @@ ax.axhline(0.5, ls='--', color='k', label="exact E0 = 0.5")
 ax.set_xlabel("imaginary-time step"); ax.set_ylabel("E_T")
 ax.set_title("DMC reference energy converges to ground state")
 ax.legend(); ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch20_dmc_harmonic.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('dmc_harmonic')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(dtaus, Es, 'o-', color='crimson')
 ax.plot([0] + dtaus, [E0_ext] + Es, '--', color='gray', label=f"extrapolate -> {E0_ext:.4f}")
@@ -86,5 +69,7 @@ ax.axhline(0.5, ls=':', color='k')
 ax.set_xlabel("time step dtau"); ax.set_ylabel("E_T")
 ax.set_title("Time-step extrapolation")
 ax.legend(); ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch20_dmc_harmonic_extrapolation.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('dmc_harmonic_extrapolation')
 print("saved ch20_dmc_harmonic + extrapolation")
+
+plt.show()

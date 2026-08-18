@@ -1,21 +1,7 @@
 """等离子体振荡（Langmuir 振荡）。"""
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch15")
 
 omega_p = 1.0
 x0 = 0.3
@@ -46,8 +32,7 @@ ax.set_xlabel('time $t$'); ax.set_ylabel('位移 $x$')
 ax.set_title(r'集体振荡：频率 $\omega_p$')
 ax.legend(); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_plasma_oscillation.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('plasma_oscillation')
 
 # --- 图2：FFT 频谱 ---
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -59,7 +44,8 @@ ax.set_xlim(0, 3); ax.set_xlabel(r'角频率 $\omega$'); ax.set_ylabel('振幅�
 ax.set_title('FFT：单一集体频率 ω_p')
 ax.legend(); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_plasma_oscillation_fft.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('plasma_oscillation_fft')
 
 print("02_plasma_oscillation.py done")
+
+plt.show()

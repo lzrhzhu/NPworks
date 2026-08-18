@@ -7,21 +7,7 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch07")
 
 np.random.seed(2)
 
@@ -69,8 +55,7 @@ ax.set_title('双势阱与越垒过程')
 ax.legend(loc='lower right')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch07_arrhenius_potential.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('arrhenius_potential')
 
 # --- 图2：Arrhenius 律 ---
 inv_kT = 1.0 / kT_list
@@ -86,7 +71,8 @@ ax.set_title('Arrhenius 律：半对数图为直线')
 ax.legend()
 ax.grid(True, alpha=0.3, which='both')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch07_arrhenius.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('arrhenius')
 
 print("03_arrhenius.py done")
+
+plt.show()

@@ -4,22 +4,6 @@ Uses smooth (continuous) escape-time coloring.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    # 未找到教材 markdown/images（PyPI 安装或独立运行）：回退到用户可写目录
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch22")
 
 
 def escape_time(c_plane, z0, n_max=200, bailout=1e6):
@@ -62,10 +46,12 @@ for c in c_values:
 fig, ax = plt.subplots(figsize=(6, 6))
 ax.imshow(mandel, extent=[x[0], x[-1], y[0], y[-1]], cmap='magma', origin='lower', aspect='equal')
 ax.set_title("Mandelbrot set"); ax.set_xlabel("Re"); ax.set_ylabel("Im")
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_mandelbrot.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('mandelbrot')
 for c, im in zip(c_values, julias):
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.imshow(im, extent=[xj[0], xj[-1], yj[0], yj[-1]], cmap='magma', origin='lower', aspect='equal')
     ax.set_title(f"Julia set  c = {c:.4f}"); ax.set_xlabel("Re"); ax.set_ylabel("Im")
-    plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, f"ch22_julia_{c:.4f}.png"), dpi=130); plt.close(fig)
+    plt.tight_layout(); plt.suptitle(f'julia_{c:.4f}')
 print("saved ch22 mandelbrot + julias")
+
+plt.show()

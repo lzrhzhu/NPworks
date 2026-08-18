@@ -1,21 +1,7 @@
 """德拜屏蔽（Debye shielding）。"""
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch15")
 
 lambda_D = 1.0
 r = np.linspace(0.05, 8, 400)
@@ -32,8 +18,7 @@ ax.set_xlabel(r'$r / \lambda_D$'); ax.set_ylabel(r'$\phi(r)$')
 ax.set_title('德拜屏蔽：势在 ~λD 内被指数压抑')
 ax.legend(); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_debye_shielding.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('debye_shielding')
 
 # --- 图2：半对数图 ---
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -43,7 +28,8 @@ ax.set_xlabel(r'$r / \lambda_D$'); ax.set_ylabel(r'$\phi(r)$（对数）')
 ax.set_title('半对数图：屏蔽势呈直线（指数衰减）')
 ax.legend(); ax.grid(True, alpha=0.3, which='both')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_debye_shielding_log.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('debye_shielding_log')
 
 print("01_debye_shielding.py done")
+
+plt.show()

@@ -6,21 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch17")
 
 x_min, x_max = -15.0, 15.0
 N = 600
@@ -65,8 +51,7 @@ ax.set_xlabel("x"); ax.set_ylabel("|psi|^2")
 ax.set_title("Crank-Nicolson: Wave Packet vs Barrier (V0=1.5, E=k0^2/2=4.5)")
 ax.legend(fontsize=8); ax.grid(True); ax.set_xlim(-12, 12)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch17_cn_barrier.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cn_barrier')
 
 # --- 图2：势垒 ---
 fig, ax = plt.subplots(figsize=(9, 3.5))
@@ -75,7 +60,8 @@ ax.plot(x, V, 'k-', linewidth=1)
 ax.set_xlabel("x"); ax.set_ylabel("V(x)")
 ax.set_title("Potential barrier"); ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch17_cn_barrier_potential.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cn_barrier_potential')
 
 print("02_cn_wave_packet.py done")
+
+plt.show()

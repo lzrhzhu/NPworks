@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch09")
 
 rng = np.random.default_rng(42)
 N = 10000
@@ -36,8 +22,7 @@ ax.set_title(f'Monte Carlo $\\pi \\approx {pi_estimate:.4f}$ ($N = {N}$)')
 ax.set_aspect('equal')
 ax.legend(markerscale=10)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch09_monte_carlo_pi.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('monte_carlo_pi')
 
 # --- 图2：收敛 ---
 N_conv = np.arange(100, N + 1, 100)
@@ -52,7 +37,8 @@ ax.set_title('Convergence of Monte Carlo $\\pi$ Estimation')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch09_monte_carlo_pi_convergence.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('monte_carlo_pi_convergence')
 
 print("05_monte_carlo_pi.py done")
+
+plt.show()

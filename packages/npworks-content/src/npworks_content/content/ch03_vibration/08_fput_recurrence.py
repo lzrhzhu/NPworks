@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch03")
 
 # Fermi-Pasta-Ulam-Tsingou alpha 模型（固定端，原始 1955 形式）
 #   x_i'' = (x_{i+1}-2x_i+x_{i-1}) + alpha[(x_{i+1}-x_i)^2 - (x_i-x_{i-1})^2]
@@ -84,7 +70,8 @@ ax.set_ylim(0, 1.02)
 ax.legend(loc='center right')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch03_fput_recurrence.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('fput_recurrence')
 
 print("08_fput_recurrence.py done")
+
+plt.show()

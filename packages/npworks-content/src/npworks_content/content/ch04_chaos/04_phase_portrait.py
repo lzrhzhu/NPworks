@@ -23,15 +23,6 @@ def rk4_step(state, t_curr, dt_step, FD):
     k4 = pendulum_rhs(state + dt_step * k3, t_curr + dt_step, FD)
     return state + (dt_step / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch04"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch04"); os.makedirs(IMG_DIR, exist_ok=True)
-
 for idx, FD in enumerate([0.5, 1.2]):
     n_total = int(t_end / dt)
     theta_arr = np.zeros(n_total)
@@ -51,6 +42,7 @@ for idx, FD in enumerate([0.5, 1.2]):
     ax.set_title(r'$F_D={}$: {}'.format(FD, 'Limit Cycle' if FD == 0.5 else 'Strange Attractor'))
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    fname = "ch04_phase_portrait.png" if FD == 0.5 else "ch04_phase_portrait_fd12.png"
-    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130); plt.close(fig)
+    plt.suptitle('phase_portrait' if FD == 0.5 else 'phase_portrait_fd12')
 print("04_phase_portrait.py done")
+
+plt.show()

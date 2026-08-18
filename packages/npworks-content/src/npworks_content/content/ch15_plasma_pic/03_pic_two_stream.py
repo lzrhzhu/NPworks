@@ -1,21 +1,7 @@
 """双流不稳定性（two-stream instability）—— 1D 静电 PIC。"""
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch15")
 
 np.random.seed(7)
 L = 2 * np.pi
@@ -87,8 +73,7 @@ ax.set_xlabel('time $t$  ($\\omega_p^{-1}$)'); ax.set_ylabel(r'电场能 $\int E
 ax.set_title('不稳定模指数增长（半对数）→ 饱和')
 ax.grid(True, alpha=0.3, which='both')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_two_stream_instability.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('two_stream_instability')
 
 # --- 图2：相空间快照 ---
 fig, ax = plt.subplots(figsize=(8, 5.5))
@@ -100,7 +85,8 @@ ax.set_xlabel('$x$'); ax.set_ylabel('$v_x$')
 ax.set_title('相空间：双束 → 猫眼涡旋')
 ax.legend(markerscale=4, loc='upper right'); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_two_stream_phasespace.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('two_stream_phasespace')
 
 print("03_pic_two_stream.py done")
+
+plt.show()

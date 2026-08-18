@@ -14,15 +14,6 @@ dt = T_D / steps_per_T
 n_relay = 200
 n_sample = 100
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch04"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch04"); os.makedirs(IMG_DIR, exist_ok=True)
-
 fig_ts, ax_ts = plt.subplots(figsize=(9, 5))
 colors_ts = ['b', 'g', 'r']
 FD_ts_list = [1.35, 1.44, 1.465]
@@ -65,8 +56,7 @@ ax_ts.set_title(r'$\theta$-t for $F_D=1.35, 1.44, 1.465$')
 ax_ts.legend()
 ax_ts.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch04_bifurcation.png"), dpi=130)
-plt.close(fig_ts)
+plt.suptitle('bifurcation')
 
 fig_bif, ax_bif = plt.subplots(figsize=(9, 6))
 
@@ -129,6 +119,7 @@ ax_bif.set_title('Bifurcation Diagram')
 ax_bif.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch04_bifurcation_diagram.png"), dpi=130)
-plt.close(fig_bif)
+plt.suptitle('bifurcation_diagram')
 print("06_bifurcation.py done")
+
+plt.show()

@@ -115,24 +115,16 @@ for i in range(len(temp_bins) - 1):
         accuracy_per_T.append(np.mean(y_pred[mask] == y_test[mask]))
         bin_centers.append(0.5 * (temp_bins[i] + temp_bins[i+1]))
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch21"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch21"); os.makedirs(IMG_DIR, exist_ok=True)
-
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(bin_centers, accuracy_per_T, 'o-', markersize=8)
 ax.axvline(2.269, color='red', linestyle='--', label=r'$T_c \approx 2.269$')
 ax.set_xlabel('Temperature $T$'); ax.set_ylabel('Classification accuracy')
 ax.set_title('Supervised Learning: Phase Classification'); ax.legend(); ax.grid(True, alpha=0.3); ax.set_ylim(0, 1.05)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_ising_phase_classification.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('ml_physics_ising_phase_classification')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.semilogy(losses); ax.set_xlabel('Epoch'); ax.set_ylabel('Cross-entropy loss')
 ax.set_title('Training loss'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch21_ml_physics_ising_classification_loss.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('ml_physics_ising_classification_loss')
 print("03_ising_phase_classification.py done")
+
+plt.show()

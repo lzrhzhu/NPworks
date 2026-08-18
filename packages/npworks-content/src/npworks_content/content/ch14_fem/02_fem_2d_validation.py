@@ -5,21 +5,6 @@ Outputs: numerical solution contours, and mesh-convergence (log-log) study.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch14")
 
 
 def exact(x, y):
@@ -99,8 +84,7 @@ fig.colorbar(cf, ax=ax, label="T(x, y)")
 ax.set_aspect("equal"); ax.set_xlabel("x"); ax.set_ylabel("y")
 ax.set_title(f"2D Poisson FEM solution (N={N}); cyan = exact")
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch14_fem_2d_validation.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('fem_2d_validation')
 
 # --- 图2：网格收敛 ---
 fig, ax = plt.subplots(figsize=(7, 5.5))
@@ -111,7 +95,8 @@ ax.set_xlabel("mesh size h"); ax.set_ylabel("L2 error")
 ax.set_title("Mesh convergence of 2D linear FEM")
 ax.grid(True, which="both", ls=":", alpha=0.5); ax.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch14_fem_2d_convergence.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('fem_2d_convergence')
 
 print("02_fem_2d_validation.py done")
+
+plt.show()

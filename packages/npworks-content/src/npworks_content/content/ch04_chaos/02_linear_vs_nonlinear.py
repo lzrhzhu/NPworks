@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch04")
 
 g = 9.81
 l = 1.0
@@ -54,6 +40,7 @@ for ax, theta0 in zip(axes, [0.2, 2.5]):
     ax.grid(True, alpha=0.3)
 axes[1].set_xlabel('t (s)')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch04_linear_vs_nonlinear.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('linear_vs_nonlinear')
 print("02_linear_vs_nonlinear.py done")
+
+plt.show()

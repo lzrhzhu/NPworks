@@ -3,21 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import erf
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch18")
 
 STO3G_EXPONENTS = np.array([3.42525091, 0.62391373, 0.16885540])
 STO3G_COEFFICIENTS = np.array([0.15432897, 0.53532814, 0.44463454])
@@ -148,8 +134,7 @@ ax.annotate(f'R$_{{eq}}$={R_min:.3f}\nE={E_min:.4f}', xy=(R_min, E_min),
 ax.set_xlabel('R (bohr)'); ax.set_ylabel('E (Hartree)')
 ax.set_title('H$_2$ Potential Energy Curve (STO-3G HF)'); ax.legend(fontsize=9); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch18_h2_scf.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('h2_scf')
 
 # --- 图2：SCF 收敛 ---
 fig, ax = plt.subplots(figsize=(8, 5.5))
@@ -157,8 +142,7 @@ ax.plot(range(1, len(energies_conv) + 1), energies_conv, 'bo-', markersize=5)
 ax.set_xlabel('SCF Iteration'); ax.set_ylabel('Electronic Energy (Hartree)')
 ax.set_title(f'SCF Convergence at R = {R_eq} bohr'); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch18_h2_scf_convergence.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('h2_scf_convergence')
 
 # --- 图3：分子轨道 ---
 x = np.linspace(-3, 3, 300)
@@ -174,8 +158,7 @@ ax.annotate('H$_B$', xy=(R_eq / 2, -1.1), fontsize=10, ha='center')
 ax.set_xlabel('x (bohr)'); ax.set_ylabel(r'$\psi$ (normalized)')
 ax.set_title('Molecular Orbitals of H$_2$'); ax.legend(fontsize=10); ax.grid(True, alpha=0.3); ax.set_ylim(-1.3, 1.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch18_h2_scf_mos.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('h2_scf_mos')
 
 # --- 图4：STO-3G vs 精确 ---
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -188,7 +171,8 @@ ax.bar(x_pos + bar_width / 2, exact, bar_width, label='Exact', color='#2ecc71', 
 ax.set_xticks(x_pos); ax.set_xticklabels(labels, fontsize=10)
 ax.set_title('H$_2$: STO-3G vs Exact'); ax.legend(fontsize=10); ax.grid(True, alpha=0.3, axis='y')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch18_h2_scf_comparison.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('h2_scf_comparison')
 
 print("02_h2_scf.py done")
+
+plt.show()

@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch08")
 
 np.random.seed(42)
 N = 10000
@@ -29,8 +15,7 @@ ax.set_xlabel('Value')
 ax.set_ylabel('Count')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch08_random_numbers.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('random_numbers')
 
 # --- 图2：正态分布 ---
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -44,7 +29,8 @@ ax.set_ylabel('Count')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch08_random_numbers_normal.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('random_numbers_normal')
 
 print("01_random_numbers.py done")
+
+plt.show()

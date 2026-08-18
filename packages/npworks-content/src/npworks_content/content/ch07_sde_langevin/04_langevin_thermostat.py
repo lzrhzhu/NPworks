@@ -7,21 +7,7 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch07")
 
 np.random.seed(3)
 
@@ -67,8 +53,7 @@ ax.set_title('Langevin 恒温器：弛豫到目标温度')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch07_langevin_thermostat.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('langevin_thermostat')
 
 # --- 图2：平衡位置分布 ---
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -83,7 +68,8 @@ ax.set_title('平衡采样 = 正则系综')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch07_langevin_distribution.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('langevin_distribution')
 
 print("04_langevin_thermostat.py done")
+
+plt.show()

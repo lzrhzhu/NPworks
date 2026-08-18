@@ -1,20 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch11")
 
 
 def thomas_solve(a_val, b_val, c_val, d):
@@ -81,9 +66,9 @@ for t_label in sorted(snapshots.keys()):
     ax.set_title(f'$t = {t_label:.1f}$ s')
     ax.set_aspect('equal')
     plt.tight_layout()
-    fname = "ch11_adi_2d.png" if first else f"ch11_adi_2d_t{t_label:.1f}.png"
-    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130)
-    plt.close(fig)
+    plt.suptitle('adi_2d' if first else f'adi_2d_t{t_label:.1f}')
     first = False
 
 print(f"03_adi_2d.py done (r={r:.4f}, dt={dt}, Nt={Nt})")
+
+plt.show()

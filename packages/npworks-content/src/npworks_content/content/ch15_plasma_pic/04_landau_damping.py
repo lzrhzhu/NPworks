@@ -2,21 +2,7 @@
 import numpy as np
 from scipy.special import erfinv
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch15")
 
 np.random.seed(11)
 L = 2 * np.pi
@@ -87,8 +73,7 @@ ax.set_xlabel('time $t$  ($\\omega_p^{-1}$)'); ax.set_ylabel(r'$E_{k=1}$（归�
 ax.set_title('Langmuir 波振幅指数衰减'); ax.set_xlim(0, t[-1])
 ax.legend(); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_landau_damping.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('landau_damping')
 
 # --- 图2：振幅半对数 ---
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -98,7 +83,8 @@ ax.set_xlabel('time $t$'); ax.set_ylabel(r'$|E_{k=1}|$（对数）')
 ax.set_title('半对数图：直线 → 指数阻尼')
 ax.legend(); ax.grid(True, alpha=0.3, which='both')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch15_landau_damping_log.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('landau_damping_log')
 
 print("04_landau_damping.py done")
+
+plt.show()

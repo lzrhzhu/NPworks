@@ -7,21 +7,7 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch07")
 
 np.random.seed(0)
 
@@ -50,8 +36,7 @@ ax.set_title('Wiener 过程轨迹（处处连续、处处不可导）')
 ax.legend(loc='upper left')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch07_wiener_process.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('wiener_process')
 
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(t, msd_W, 'b-', linewidth=2, label=r'模拟 $\langle W^2(t)\rangle$')
@@ -62,7 +47,8 @@ ax.set_title('方差与时间成正比 → 扩散')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch07_wiener_msd.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('wiener_msd')
 
 print("01_wiener_process.py done")
+
+plt.show()

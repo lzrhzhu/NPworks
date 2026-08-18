@@ -10,22 +10,8 @@ Atomic units (hbar=m_e=e=1).
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
 
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    # 未找到教材 markdown/images（PyPI 安装或独立运行）：回退到用户可写目录
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch20")
 Z_NUC = 2.0
 Z_STAR = 2.0   # use nuclear charge in the orbital so the e-n cusp is satisfied
                 # (keeps the local energy finite at the nucleus -> low variance);
@@ -125,13 +111,14 @@ ax.set_xticks(x); ax.set_xticklabels(names, rotation=20)
 ax.set_ylabel("Energy (Hartree)")
 ax.set_title("He VMC: Jastrow lowers energy below HF")
 ax.legend(); ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch20_vmc_helium.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('vmc_helium')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.semilogy(x, var, 's-', color='crimson')
 ax.set_xticks(x); ax.set_xticklabels(names, rotation=20)
 ax.set_ylabel("var(E_L)")
 ax.set_title("Jastrow also slashes the variance")
 ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch20_vmc_helium_variance.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('vmc_helium_variance')
 print("saved ch20_vmc_helium + variance")
+
+plt.show()

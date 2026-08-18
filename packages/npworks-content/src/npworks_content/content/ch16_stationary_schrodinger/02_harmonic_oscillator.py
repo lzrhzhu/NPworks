@@ -2,21 +2,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch16")
 
 hbar = 1.0; m = 1.0; omega = 1.0
 x_min, x_max = -8.0, 8.0
@@ -48,8 +34,7 @@ ax.set_xlim(-6, 6); ax.set_ylim(-0.5, n_states + 1.5)
 ax.set_xlabel("x"); ax.set_ylabel("Energy / psi(x)")
 ax.set_title("Harmonic Oscillator Wavefunctions"); ax.legend(fontsize=7, loc='upper right'); ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch16_harmonic_oscillator.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('harmonic_oscillator')
 
 # --- 图2：能级 ---
 n_plot = min(15, len(E_num))
@@ -60,7 +45,8 @@ ax.plot(ns, E_ana[:n_plot], 'b-', label="Analytical (n+0.5)*hbar*w")
 ax.set_xlabel("Quantum number n"); ax.set_ylabel("Energy")
 ax.set_title("Energy Levels"); ax.legend(); ax.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch16_harmonic_oscillator_levels.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('harmonic_oscillator_levels')
 
 print("02_harmonic_oscillator.py done")
+
+plt.show()

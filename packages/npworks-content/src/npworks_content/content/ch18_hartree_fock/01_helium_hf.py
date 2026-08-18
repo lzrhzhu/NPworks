@@ -3,21 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize_scalar
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch18")
 
 Z = 2.0
 
@@ -58,8 +44,7 @@ ax.annotate(f'$\\alpha^*$={alpha_opt:.4f}\nE={E_opt:.4f}', xy=(alpha_opt, E_opt)
 ax.set_xlabel('$\\alpha$ (Gaussian exponent)'); ax.set_ylabel('Energy (Hartree)')
 ax.set_title('He Atom: Energy vs Gaussian Exponent'); ax.legend(fontsize=9); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch18_helium_hf.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('helium_hf')
 
 # --- 图2：能量对比柱状图 ---
 basis_data = [('1 Gaussian (this)', -2.699, '#e74c3c'), ('STO-3G (3 Gauss)', -2.808, '#3498db'),
@@ -75,7 +60,8 @@ for bar, e in zip(bars, energies_bar):
     ax.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2, f'{e:.4f}', va='center', fontsize=10)
 ax.grid(True, alpha=0.3, axis='x')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch18_helium_hf_comparison.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('helium_hf_comparison')
 
 print("01_helium_hf.py done")
+
+plt.show()

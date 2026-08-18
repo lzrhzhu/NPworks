@@ -1,20 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch10")
 
 
 def solve_laplace_jacobi(N, max_iter=5000, tol=1e-10):
@@ -86,8 +71,7 @@ ax.set_title(f'Convergence Comparison (N = {N})')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch10_sor_convergence.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('sor_convergence')
 
 # --- 图2：迭代次数 vs omega ---
 omega_range = np.linspace(1.0, 1.95, 20)
@@ -101,7 +85,8 @@ ax.set_title('SOR: Iterations vs $\\omega$')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch10_sor_omega.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('sor_omega')
 
 print(f"02_sor_method.py done (omega_opt={omega_opt:.4f})")
+
+plt.show()

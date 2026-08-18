@@ -26,15 +26,6 @@ def rk4_step(state, t_curr, dt_step, FD):
     k4 = pendulum_rhs(state + dt_step * k3, t_curr + dt_step, FD)
     return state + (dt_step / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch04"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch04"); os.makedirs(IMG_DIR, exist_ok=True)
-
 for idx, FD in enumerate([0.5, 1.2]):
     state1 = np.array([0.2, 0.0])
     state2 = np.array([0.2 + delta_theta0, 0.0])
@@ -53,6 +44,7 @@ for idx, FD in enumerate([0.5, 1.2]):
     ax.set_title(r'$F_D={}$: Sensitivity to Initial Conditions'.format(FD))
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    fname = "ch04_chaos_sensitivity.png" if FD == 0.5 else "ch04_chaos_sensitivity_fd12.png"
-    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130); plt.close(fig)
+    plt.suptitle('chaos_sensitivity' if FD == 0.5 else 'chaos_sensitivity_fd12')
 print("03_chaos_sensitivity.py done")
+
+plt.show()

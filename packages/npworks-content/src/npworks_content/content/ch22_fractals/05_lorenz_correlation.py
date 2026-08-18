@@ -5,22 +5,6 @@ algorithm (C(r) ~ r^D2). Expected D2 ~ 2.05.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    # 未找到教材 markdown/images（PyPI 安装或独立运行）：回退到用户可写目录
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch22")
 
 
 def lorenz_integrate(sigma=10.0, rho=28.0, beta=8.0 / 3.0,
@@ -66,13 +50,14 @@ print(f"Lorenz correlation dimension D2 ~ {D2:.3f}  (expected ~2.05)")
 fig, ax = plt.subplots(figsize=(7, 6))
 ax.plot(traj[:, 0], traj[:, 2], lw=0.3, color='darkblue')
 ax.set_xlabel("x"); ax.set_ylabel("z"); ax.set_title("Lorenz strange attractor")
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_lorenz_attractor.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('lorenz_attractor')
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.loglog(rs, C, 'o-', color='crimson')
 ax.loglog(rs[fit], (rs[fit] ** D2) * np.exp(np.log(C[fit][0]) - D2 * np.log(rs[fit][0])),
           'k--', label=f"slope D2 = {D2:.3f}")
 ax.set_xlabel("r"); ax.set_ylabel("C(r)"); ax.set_title("Grassberger-Procaccia")
 ax.legend(); ax.grid(True, which='both', ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_lorenz_correlation.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('lorenz_correlation')
 print("saved ch22 lorenz attractor + correlation")
+
+plt.show()

@@ -1,21 +1,7 @@
 """Finite barrier tunneling: transmission coefficient T(E) vs energy E."""
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch16")
 
 V0 = 1.0
 a = 1.0
@@ -45,8 +31,7 @@ ax.set_xlabel("E / V0"); ax.set_ylabel("Transmission T")
 ax.set_title("Tunneling: T(E) for Rectangular Barrier"); ax.legend(); ax.grid(True)
 ax.set_ylim(-0.05, 1.1)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch16_tunneling.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('tunneling')
 
 # --- 图2：势垒示意 ---
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -60,7 +45,8 @@ ax.set_ylim(-0.2, 1.5 * V0); ax.grid(True)
 ax.annotate("V0", xy=(0, V0), xytext=(0.3, V0 + 0.15), fontsize=12,
             arrowprops=dict(arrowstyle='->', color='black'))
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch16_tunneling_barrier.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('tunneling_barrier')
 
 print("03_finite_well_tunneling.py done")
+
+plt.show()

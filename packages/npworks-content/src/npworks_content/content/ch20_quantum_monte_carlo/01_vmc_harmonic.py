@@ -6,22 +6,6 @@ the variance vanishes at the exact value alpha = 1/2.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    # 未找到教材 markdown/images（PyPI 安装或独立运行）：回退到用户可写目录
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch20")
 
 
 def local_energy(alpha, x):
@@ -74,13 +58,14 @@ ax.axvline(0.5, ls=':', color='gray', label="alpha = 0.5")
 ax.set_xlabel(r"$\alpha$"); ax.set_ylabel("E [VMC]")
 ax.set_title("Variational principle: minimum at alpha = 1/2")
 ax.legend(); ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch20_vmc_harmonic.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('vmc_harmonic')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(alphas, variances, 's-', color='crimson')
 ax.axvline(0.5, ls=':', color='gray')
 ax.set_xlabel(r"$\alpha$"); ax.set_ylabel("var(E_L)")
 ax.set_title("Zero-variance principle: variance -> 0 at alpha = 1/2")
 ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch20_vmc_harmonic_variance.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('vmc_harmonic_variance')
 print("saved ch20_vmc_harmonic + variance")
+
+plt.show()

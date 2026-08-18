@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch06")
 
 np.random.seed(42)
 
@@ -110,8 +96,7 @@ ax.set_ylabel('y')
 ax.set_title('Particle Snapshot (final)')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch06_2d_md_snapshot.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('2d_md_snapshot')
 
 # --- 图2：能量随时间演化（动能/势能/总能量） ---
 fig, ax = plt.subplots(figsize=(9, 5))
@@ -124,8 +109,7 @@ ax.set_title('Energy vs Time')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch06_2d_md_energy.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('2d_md_energy')
 
 # --- 图3：速度分布 vs Maxwell-Boltzmann ---
 T_avg = 2.0 * np.mean(sample_KE) / f_dof
@@ -140,8 +124,7 @@ ax.set_title('Speed Distribution vs Maxwell-Boltzmann')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch06_2d_md_speed.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('2d_md_speed')
 
 # --- 图4：总能量守恒（放大） ---
 fig, ax = plt.subplots(figsize=(9, 5))
@@ -151,9 +134,10 @@ ax.set_ylabel('Total Energy')
 ax.set_title('Total Energy Conservation')
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch06_2d_md_energy_conservation.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('2d_md_energy_conservation')
 
 print('Average T = {:.4f}'.format(T_avg))
 print('Energy drift = {:.6f}'.format((sample_E[-1] - sample_E[0]) / abs(sample_E[0])))
 print("02_2d_md.py done")
+
+plt.show()

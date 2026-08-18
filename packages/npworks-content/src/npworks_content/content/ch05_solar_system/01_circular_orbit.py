@@ -42,27 +42,19 @@ for i in range(N):
 
 E = KE + PE
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch05"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch05"); os.makedirs(IMG_DIR, exist_ok=True)
-
 fig, ax = plt.subplots(figsize=(7, 7))
 ax.plot(xs, ys, 'b-', linewidth=0.5)
 ax.plot(0, 0, 'yo', markersize=12)
 ax.set_xlabel('x (AU)'); ax.set_ylabel('y (AU)')
 ax.set_title('Circular Orbit (Euler-Cromer)'); ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch05_circular_orbit.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('circular_orbit')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(ts, KE, 'r-', label='Kinetic Energy', linewidth=0.8)
 ax.plot(ts, PE, 'b-', label='Potential Energy', linewidth=0.8)
 ax.plot(ts, E, 'k--', label='Total Energy', linewidth=1.2)
 ax.set_xlabel('Time (year)'); ax.set_ylabel('Energy')
 ax.set_title('Energy Conservation'); ax.legend(); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch05_circular_orbit_energy.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('circular_orbit_energy')
 print('ch05_circular_orbit done')
+
+plt.show()

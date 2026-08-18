@@ -14,15 +14,6 @@ dt = T_D / steps_per_T
 n_relay = 500
 n_sample = 500
 
-import os
-_d = os.path.dirname(os.path.abspath(__file__))
-for _ in range(10):
-    if os.path.isdir(os.path.join(_d, "markdown")):
-        IMG_DIR = os.path.join(_d, "markdown", "images", "ch04"); break
-    _d = os.path.dirname(_d)
-else:
-    IMG_DIR = os.path.join(os.path.expanduser("~"), "npworks_figures", "ch04"); os.makedirs(IMG_DIR, exist_ok=True)
-
 for idx, FD in enumerate([0.5, 1.2]):
     state = np.array([0.2, 0.0])
     theta_poincare = []; omega_poincare = []; t = 0.0
@@ -46,6 +37,7 @@ for idx, FD in enumerate([0.5, 1.2]):
     ax.set_xlabel(r'$\theta$ (rad)'); ax.set_ylabel(r'$\omega$ (rad/s)')
     ax.set_title('Poincare Section ($F_D={}$)'.format(FD)); ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    fname = "ch04_poincare_section.png" if FD == 0.5 else "ch04_poincare_section_fd12.png"
-    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130); plt.close(fig)
+    plt.suptitle('poincare_section' if FD == 0.5 else 'poincare_section_fd12')
 print("05_poincare_section.py done")
+
+plt.show()

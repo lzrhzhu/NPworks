@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch06")
 
 np.random.seed(42)
 
@@ -106,8 +92,7 @@ ax.set_title('Mean Square Displacement from MD')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch06_msd.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('msd')
 
 # --- 图2：MSD 双对数图 ---
 fig, ax = plt.subplots(figsize=(8, 5.5))
@@ -119,8 +104,9 @@ ax.set_title('MSD (log-log)')
 ax.legend()
 ax.grid(True, alpha=0.3, which='both')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch06_msd_loglog.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('msd_loglog')
 
 print('D (2D) = {:.6f}'.format(D))
 print("03_msd.py done")
+
+plt.show()

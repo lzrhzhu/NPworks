@@ -1,20 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch10")
 
 
 def jacobi_1d(V_left, V_right, N, max_iter=5000, tol=1e-10):
@@ -72,8 +57,7 @@ ax.set_title('1D Laplace: V(0)=100, V(L)=50')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch10_laplace_jacobi_1d.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('laplace_jacobi_1d')
 
 # --- 图2：2D 等势线 ---
 fig, ax = plt.subplots(figsize=(7, 6))
@@ -84,8 +68,7 @@ ax.set_xlabel('$x / L$'); ax.set_ylabel('$y / L$')
 ax.set_title('2D Laplace (Jacobi) - Contours')
 ax.set_aspect('equal')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch10_laplace_jacobi.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('laplace_jacobi')
 
 # --- 图3：2D 曲面 ---
 fig = plt.figure(figsize=(8, 6))
@@ -94,7 +77,8 @@ ax3.plot_surface(X, Y, V2d, cmap='RdBu_r', alpha=0.8, edgecolor='none')
 ax3.set_xlabel('$x / L$'); ax3.set_ylabel('$y / L$'); ax3.set_zlabel('Potential $V$')
 ax3.set_title('2D Laplace (Jacobi) - Surface')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch10_laplace_jacobi_surface.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('laplace_jacobi_surface')
 
 print("01_laplace_jacobi.py done")
+
+plt.show()

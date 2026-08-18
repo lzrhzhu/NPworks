@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch11")
 
 L = 1.0
 Nx = 50
@@ -65,8 +51,7 @@ ax.set_title(f'FTCS: Temperature Snapshots ($r = {r}$)')
 ax.legend(fontsize=8)
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch11_ftcs_1d.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('ftcs_1d')
 
 # --- 图2：时空图 ---
 spacetime = np.array(spacetime)
@@ -79,7 +64,8 @@ ax.set_xlabel('Position $x$ (m)')
 ax.set_ylabel('Time $t$ (s)')
 ax.set_title('FTCS: Space-Time Temperature Diagram')
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch11_ftcs_1d_spacetime.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('ftcs_1d_spacetime')
 
 print(f"01_ftcs_1d.py done (r={r}, dt={dt:.6f}, Nt={Nt})")
+
+plt.show()

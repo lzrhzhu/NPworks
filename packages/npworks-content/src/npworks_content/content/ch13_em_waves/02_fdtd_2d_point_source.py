@@ -4,21 +4,7 @@ Saves Ez field snapshots at several time steps as independent images.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch13")
 
 c0 = 3e8
 mu0 = 4e-7 * np.pi
@@ -68,9 +54,9 @@ for n, field in snapshots:
     ax.set_title(f"Ez at step {n}")
     plt.colorbar(im, ax=ax, shrink=0.8)
     plt.tight_layout()
-    fname = "ch13_fdtd_2d_point.png" if first else f"ch13_fdtd_2d_point_step{n}.png"
-    plt.savefig(os.path.join(IMG_DIR, fname), dpi=130)
-    plt.close(fig)
+    plt.suptitle('fdtd_2d_point' if first else f'fdtd_2d_point_step{n}')
     first = False
 
 print("02_fdtd_2d_point_source.py done")
+
+plt.show()

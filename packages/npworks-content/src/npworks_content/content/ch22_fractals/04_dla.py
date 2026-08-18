@@ -4,22 +4,7 @@ cluster, producing a fractal with box-counting dimension ~1.71 in 2D.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    # 未找到教材 markdown/images（PyPI 安装或独立运行）：回退到用户可写目录
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch22")
 
 # grid; (i,j) with occupied flag. seed at center.
 L = 200
@@ -105,11 +90,12 @@ print(f"DLA box-counting dim ~ {slope:.3f}")
 fig, ax = plt.subplots(figsize=(7, 7))
 ax.imshow(occ, cmap='Greens', origin='lower')
 ax.set_title(f"DLA cluster ({N_target} particles)"); ax.axis('off')
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_dla.png"), dpi=130); plt.close(fig)
-
+plt.tight_layout(); plt.suptitle('dla')
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.loglog(inv_eps, Ns, 'o-')
 ax.set_xlabel("1 / box size"); ax.set_ylabel("N(boxes)")
 ax.set_title(f"Box-counting: D ~ {slope:.3f}"); ax.grid(True, which='both', ls=':', alpha=0.5)
-plt.tight_layout(); plt.savefig(os.path.join(IMG_DIR, "ch22_dla_boxcount.png"), dpi=130); plt.close(fig)
+plt.tight_layout(); plt.suptitle('dla_boxcount')
 print("saved ch22 dla + boxcount")
+
+plt.show()

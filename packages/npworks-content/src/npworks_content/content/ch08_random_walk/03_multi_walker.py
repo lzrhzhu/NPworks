@@ -1,20 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch08")
 
 np.random.seed(42)
 M = 1000
@@ -40,8 +26,7 @@ ax.set_title('Final Position Distribution (M={}, N={})'.format(M, N))
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch08_multi_walker.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('multi_walker')
 
 # --- 图2：RMS vs sqrt(N) ---
 n_vals = np.arange(1, N + 1, 10)
@@ -55,8 +40,9 @@ ax.set_title('RMS vs sqrt(N)')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch08_multi_walker_rms.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('multi_walker_rms')
 
 print('Sim RMS = {:.4f}, Theory RMS = {:.4f}'.format(rms_sim, rms_theory))
 print("03_multi_walker.py done")
+
+plt.show()

@@ -1,20 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-
-
-def _img_dir(ch):
-    d = os.path.dirname(os.path.abspath(__file__))
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "markdown")):
-            return os.path.join(d, "markdown", "images", ch)
-        d = os.path.dirname(d)
-    out = os.path.join(os.path.expanduser("~"), "npworks_figures", ch)
-    os.makedirs(out, exist_ok=True)
-    return out
-
-
-IMG_DIR = _img_dir("ch11")
 
 
 def thomas_solve(a, b, c, d):
@@ -99,8 +84,7 @@ ax.set_xlabel('Position $x$ (m)'); ax.set_ylabel('Temperature $T$')
 ax.set_title(f'FTCS ($r = {r_ftcs}$, $\\Delta t = {dt_ftcs:.4f}$)')
 ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch11_cn_ftcs.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cn_ftcs')
 
 # --- 图2：CN 快照 ---
 fig, ax = plt.subplots(figsize=(8, 5.5))
@@ -111,7 +95,8 @@ ax.set_xlabel('Position $x$ (m)'); ax.set_ylabel('Temperature $T$')
 ax.set_title(f'Crank-Nicolson ($r = {r_cn}$, $\\Delta t = {dt_cn:.4f}$)')
 ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(IMG_DIR, "ch11_cn_method.png"), dpi=130)
-plt.close(fig)
+plt.suptitle('cn_method')
 
 print(f"02_cn_method.py done (FTCS Nt={Nt_ftcs}, CN Nt={Nt_cn})")
+
+plt.show()
