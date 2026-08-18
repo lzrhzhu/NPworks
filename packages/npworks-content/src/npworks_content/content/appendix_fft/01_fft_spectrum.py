@@ -18,12 +18,12 @@ amplitude = 2.0 * np.abs(F[pos_mask]) / N
 
 fig, ax = plt.subplots(figsize=(9, 4.5))
 ax.plot(t[:200], signal[:200]); ax.set_xlabel('Time (s)'); ax.set_ylabel('Amplitude')
-ax.set_title('Composite Signal (50 + 120 + 300 Hz)'); ax.grid(True)
-plt.tight_layout(); plt.suptitle('fft_spectrum')
+ax.set_title('Composite Signal (50 + 120 + 300 Hz)')
+plt.tight_layout(); plt.suptitle('fft_signal')
 fig, ax = plt.subplots(figsize=(9, 4.5))
 ax.stem(freqs_pos, amplitude, basefmt=' '); ax.set_xlabel('Frequency (Hz)'); ax.set_ylabel('Amplitude')
-ax.set_title('Frequency Spectrum via FFT'); ax.set_xlim(0, 500); ax.grid(True)
-plt.tight_layout(); plt.suptitle('fft_signal')
+ax.set_title('Frequency Spectrum via FFT'); ax.set_xlim(0, 500)
+plt.tight_layout(); plt.suptitle('fft_spectrum')
 print("01_fft_spectrum.py done")
 
 plt.show()

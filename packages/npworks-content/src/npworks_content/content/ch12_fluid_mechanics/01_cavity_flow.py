@@ -6,6 +6,25 @@ Outputs: speed contour, streamlines, and two centerline velocity profiles.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
 
 Nx, Ny = 64, 64
 Lx, Ly = 1.0, 1.0
@@ -41,7 +60,7 @@ for n in range(nt):
     d2vdy2[:, 1:-1] = (v[:, 2:] - 2 * v[:, 1:-1] + v[:, :-2]) / dy ** 2
     v_star = vn + dt * (-un * dvdx - vn * dvdy + nu * (d2vdx2 + d2vdy2))
 
-    u_star[0, :] = 0.0; u_star[-1, :] = 1.0; u_star[:, 0] = 0.0; u_star[:, -1] = 0.0
+    u_star[0, :] = 0.0; u_star[-1, :] = 0.0; u_star[:, 0] = 0.0; u_star[:, -1] = 1.0
     v_star[0, :] = 0.0; v_star[-1, :] = 0.0; v_star[:, 0] = 0.0; v_star[:, -1] = 0.0
 
     div_us = np.zeros_like(p)
@@ -58,7 +77,7 @@ for n in range(nt):
 
     u[1:-1, 1:-1] = u_star[1:-1, 1:-1] - (dt / rho) * (p[2:, 1:-1] - p[:-2, 1:-1]) / (2 * dx)
     v[1:-1, 1:-1] = v_star[1:-1, 1:-1] - (dt / rho) * (p[1:-1, 2:] - p[1:-1, :-2]) / (2 * dy)
-    u[0, :] = 0.0; u[-1, :] = 1.0; u[:, 0] = 0.0; u[:, -1] = 0.0
+    u[0, :] = 0.0; u[-1, :] = 0.0; u[:, 0] = 0.0; u[:, -1] = 1.0
     v[0, :] = 0.0; v[-1, :] = 0.0; v[:, 0] = 0.0; v[:, -1] = 0.0
 
 x = np.linspace(0, Lx, Nx + 1)
@@ -70,7 +89,7 @@ mid_y = Ny // 2
 
 # --- 图1：速度大小 ---
 fig, ax = plt.subplots(figsize=(6.5, 6))
-cf = ax.contourf(X, Y, speed, levels=20, cmap='jet')
+cf = ax.contourf(X, Y, speed, levels=20, cmap='viridis')
 plt.colorbar(cf, ax=ax)
 ax.set_title(f'Speed |u| (Re={Re:.0f})')
 ax.set_xlabel('x'); ax.set_ylabel('y')
@@ -92,7 +111,6 @@ fig, ax = plt.subplots(figsize=(6, 6))
 ax.plot(y, u[mid_x, :], 'b-', linewidth=2)
 ax.set_xlabel('y'); ax.set_ylabel('u(y)')
 ax.set_title('u along vertical centerline (x=0.5)')
-ax.grid(True)
 plt.tight_layout()
 plt.suptitle('cavity_centerline')
 
@@ -101,7 +119,6 @@ fig, ax = plt.subplots(figsize=(6, 6))
 ax.plot(x, v[:, mid_y], 'r-', linewidth=2)
 ax.set_xlabel('x'); ax.set_ylabel('v(x)')
 ax.set_title('v along horizontal centerline (y=0.5)')
-ax.grid(True)
 plt.tight_layout()
 plt.suptitle('cavity_centerline_v')
 

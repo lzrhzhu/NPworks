@@ -25,11 +25,11 @@ print(f"Direct (N=5000): {t_direct:.4f} s ; FFT (N={N}): {t_fft:.4f} s")
 
 fig, ax = plt.subplots(figsize=(9, 4))
 ax.plot(x[:500], alpha=0.5, label='Original'); ax.set_xlabel('Sample index'); ax.set_ylabel('Amplitude')
-ax.set_title('Original Signal'); ax.legend(); ax.grid(True)
+ax.set_title('Original Signal'); ax.legend()
 plt.tight_layout(); plt.suptitle('fft_convolution')
 fig, ax = plt.subplots(figsize=(9, 4))
 ax.plot(y_fft[:500], 'C1', label='After Gaussian smoothing'); ax.set_xlabel('Sample index'); ax.set_ylabel('Amplitude')
-ax.set_title('After FFT Convolution with Gaussian Kernel'); ax.legend(); ax.grid(True)
+ax.set_title('After FFT Convolution with Gaussian Kernel'); ax.legend()
 plt.tight_layout(); plt.suptitle('fft_convolution_smoothed')
 print("03_fft_convolution.py done")
 

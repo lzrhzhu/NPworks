@@ -7,6 +7,26 @@ Saves vorticity field image.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
+
 Nx, Ny = 200, 100
 Lx, Ly = 4.0, 2.0
 dx = Lx / Nx
@@ -30,6 +50,11 @@ mask = (X - cx)**2 + (Y - cy)**2 < R**2
 
 u[mask] = 0.0
 v[mask] = 0.0
+
+# probe point (5R downstream of cylinder centre) for the shedding frequency
+probe_i = int((cx + 5 * R) / dx)
+probe_j = int(cy / dy)
+v_probe = np.zeros(nt)
 
 for n in range(nt):
     un = u.copy()
@@ -104,8 +129,19 @@ for n in range(nt):
     u[0, :] = U_inf
     v[0, :] = 0.0
 
+    v_probe[n] = v[probe_i, probe_j]
+
     if n % 5000 == 0:
         print(f"Step {n}")
+
+# Shedding frequency from the probe signal (discard the first half as transient)
+half = nt // 2
+signal = v_probe[half:] - v_probe[half:].mean()
+freqs = np.fft.rfftfreq(nt - half, d=dt)
+spectrum = np.abs(np.fft.rfft(signal))
+f_shed = freqs[np.argmax(spectrum[1:]) + 1]
+St = f_shed * 2 * R / U_inf
+print(f"Shedding frequency f = {f_shed:.3f}, Strouhal number St = {St:.3f}")
 
 # Vorticity
 dudy_plot = np.zeros_like(u)

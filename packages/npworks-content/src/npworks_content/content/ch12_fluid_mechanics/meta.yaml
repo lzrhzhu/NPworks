@@ -5,3 +5,5 @@ sections:
   title: 01 Cavity Flow
 - file: 02_cylinder_flow.py
   title: 02 Cylinder Flow
+- file: 03_lorenz.py
+  title: 03 Lorenz Model
