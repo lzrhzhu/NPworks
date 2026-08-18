@@ -19,6 +19,25 @@ import sys
 import importlib
 
 
+def _grid_disabled(*args, **kwargs):
+    """印刷规范：插图一律不画网格线（屏蔽脚本中的 ax.grid(...) 调用）。"""
+    return None
+
+
+def _enable_print_style(plt):
+    """印刷级插图规范（单点强制）：刻度向内、四周刻度、无网格线。"""
+    plt.rcParams.update({
+        "xtick.direction": "in",
+        "ytick.direction": "in",
+        "xtick.top": True,
+        "ytick.right": True,
+        "axes.grid": False,
+        "axes.unicode_minus": False,
+    })
+    import matplotlib.axes
+    matplotlib.axes.Axes.grid = _grid_disabled
+
+
 def _sanitize(text):
     text = text.strip()
     text = re.sub(r'[^\w\u4e00-\u9fff-]', '_', text)
@@ -37,6 +56,8 @@ def run_script(script_path, save_dir, chapter_id):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+
+    _enable_print_style(plt)
 
     # 让图中中文标签正常显示（默认 DejaVu Sans 不含 CJK 字形）。
     # 这里把一族中文字体设为首选回退；找不到时仍回退到默认无衬线字体。
@@ -73,19 +94,28 @@ def run_script(script_path, save_dir, chapter_id):
 
             path = os.path.join(save_dir, filename)
 
-            # 为 suptitle 预留顶部空间，避免总标题与子图/坐标轴重叠。
-            # tight_layout(rect=...) 会把坐标轴限制在 [0, 0.93] 区域内，
-            # suptitle（默认 y≈0.98）落在预留的顶部边距中，从而留出清晰间距。
-            has_suptitle = (fig._suptitle is not None
-                            and fig._suptitle.get_text())
-            if has_suptitle:
+            # 印刷规范：suptitle 仅用于派生文件名，图内不显示；
+            # 保存前对全部坐标轴（含 3D 的 z 轴与 colorbar）强制刻度向内。
+            if fig._suptitle is not None:
+                fig._suptitle.set_visible(False)
+            for ax in fig.get_axes():
                 try:
-                    fig.tight_layout(rect=[0, 0, 1, 0.92])
+                    ax.tick_params(direction="in")
+                    zaxis = getattr(ax, "zaxis", None)
+                    if zaxis is not None:
+                        zaxis.set_tick_params(direction="in")
+                        # 3D 背板网格不经过基类 Axes.grid，
+                        # 需调用 Axes3D 自身的 grid 关闭；背板设为白色。
+                        type(ax).grid(ax, False)
+                        for axis3d in (ax.xaxis, ax.yaxis, ax.zaxis):
+                            axis3d.set_pane_color((1, 1, 1, 1))
                 except Exception:
-                    try:
-                        fig.subplots_adjust(top=0.88)
-                    except Exception:
-                        pass
+                    pass
+
+            try:
+                fig.tight_layout()
+            except Exception:
+                pass
 
             fig.savefig(path, dpi=300, bbox_inches='tight')
             print(f"Saved: {path}")
