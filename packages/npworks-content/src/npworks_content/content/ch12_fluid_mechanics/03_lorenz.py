@@ -62,7 +62,7 @@ for ax, r in zip(axes, r_values):
         z_hist[i] = state[2]
         state = rk4_step(state, dt, r)
     ax.plot(t, z_hist, linewidth=1.0)
-    ax.set_ylabel('z')
+    ax.set_ylabel('Z')
     ax.set_title(f'r = {r:.0f}', loc='right')
 axes[-1].set_xlabel('t')
 fig.tight_layout()

@@ -1,6 +1,15 @@
 import math
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 g = 9.8
 v0 = 700.0
 dt = 0.1
@@ -56,9 +65,7 @@ plt.plot(xe_list, ye_list, 'r--', linewidth=1.5, label='Euler (range = {:.0f} m)
 plt.plot(xr_list, yr_list, 'b-', linewidth=1.5, label='RK4 (range = {:.0f} m)'.format(range_rk4))
 plt.xlabel('x (m)')
 plt.ylabel('y (m)')
-plt.title('Cannonball Trajectory: Euler vs RK4 (dt = {} s)'.format(dt))
-plt.legend()
-plt.grid(True, alpha=0.3)
+plt.legend(frameon=False)
 plt.gca().set_aspect('equal')
 
 plt.tight_layout()

@@ -9,3 +9,5 @@ sections:
   title: 03 Pic Two Stream
 - file: 04_landau_damping.py
   title: 04 Landau Damping
+- file: 05_pic_convergence.py
+  title: 05 PIC Convergence

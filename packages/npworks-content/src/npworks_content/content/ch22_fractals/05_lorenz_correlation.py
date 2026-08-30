@@ -15,12 +15,18 @@ def lorenz_integrate(sigma=10.0, rho=28.0, beta=8.0 / 3.0,
         dx = sigma * (x[1] - x[0])
         dy = x[0] * (rho - x[2]) - x[1]
         dz = x[0] * x[1] - beta * x[2]
-        x = x + dt * np.array([dx, dy, dz])  # RK1; fine for attractor sampling
+        k1 = np.array([dx, dy, dz])
+        def rhs(q):
+            return np.array([sigma * (q[1] - q[0]), q[0] * (rho - q[2]) - q[1], q[0] * q[1] - beta * q[2]])
+        k2 = rhs(x + 0.5 * dt * k1)
+        k3 = rhs(x + 0.5 * dt * k2)
+        k4 = rhs(x + dt * k3)
+        x = x + dt * (k1 + 2*k2 + 2*k3 + k4) / 6
         traj[i] = x
     return traj
 
 
-def correlation_integral(traj, rs):
+def correlation_integral(traj, rs, theiler=20):
     """C(r) = fraction of pairs with distance < r."""
     n = len(traj)
     # subsample for speed if large
@@ -31,7 +37,8 @@ def correlation_integral(traj, rs):
     # pairwise distance via broadcasting
     diff = traj[:, None, :] - traj[None, :, :]
     d = np.sqrt((diff ** 2).sum(axis=2))
-    d = d[np.triu_indices(n, k=1)]
+    iu = np.triu_indices(n, k=1)
+    d = d[iu][(iu[1] - iu[0]) > theiler]
     C = np.array([(d < r).mean() for r in rs])
     return C
 
@@ -49,14 +56,14 @@ print(f"Lorenz correlation dimension D2 ~ {D2:.3f}  (expected ~2.05)")
 # --- plot ---
 fig, ax = plt.subplots(figsize=(7, 6))
 ax.plot(traj[:, 0], traj[:, 2], lw=0.3, color='darkblue')
-ax.set_xlabel("x"); ax.set_ylabel("z"); ax.set_title("Lorenz strange attractor")
+ax.set_xlabel("x (无量纲)"); ax.set_ylabel("z (无量纲)"); ax.set_title("Lorenz strange attractor")
 plt.tight_layout(); plt.suptitle('lorenz_attractor')
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.loglog(rs, C, 'o-', color='crimson')
 ax.loglog(rs[fit], (rs[fit] ** D2) * np.exp(np.log(C[fit][0]) - D2 * np.log(rs[fit][0])),
           'k--', label=f"slope D2 = {D2:.3f}")
-ax.set_xlabel("r"); ax.set_ylabel("C(r)"); ax.set_title("Grassberger-Procaccia")
-ax.legend(); ax.grid(True, which='both', ls=':', alpha=0.5)
+ax.set_xlabel("r (无量纲)"); ax.set_ylabel("C(r)"); ax.set_title("Grassberger-Procaccia")
+ax.legend(frameon=False)
 plt.tight_layout(); plt.suptitle('lorenz_correlation')
 print("saved ch22 lorenz attractor + correlation")
 

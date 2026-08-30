@@ -7,6 +7,26 @@ the variance vanishes at the exact value alpha = 1/2.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
+
 
 def local_energy(alpha, x):
     """E_L = -0.5 (psi''/psi) + 0.5 x^2, with psi = exp(-alpha x^2)."""
@@ -51,21 +71,28 @@ E_exact = 0.5
 print(f"\nExact ground-state energy E0 = {E_exact} (at alpha=0.5)")
 
 # --- plot ---
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.errorbar(alphas, energies, yerr=errors, fmt='o-', capsize=3)
-ax.axhline(E_exact, ls='--', color='k', label="exact E0 = 0.5")
-ax.axvline(0.5, ls=':', color='gray', label="alpha = 0.5")
-ax.set_xlabel(r"$\alpha$"); ax.set_ylabel("E [VMC]")
-ax.set_title("Variational principle: minimum at alpha = 1/2")
-ax.legend(); ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.suptitle('vmc_harmonic')
-fig, ax = plt.subplots(figsize=(8, 5))
+fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.2))
+ax = axes[0]
+ax.errorbar(alphas, energies, yerr=errors, fmt='o-', capsize=3,
+            label="VMC samples")
+ax.axhline(E_exact, ls='--', color='k', label=r"exact $E_0=0.5$")
+ax.axvline(0.5, ls=':', color='0.45', label=r"$\alpha=0.5$")
+ax.set_xlabel(r"$\alpha$ (dimensionless)")
+ax.set_ylabel(r"$E_{\rm VMC}$ (Hartree)")
+ax.set_title("(a) Variational energy")
+ax.legend(frameon=False)
+ax.minorticks_on()
+
+ax = axes[1]
 ax.plot(alphas, variances, 's-', color='crimson')
-ax.axvline(0.5, ls=':', color='gray')
-ax.set_xlabel(r"$\alpha$"); ax.set_ylabel("var(E_L)")
-ax.set_title("Zero-variance principle: variance -> 0 at alpha = 1/2")
-ax.grid(True, ls=':', alpha=0.5)
-plt.tight_layout(); plt.suptitle('vmc_harmonic_variance')
-print("saved ch20_vmc_harmonic + variance")
+ax.axvline(0.5, ls=':', color='0.45')
+ax.set_xlabel(r"$\alpha$ (dimensionless)")
+ax.set_ylabel(r"$\mathrm{var}(E_L)$ (Hartree$^2$)")
+ax.set_title("(b) Local-energy variance")
+ax.minorticks_on()
+
+fig.tight_layout()
+fig.suptitle('vmc_harmonic')
+print("saved ch20_vmc_harmonic")
 
 plt.show()

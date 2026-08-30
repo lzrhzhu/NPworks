@@ -1,9 +1,15 @@
-title: 第16章 定态薛定谔方程
-description: 矩阵对角化、打靶与 Chebyshev 谱
+title: 第 16 章 定态薛定谔方程
+description: 定态薛定谔方程的离散、对角化、打靶与虚时间传播
 sections:
 - file: 01_infinite_well.py
   title: 01 Infinite Well
 - file: 02_harmonic_oscillator.py
   title: 02 Harmonic Oscillator
 - file: 03_finite_well_tunneling.py
-  title: 03 Finite Well Tunneling
+  title: 03 Rectangular Barrier Transmission
+- file: 04_shooting_wells.py
+  title: 04 Shooting for Bound States
+- file: 05_imaginary_time.py
+  title: 05 Imaginary-Time Propagation
+- file: 06_hydrogen_radial.py
+  title: 06 Hydrogen Radial Equation

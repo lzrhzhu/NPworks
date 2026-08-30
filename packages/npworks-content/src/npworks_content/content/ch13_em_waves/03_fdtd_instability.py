@@ -7,6 +7,14 @@ instability. PEC boundaries, Gaussian soft source.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0),
+                     'font.size': 11, 'axes.titlesize': 12,
+                     'axes.labelsize': 11, 'xtick.labelsize': 10,
+                     'ytick.labelsize': 10, 'legend.fontsize': 10,
+                     'xtick.direction': 'in', 'ytick.direction': 'in',
+                     'xtick.top': True, 'ytick.right': True,
+                     'axes.grid': False, 'axes.unicode_minus': False})
+
 c0 = 3e8
 mu0 = 4e-7 * np.pi
 eps0 = 1.0 / (mu0 * c0 ** 2)
@@ -42,10 +50,9 @@ fig, ax = plt.subplots(figsize=(9, 6))
 ax.semilogy(m_stable, label="S = 0.99 (stable)")
 ax.semilogy(m_unstable, label="S = 1.1 (unstable, CFL violated)")
 ax.set_xlabel("Time step")
-ax.set_ylabel("max|Ez|")
+ax.set_ylabel("max |Ez| (V/m)")
 ax.set_title("1D FDTD stability: CFL condition S = cΔt/Δx ≤ 1")
 ax.legend()
-ax.grid(True, which="both", ls=":", alpha=0.5)
 
 plt.suptitle('fdtd_instability')
 plt.show()

@@ -7,3 +7,5 @@ sections:
   title: 02 Sor Method
 - file: 03_capacitor_2d.py
   title: 03 Capacitor 2d
+- file: 04_poisson_gaussian.py
+  title: 04 Poisson Gaussian

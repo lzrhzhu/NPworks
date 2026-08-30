@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'axes.grid': False,
+    'axes.unicode_minus': False,
+})
+
 
 def jacobi_1d(V_left, V_right, N, max_iter=5000, tol=1e-10):
     V = np.zeros(N + 1)
@@ -54,14 +63,13 @@ ax.plot(x1d_analytic, V1d_analytic, 'r--', linewidth=2, label='Analytical')
 ax.set_xlabel('Position $x / L$')
 ax.set_ylabel('Potential $V$')
 ax.set_title('1D Laplace: V(0)=100, V(L)=50')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('laplace_jacobi_1d')
 
 # --- 图2：2D 等势线 ---
 fig, ax = plt.subplots(figsize=(7, 6))
-cs = ax.contourf(X, Y, V2d, levels=20, cmap='RdBu_r')
+cs = ax.contourf(X, Y, V2d, levels=20, cmap='viridis')
 ax.contour(X, Y, V2d, levels=20, colors='k', linewidths=0.5, alpha=0.5)
 plt.colorbar(cs, ax=ax, label='Potential $V$')
 ax.set_xlabel('$x / L$'); ax.set_ylabel('$y / L$')
@@ -73,7 +81,7 @@ plt.suptitle('laplace_jacobi')
 # --- 图3：2D 曲面 ---
 fig = plt.figure(figsize=(8, 6))
 ax3 = fig.add_subplot(111, projection='3d')
-ax3.plot_surface(X, Y, V2d, cmap='RdBu_r', alpha=0.8, edgecolor='none')
+ax3.plot_surface(X, Y, V2d, cmap='viridis', alpha=0.8, edgecolor='none')
 ax3.set_xlabel('$x / L$'); ax3.set_ylabel('$y / L$'); ax3.set_zlabel('Potential $V$')
 ax3.set_title('2D Laplace (Jacobi) - Surface')
 plt.tight_layout()

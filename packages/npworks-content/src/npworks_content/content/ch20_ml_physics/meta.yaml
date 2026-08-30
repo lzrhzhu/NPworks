@@ -1,4 +1,4 @@
-title: 第20章 机器学习与物理
+title: 第21章 机器学习与物理
 description: Hopfield、MLP 与 PINN
 sections:
 - file: 01_hopfield_retrieval.py

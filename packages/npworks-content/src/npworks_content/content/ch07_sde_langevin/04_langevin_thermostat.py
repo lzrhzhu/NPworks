@@ -9,6 +9,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
+
 np.random.seed(3)
 
 m = 1.0
@@ -47,11 +57,10 @@ x_eq = x
 fig, ax = plt.subplots(figsize=(9, 5))
 ax.plot(t_ax, KE_t, 'b-', linewidth=1.3, label='瞬时温度 $T(t)$')
 ax.axhline(T0, color='r', linestyle='--', linewidth=2, label=f'目标 $T_0={T0}$')
-ax.set_xlabel('time $t$')
-ax.set_ylabel('temperature $T$')
+ax.set_xlabel('time $t$ (reduced units)')
+ax.set_ylabel('temperature $T$ (reduced units)')
 ax.set_title('Langevin 恒温器：弛豫到目标温度')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('langevin_thermostat')
 
@@ -62,11 +71,10 @@ xg = np.linspace(-4, 4, 300)
 boltz = np.exp(-0.5 * k * xg ** 2 / T0)
 boltz /= np.trapz(boltz, xg)
 ax.plot(xg, boltz, 'r-', linewidth=2.2, label=r'玻尔兹曼分布 $\propto e^{-U/k_BT}$')
-ax.set_xlabel('$x$')
+ax.set_xlabel('$x$ (reduced units)')
 ax.set_ylabel('概率密度')
 ax.set_title('平衡采样 = 正则系综')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('langevin_distribution')
 

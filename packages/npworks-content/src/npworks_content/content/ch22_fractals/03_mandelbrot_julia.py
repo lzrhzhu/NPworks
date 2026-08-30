@@ -12,7 +12,8 @@ def escape_time(c_plane, z0, n_max=200, bailout=1e6):
     count = np.zeros(z.shape, dtype=float)
     escaped = np.zeros(z.shape, dtype=bool)
     for n in range(1, n_max + 1):
-        z = z * z + c_plane
+        active = ~escaped
+        z[active] = z[active] * z[active] + c_plane[active]
         newly = (np.abs(z) > 2) & (~escaped)
         count[newly] = n - np.log(np.log(np.abs(z[newly])) / np.log(2)) / np.log(2)
         escaped |= newly

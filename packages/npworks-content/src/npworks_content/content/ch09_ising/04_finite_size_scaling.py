@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 
 def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
     rng = np.random.default_rng(seed)
@@ -46,15 +55,16 @@ for L in L_values:
     results[L] = np.array(m_vals)
 
 plt.figure(figsize=(8, 5))
-colors = ['blue', 'red', 'green']
-for L, color in zip(L_values, colors):
-    plt.plot(T_range, results[L], 'o-', color=color, markersize=4, label=f'$L = {L}$')
+colors = ['C0', 'C1', 'C2']
+markers = ['o', 's', '^']
+for L, color, marker in zip(L_values, colors, markers):
+    plt.plot(T_range, results[L], marker=marker, linestyle='-', color=color,
+             markersize=4, label=f'$L = {L}$')
 plt.axvline(2.269, color='gray', linestyle='--', label='$T_c$ (exact)')
-plt.xlabel(r'$T$')
+plt.xlabel(r'$T^* = k_B T/J$')
 plt.ylabel(r'$\langle |m| \rangle$')
 plt.title('Finite-Size Scaling: Magnetization vs Temperature')
-plt.legend()
-plt.grid(True, alpha=0.3)
+plt.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('finite_size_scaling')
 plt.show()

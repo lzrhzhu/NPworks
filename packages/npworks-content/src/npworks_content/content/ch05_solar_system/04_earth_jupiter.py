@@ -1,18 +1,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-GM = 4.0 * np.pi ** 2
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
+
+GM = 1.0
 mass_ratio = 0.95e-3
 
-dt = 0.001
-T = 20.0
+dt = 0.002 * np.pi          # dimensionless step Δτ; 0.001 year
+T = 40.0 * np.pi            # dimensionless end time τ; 20 years
 N = int(T / dt)
 
 xE, yE = 1.0, 0.0
-vxE, vyE = 0.0, 2.0 * np.pi
+vxE, vyE = 0.0, 1.0
 
 xJ, yJ = 5.2, 0.0
-vxJ, vyJ = 0.0, 2.0 * np.pi / np.sqrt(5.2)
+vxJ, vyJ = 0.0, 1.0 / np.sqrt(5.2)
 
 xEs = np.zeros(N + 1)
 yEs = np.zeros(N + 1)
@@ -60,18 +80,17 @@ for i in range(N):
     xJs[i + 1] = xJ
     yJs[i + 1] = yJ
 
-fig, ax = plt.subplots(figsize=(8, 8))
-ax.plot(xEs, yEs, 'b-', linewidth=0.3, label='Earth')
-ax.plot(xJs, yJs, 'r-', linewidth=0.3, label='Jupiter')
-ax.plot(0, 0, 'yo', markersize=15, label='Sun')
-ax.plot(xEs[0], yEs[0], 'b^', markersize=6)
-ax.plot(xJs[0], yJs[0], 'r^', markersize=6)
+fig, ax = plt.subplots(figsize=(6.4, 6.0))
+ax.plot(xEs, yEs, color='#0072B2', linestyle='-', label='Earth')
+ax.plot(xJs, yJs, color='#D55E00', linestyle='--', label='Jupiter')
+ax.plot(0, 0, 'o', color='#E69F00', markersize=9, label='Sun')
+ax.plot(xEs[0], yEs[0], '^', color='#0072B2')
+ax.plot(xJs[0], yJs[0], 's', color='#D55E00')
 ax.set_xlabel('x (AU)')
 ax.set_ylabel('y (AU)')
-ax.set_title('Earth-Jupiter Orbits ({}, velocity Verlet)'.format(int(T)))
+ax.set_title('Earth-Jupiter Orbits (20 years)')
 ax.set_aspect('equal')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 
 plt.tight_layout()
 

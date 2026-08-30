@@ -1,7 +1,11 @@
-title: 第1章 编程基础
+title: 第 1 章 编程基础
 description: 伪代码、变量循环函数与可视化
 sections:
 - file: 01_plot_2d.py
   title: 01 Plot 2d
 - file: 02_plot_3d.py
   title: 02 Plot 3d
+- file: 03_prime_numbers.py
+  title: 03 Prime Numbers
+- file: 04_snail_climb.py
+  title: 04 Snail Climb

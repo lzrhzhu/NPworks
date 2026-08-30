@@ -9,6 +9,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
+
 np.random.seed(0)
 
 T = 1.0      # 总时间
@@ -26,26 +36,24 @@ msd_W = (W ** 2).mean(axis=0)    # <W^2(t)>
 
 fig, ax = plt.subplots(figsize=(8, 5))
 for i in range(20):
-    ax.plot(t, W[i], color='steelblue', alpha=0.4, linewidth=0.8)
+    ax.plot(t, W[i], color='steelblue', alpha=0.4, linewidth=1.2)
 ax.plot(t, mean_W, 'r-', linewidth=2.2, label=r'$\langle W(t)\rangle=0$')
 ax.plot(t, np.sqrt(t), 'k--', linewidth=1.5, label=r'$\pm\sqrt{t}$')
 ax.plot(t, -np.sqrt(t), 'k--', linewidth=1.5)
-ax.set_xlabel('time $t$')
-ax.set_ylabel('$W(t)$')
+ax.set_xlabel('time $t$ (reduced units)')
+ax.set_ylabel('$W(t)$ (reduced units)')
 ax.set_title('Wiener 过程轨迹（处处连续、处处不可导）')
-ax.legend(loc='upper left')
-ax.grid(True, alpha=0.3)
+ax.legend(loc='upper left', frameon=False)
 plt.tight_layout()
 plt.suptitle('wiener_process')
 
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(t, msd_W, 'b-', linewidth=2, label=r'模拟 $\langle W^2(t)\rangle$')
 ax.plot(t, t, 'r--', linewidth=2, label=r'理论 $=t$')
-ax.set_xlabel('time $t$')
+ax.set_xlabel('time $t$ (reduced units)')
 ax.set_ylabel(r'$\langle W^2(t)\rangle$')
 ax.set_title('方差与时间成正比 → 扩散')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('wiener_msd')
 

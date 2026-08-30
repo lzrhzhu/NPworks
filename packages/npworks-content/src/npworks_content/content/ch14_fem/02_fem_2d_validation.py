@@ -6,6 +6,15 @@ Outputs: numerical solution contours, and mesh-convergence (log-log) study.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 
 def exact(x, y):
     return np.sin(np.pi * x) * np.sin(np.pi * y)
@@ -78,10 +87,10 @@ levels = np.linspace(0.0, 1.0, 21)
 
 # --- 图1：数值解 + 解析解等高线 ---
 fig, ax = plt.subplots(figsize=(6.5, 6))
-cf = ax.contourf(grid, grid, Z, levels=levels, cmap="hot")
+cf = ax.contourf(grid, grid, Z, levels=levels, cmap="inferno")
 ax.contour(grid, grid, Ze, levels=levels, colors="cyan", linewidths=0.8)
 fig.colorbar(cf, ax=ax, label="T(x, y)")
-ax.set_aspect("equal"); ax.set_xlabel("x"); ax.set_ylabel("y")
+ax.set_aspect("equal"); ax.set_xlabel("x (L)"); ax.set_ylabel("y (L)")
 ax.set_title(f"2D Poisson FEM solution (N={N}); cyan = exact")
 plt.tight_layout()
 plt.suptitle('fem_2d_validation')
@@ -91,9 +100,9 @@ fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.loglog(hs, L2s, "ro-", markersize=7, label=f"FEM L2 error (slope ~ {slope:.2f})")
 ref = np.array(hs) ** 2 * (L2s[0] / hs[0] ** 2)
 ax.loglog(hs, ref, "k--", label=r"$O(h^2)$ reference")
-ax.set_xlabel("mesh size h"); ax.set_ylabel("L2 error")
+ax.set_xlabel("mesh size h (L)"); ax.set_ylabel("discrete L2 error")
 ax.set_title("Mesh convergence of 2D linear FEM")
-ax.grid(True, which="both", ls=":", alpha=0.5); ax.legend()
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('fem_2d_convergence')
 

@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'axes.grid': False,
+    'axes.unicode_minus': False,
+})
+
 
 def solve_laplace_jacobi(N, max_iter=5000, tol=1e-10):
     V = np.zeros((N + 1, N + 1))
@@ -62,14 +71,13 @@ res_sor = solve_laplace_sor(N, omega_opt)
 
 # --- 图1：收敛对比 ---
 fig, ax = plt.subplots(figsize=(8, 5.5))
-ax.semilogy(np.arange(1, len(res_jacobi) + 1), res_jacobi, label='Jacobi')
-ax.semilogy(np.arange(1, len(res_gs) + 1), res_gs, label='Gauss-Seidel')
-ax.semilogy(np.arange(1, len(res_sor) + 1), res_sor, label=f'SOR ($\\omega = {omega_opt:.3f}$)')
+ax.semilogy(np.arange(1, len(res_jacobi) + 1), res_jacobi, '-', label='Jacobi')
+ax.semilogy(np.arange(1, len(res_gs) + 1), res_gs, '--', label='Gauss-Seidel')
+ax.semilogy(np.arange(1, len(res_sor) + 1), res_sor, '-.', label=f'SOR ($\\omega = {omega_opt:.3f}$)')
 ax.set_xlabel('Iteration')
 ax.set_ylabel('Max residual')
 ax.set_title(f'Convergence Comparison (N = {N})')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('sor_convergence')
 
@@ -82,8 +90,7 @@ ax.axvline(omega_opt, color='red', linestyle='--', label=f'$\\omega_{{opt}} = {o
 ax.set_xlabel('Relaxation factor $\\omega$')
 ax.set_ylabel('Iterations to converge')
 ax.set_title('SOR: Iterations vs $\\omega$')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('sor_omega')
 

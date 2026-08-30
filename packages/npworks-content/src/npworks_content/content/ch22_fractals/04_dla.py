@@ -36,8 +36,11 @@ while n < N_target:
         if not (0 <= i < L and 0 <= j < L):
             break
         # check neighbours for sticking
-        if (occ[(i + 1) % L, j] or occ[(i - 1) % L, j] or
-                occ[i, (j + 1) % L] or occ[i, (j - 1) % L]):
+        neighbours = ((i + 1 < L and occ[i + 1, j]) or
+                      (i - 1 >= 0 and occ[i - 1, j]) or
+                      (j + 1 < L and occ[i, j + 1]) or
+                      (j - 1 >= 0 and occ[i, j - 1]))
+        if neighbours:
             occ[i, j] = True
             n += 1
             rr = np.hypot(i - cx, j - cy)
@@ -77,7 +80,7 @@ inv_eps, Ns = [], []
 for k in ks:
     eps = Lx / k
     bx = ((pts[:, 0] - xmin) / eps).astype(int)
-    by = ((pts[:, 1] - ymin) / (Ly / k)).astype(int)
+    by = ((pts[:, 1] - ymin) / eps).astype(int)
     Ns.append(len(set(zip(bx.tolist(), by.tolist()))))
     inv_eps.append(1.0 / eps)
 inv_eps = np.array(inv_eps); Ns = np.array(Ns)
@@ -89,12 +92,13 @@ print(f"DLA box-counting dim ~ {slope:.3f}")
 # --- plot ---
 fig, ax = plt.subplots(figsize=(7, 7))
 ax.imshow(occ, cmap='Greens', origin='lower')
-ax.set_title(f"DLA cluster ({N_target} particles)"); ax.axis('off')
+ax.set_title(f"DLA cluster ({N_target} particles)")
+ax.set_xlabel("x (格点)"); ax.set_ylabel("y (格点)")
 plt.tight_layout(); plt.suptitle('dla')
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.loglog(inv_eps, Ns, 'o-')
 ax.set_xlabel("1 / box size"); ax.set_ylabel("N(boxes)")
-ax.set_title(f"Box-counting: D ~ {slope:.3f}"); ax.grid(True, which='both', ls=':', alpha=0.5)
+ax.set_title(f"Box-counting: D ~ {slope:.3f}")
 plt.tight_layout(); plt.suptitle('dla_boxcount')
 print("saved ch22 dla + boxcount")
 

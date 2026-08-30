@@ -1,16 +1,36 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-GM = 4.0 * np.pi ** 2
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
 
-dt = 0.001
-T = 1.0
+GM = 1.0
+
+dt = 0.002 * np.pi          # dimensionless step Δτ; 0.001 year
+T = 2.0 * np.pi             # dimensionless end time τ; 1 year
 N = int(T / dt)
 
 x = 1.0
 y = 0.0
 vx = 0.0
-vy = 2.0 * np.pi
+vy = 1.0
 
 xs = np.zeros(N + 1)
 ys = np.zeros(N + 1)
@@ -42,18 +62,18 @@ for i in range(N):
 
 E = KE + PE
 
-fig, ax = plt.subplots(figsize=(7, 7))
-ax.plot(xs, ys, 'b-', linewidth=0.5)
-ax.plot(0, 0, 'yo', markersize=12)
+fig, ax = plt.subplots(figsize=(6.4, 6.0))
+ax.plot(xs, ys, color='#0072B2', linestyle='-', linewidth=1.5)
+ax.plot(0, 0, 'o', color='#E69F00', markersize=9)
 ax.set_xlabel('x (AU)'); ax.set_ylabel('y (AU)')
-ax.set_title('Circular Orbit (Euler-Cromer)'); ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
+ax.set_title('Circular Orbit (Euler-Cromer)'); ax.set_aspect('equal')
 plt.tight_layout(); plt.suptitle('circular_orbit')
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.plot(ts, KE, 'r-', label='Kinetic Energy', linewidth=0.8)
-ax.plot(ts, PE, 'b-', label='Potential Energy', linewidth=0.8)
-ax.plot(ts, E, 'k--', label='Total Energy', linewidth=1.2)
-ax.set_xlabel('Time (year)'); ax.set_ylabel('Energy')
-ax.set_title('Energy Conservation'); ax.legend(); ax.grid(True, alpha=0.3)
+fig, ax = plt.subplots()
+ax.plot(ts, KE, color='#D55E00', linestyle='-', label='Kinetic energy')
+ax.plot(ts, PE, color='#0072B2', linestyle='--', label='Potential energy')
+ax.plot(ts, E, color='black', linestyle='-.', label='Total energy')
+ax.set_xlabel(r'$\tau$ ( $T_0$ )'); ax.set_ylabel('Dimensionless energy')
+ax.set_title('Energy Conservation'); ax.legend(frameon=False)
 plt.tight_layout(); plt.suptitle('circular_orbit_energy')
 print('ch05_circular_orbit done')
 

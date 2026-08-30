@@ -1,4 +1,4 @@
-title: 第22章 分形几何
+title: 第22章 分形与自相似
 description: 分形维数与自相似
 sections:
 - file: 01_koch_sierpinski.py

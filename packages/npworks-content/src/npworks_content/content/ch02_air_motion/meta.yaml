@@ -1,4 +1,4 @@
-title: 第2章 物体在空气中的运动
+title: 第 2 章 物体在空气中的运动
 description: Euler 法、RK4、空气阻力与打靶法
 sections:
 - file: 01_bicycle_no_drag.py

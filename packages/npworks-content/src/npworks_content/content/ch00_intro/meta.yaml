@@ -1,0 +1,5 @@
+title: 第 0 章 绪论
+description: 计算物理研究闭环与蒙特卡罗收敛实验
+sections:
+- file: 01_monte_carlo_pi.py
+  title: 01 Monte Carlo Pi

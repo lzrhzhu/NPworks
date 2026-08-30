@@ -5,6 +5,14 @@ Saves Ez snapshots at several time steps.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0),
+                     'font.size': 11, 'axes.titlesize': 12,
+                     'axes.labelsize': 11, 'xtick.labelsize': 10,
+                     'ytick.labelsize': 10, 'legend.fontsize': 10,
+                     'xtick.direction': 'in', 'ytick.direction': 'in',
+                     'xtick.top': True, 'ytick.right': True,
+                     'axes.grid': False, 'axes.unicode_minus': False})
+
 c0 = 3e8
 mu0 = 4e-7 * np.pi
 eps0 = 1.0 / (mu0 * c0 ** 2)
@@ -46,10 +54,9 @@ colors = plt.cm.viridis(np.linspace(0, 1, len(snapshots)))
 for (n, frame), color in zip(snapshots, colors):
     ax.plot(x, frame, label=f"n = {n}", color=color)
 ax.set_xlabel("x (m)")
-ax.set_ylabel("Ez")
+ax.set_ylabel("Ez (V/m)")
 ax.set_title("1D FDTD: Gaussian Pulse with Mur ABC")
 ax.legend()
-ax.grid(True)
 ax.set_xlim(0, 1)
 
 plt.suptitle('fdtd_1d_gaussian')

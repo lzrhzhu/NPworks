@@ -5,6 +5,13 @@ Saves Ez field snapshots at several time steps as independent images.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0),
+                     'font.size': 11, 'axes.titlesize': 12,
+                     'axes.labelsize': 11, 'xtick.labelsize': 10,
+                     'ytick.labelsize': 10, 'legend.fontsize': 10,
+                     'xtick.direction': 'in', 'ytick.direction': 'in',
+                     'xtick.top': True, 'ytick.right': True,
+                     'axes.grid': False, 'axes.unicode_minus': False})
 
 c0 = 3e8
 mu0 = 4e-7 * np.pi
@@ -47,7 +54,7 @@ first = True
 for n, field in snapshots:
     vmax = max(0.05, np.max(np.abs(field)) * 0.8)
     fig, ax = plt.subplots(figsize=(6, 5.5))
-    im = ax.imshow(field.T, cmap='RdBu', vmin=-vmax, vmax=vmax,
+    im = ax.imshow(field.T, cmap='viridis', vmin=-vmax, vmax=vmax,
                    extent=[0, (Nx + 1) * dx * 1e3, 0, (Ny + 1) * dy * 1e3],
                    origin='lower')
     ax.set_xlabel("x (mm)"); ax.set_ylabel("y (mm)")

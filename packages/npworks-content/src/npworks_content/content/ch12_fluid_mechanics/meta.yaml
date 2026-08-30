@@ -1,4 +1,4 @@
-title: 第12章 流体力学
+title: 第12章 不可压缩流体
 description: 投影法、MAC 网格与 Kármán 涡街
 sections:
 - file: 01_cavity_flow.py

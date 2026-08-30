@@ -7,6 +7,14 @@ wavelength). Verifies R + T = 1 and shows the high-reflection stop band.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0),
+                     'font.size': 11, 'axes.titlesize': 12,
+                     'axes.labelsize': 11, 'xtick.labelsize': 10,
+                     'ytick.labelsize': 10, 'legend.fontsize': 10,
+                     'xtick.direction': 'in', 'ytick.direction': 'in',
+                     'xtick.top': True, 'ytick.right': True,
+                     'axes.grid': False, 'axes.unicode_minus': False})
+
 n0 = 1.0          # incident medium (air)
 ns = 1.5          # substrate (glass)
 nL, nH = 1.46, 2.4     # low / high index layers
@@ -47,7 +55,6 @@ ax.set_xlabel("Wavelength λ (nm)")
 ax.set_ylabel("Reflectance / Transmittance")
 ax.set_title(f"TMM: quarter-wave high reflector  ({Nperiod} (LH) pairs)")
 ax.legend()
-ax.grid(True, alpha=0.3)
 ax.set_ylim(0, 1.1)
 
 plt.suptitle('tmm_reflection_spectrum')

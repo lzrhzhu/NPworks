@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'axes.grid': False,
+    'axes.unicode_minus': False,
+})
+
 
 def solve_capacitor(N, max_iter=10000, tol=1e-6, omega=1.5):
     V = np.zeros((N + 1, N + 1))
@@ -34,7 +43,7 @@ end = N - start
 # --- 图1：等势线 ---
 fig, ax = plt.subplots(figsize=(7, 6))
 levels = np.linspace(-1, 1, 21)
-cs = ax.contourf(X, Y, V, levels=levels, cmap='RdBu_r')
+cs = ax.contourf(X, Y, V, levels=levels, cmap='viridis')
 ax.contour(X, Y, V, levels=levels, colors='k', linewidths=0.5, alpha=0.5)
 plt.colorbar(cs, ax=ax, label='Potential $V$')
 ax.plot([start/N, start/N], [start/N, end/N], 'k-', linewidth=3)
@@ -50,7 +59,7 @@ Ey, Ex = np.gradient(-V, 1.0 / N, 1.0 / N)
 E_mag = np.sqrt(Ex ** 2 + Ey ** 2)
 skip = 4
 fig, ax = plt.subplots(figsize=(7, 6))
-cf = ax.contourf(X, Y, E_mag, levels=30, cmap='hot')
+cf = ax.contourf(X, Y, E_mag, levels=30, cmap='magma')
 plt.colorbar(cf, ax=ax, label='$|E|$')
 ax.quiver(X[::skip, ::skip], Y[::skip, ::skip], Ex[::skip, ::skip], Ey[::skip, ::skip],
           color='white', alpha=0.7, scale=30)

@@ -5,3 +5,7 @@ sections:
   title: 01 Leapfrog Free
 - file: 02_cn_wave_packet.py
   title: 02 Cn Wave Packet
+- file: 03_so_fft_barrier.py
+  title: 03 So Fft Barrier
+- file: 04_compare_methods.py
+  title: 04 Compare Methods

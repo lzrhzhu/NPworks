@@ -9,7 +9,7 @@ One step: solve  A psi^{n+1} = B psi^n  with sparse tridiagonal matrices
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import sparse
-from scipy.sparse.linalg import spsolve
+from scipy.sparse.linalg import factorized
 
 plt.rcParams.update({
     'savefig.dpi': 300,
@@ -48,24 +48,37 @@ psi = (2 * np.pi * sigma ** 2) ** (-0.25) \
       * np.exp(-(x - x0) ** 2 / (4 * sigma ** 2)) * np.exp(1j * k0 * x)
 psi /= np.sqrt(np.trapz(np.abs(psi) ** 2, x))
 
+# Dirichlet boundaries are fixed at zero, so solve only for interior points.
+# This preserves the Cayley-unitary update on the actual unknown vector.
+M = N - 2
+V_inner = V[1:-1]
 alpha = 1j * dt / (4 * dx ** 2)          # hbar = m = 1
-diag_main = 1 + 2 * alpha + 1j * dt / 2 * V
-diag_off = -alpha * np.ones(N - 1)
+diag_main = 1 + 2 * alpha + 1j * dt / 2 * V_inner
+diag_off = -alpha * np.ones(M - 1)
 A = sparse.diags([diag_off, diag_main, diag_off], [-1, 0, 1], format='csc')
-B = sparse.diags([alpha * np.ones(N - 1),
-                  1 - 2 * alpha - 1j * dt / 2 * V,
-                  alpha * np.ones(N - 1)], [-1, 0, 1], format='csc')
+B = sparse.diags([alpha * np.ones(M - 1),
+                  1 - 2 * alpha - 1j * dt / 2 * V_inner,
+                  alpha * np.ones(M - 1)], [-1, 0, 1], format='csc')
+solve_A = factorized(A)
+
+psi[0] = 0
+psi[-1] = 0
+psi_inner = psi[1:-1].copy()
 
 snap_steps = [0, 100, 200, 350, 500]
 snapshots = [(0, np.abs(psi) ** 2)]
+norms = [np.trapz(np.abs(psi) ** 2, x)]
 for n in range(1, Nt + 1):
-    psi = spsolve(A, B @ psi)
-    psi[0] = 0; psi[-1] = 0
+    psi_inner = solve_A(B @ psi_inner)
+    psi[1:-1] = psi_inner
+    psi[0] = 0
+    psi[-1] = 0
+    norms.append(np.trapz(np.abs(psi) ** 2, x))
     if n in snap_steps:
         snapshots.append((n, np.abs(psi) ** 2))
 
-norm_err = max(abs(np.trapz(prob, x) - 1.0) for _, prob in snapshots)
-print(f"max |norm - 1| over snapshots: {norm_err:.2e}")
+norm_err = max(abs(np.asarray(norms) - 1.0))
+print(f"max |norm - 1| over all steps: {norm_err:.2e}")
 
 colors = plt.cm.viridis(np.linspace(0, 1, len(snapshots)))
 styles = ['-', '--', '-.', ':', '-.']
@@ -79,7 +92,7 @@ for idx, ((n, prob), color) in enumerate(zip(snapshots, colors)):
 ax.fill_between(x, 0, V / V_height * 0.5 * peak0, alpha=0.2,
                 color='red', label='Barrier (scaled)')
 ax.set_xlabel("x (a.u.)")
-ax.set_ylabel("|psi|^2")
+ax.set_ylabel(r"$|\psi|^2$ (a.u.$^{-1}$)")
 ax.set_title("Crank-Nicolson: tunneling through barrier (E=4.5 < V0=6)")
 ax.legend(frameon=False, fontsize=8)
 ax.set_xlim(-12, 12)
@@ -92,7 +105,7 @@ fig, ax = plt.subplots(figsize=(7.2, 2.8))
 ax.fill_between(x, 0, V, alpha=0.4, color='orange')
 ax.plot(x, V, 'k-', linewidth=1)
 ax.set_xlabel("x (a.u.)")
-ax.set_ylabel("V(x)")
+ax.set_ylabel(r"$V(x)$ (a.u.)")
 ax.set_title("Rectangular barrier: V0 = 6, width = 0.8")
 
 fig.suptitle('cn_barrier_potential')

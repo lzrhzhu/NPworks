@@ -1,6 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
 
 np.random.seed(42)
 
@@ -86,58 +105,58 @@ sample_speeds = np.array(sample_speeds)
 ts = np.arange(len(sample_E)) * dt
 
 # --- 图1：粒子快照 ---
-fig, ax = plt.subplots(figsize=(7, 7))
-ax.scatter(sample_pos[-1][:, 0], sample_pos[-1][:, 1], s=30, c='blue', alpha=0.7)
+fig, ax = plt.subplots(figsize=(5.2, 5.2))
+ax.scatter(sample_pos[-1][:, 0], sample_pos[-1][:, 1], s=30,
+           color='#0072B2', marker='o')
 ax.set_xlim(0, L)
 ax.set_ylim(0, L)
 ax.set_aspect('equal')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_title('Particle Snapshot (final)')
-ax.grid(True, alpha=0.3)
+ax.set_xlabel(r'$x/\sigma$')
+ax.set_ylabel(r'$y/\sigma$')
 plt.tight_layout()
 plt.suptitle('2d_md_snapshot')
 
 # --- 图2：能量随时间演化（动能/势能/总能量） ---
-fig, ax = plt.subplots(figsize=(9, 5))
-ax.plot(ts, sample_KE, 'r-', linewidth=0.5, label='KE', alpha=0.7)
-ax.plot(ts, sample_PE, 'b-', linewidth=0.5, label='PE', alpha=0.7)
-ax.plot(ts, sample_E, 'k-', linewidth=0.8, label='Total E')
-ax.set_xlabel('Time')
-ax.set_ylabel('Energy')
-ax.set_title('Energy vs Time')
-ax.legend()
-ax.grid(True, alpha=0.3)
+fig, ax = plt.subplots()
+ax.plot(ts, sample_KE, color='#D55E00', linestyle='-', label='Kinetic')
+ax.plot(ts, sample_PE, color='#0072B2', linestyle='--', label='Potential')
+ax.plot(ts, sample_E, color='black', linestyle='-.', label='Total')
+ax.set_xlabel(r'$t/\tau$')
+ax.set_ylabel(r'$E/\epsilon$')
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('2d_md_energy')
 
 # --- 图3：速度分布 vs Maxwell-Boltzmann ---
 T_avg = 2.0 * np.mean(sample_KE) / f_dof
-fig, ax = plt.subplots(figsize=(9, 5))
-ax.hist(sample_speeds, bins=40, density=True, alpha=0.7, edgecolor='black', label='Simulation')
+fig, ax = plt.subplots()
+ax.hist(sample_speeds, bins=40, density=True, alpha=0.65,
+        color='#56B4E9', edgecolor='black', label='Simulation')
 v_range = np.linspace(0, np.max(sample_speeds) * 1.1, 300)
 MB_2d = (1.0 / T_avg) * v_range * np.exp(-v_range ** 2 / (2.0 * T_avg))
-ax.plot(v_range, MB_2d, 'r-', linewidth=2, label='Maxwell-Boltzmann (2D)')
-ax.set_xlabel('Speed |v|')
-ax.set_ylabel('Probability Density')
-ax.set_title('Speed Distribution vs Maxwell-Boltzmann')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.plot(v_range, MB_2d, color='#D55E00', linestyle='-',
+        label='Maxwell-Boltzmann (2D)')
+ax.set_xlabel(r'$|v|/\sqrt{\epsilon/m}$')
+ax.set_ylabel('Probability density')
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('2d_md_speed')
 
 # --- 图4：总能量守恒（放大） ---
-fig, ax = plt.subplots(figsize=(9, 5))
-ax.plot(ts, sample_E, 'k-', linewidth=0.8)
-ax.set_xlabel('Time')
-ax.set_ylabel('Total Energy')
-ax.set_title('Total Energy Conservation')
-ax.grid(True, alpha=0.3)
+fig, ax = plt.subplots()
+ax.plot(ts, sample_E, color='black', linestyle='-')
+ax.set_xlabel(r'$t/\tau$')
+ax.set_ylabel(r'$E/\epsilon$')
 plt.tight_layout()
 plt.suptitle('2d_md_energy_conservation')
 
 print('Average T = {:.4f}'.format(T_avg))
 print('Energy drift = {:.6f}'.format((sample_E[-1] - sample_E[0]) / abs(sample_E[0])))
+print('Mean KE = {:.6f}'.format(np.mean(sample_KE)))
+print('Mean PE = {:.6f}'.format(np.mean(sample_PE)))
+print('Mean total E = {:.6f}'.format(np.mean(sample_E)))
+print('Relative energy range = {:.6e}'.format(
+    (sample_E.max() - sample_E.min()) / abs(np.mean(sample_E))))
 print("02_2d_md.py done")
 
 plt.show()

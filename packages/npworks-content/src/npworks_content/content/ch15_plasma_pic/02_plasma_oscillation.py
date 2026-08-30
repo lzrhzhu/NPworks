@@ -2,6 +2,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 
 omega_p = 1.0
 x0 = 0.3
@@ -30,7 +39,7 @@ ax.plot(t, x, 'b-', linewidth=2, label='解析 $x_0\\cos(\\omega_p t)$')
 ax.plot(t, x_num, 'r--', linewidth=1.5, label='数值（Verlet）')
 ax.set_xlabel('time $t$'); ax.set_ylabel('位移 $x$')
 ax.set_title(r'集体振荡：频率 $\omega_p$')
-ax.legend(); ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('plasma_oscillation')
 
@@ -42,7 +51,7 @@ ax.axvline(omega_p, color='r', linestyle='--', linewidth=2,
            label=fr'谱峰 $\omega={pk:.2f}\approx\omega_p=1$')
 ax.set_xlim(0, 3); ax.set_xlabel(r'角频率 $\omega$'); ax.set_ylabel('振幅谱')
 ax.set_title('FFT：单一集体频率 ω_p')
-ax.legend(); ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('plasma_oscillation_fft')
 

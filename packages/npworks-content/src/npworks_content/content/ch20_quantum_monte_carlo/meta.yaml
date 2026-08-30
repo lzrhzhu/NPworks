@@ -1,4 +1,4 @@
-title: 第21章 量子蒙特卡洛方法
+title: 第20章 量子蒙特卡罗方法
 description: VMC、DMC 与路径积分
 sections:
 - file: 01_vmc_harmonic.py

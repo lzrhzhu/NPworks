@@ -97,7 +97,7 @@ for idx, ((n, prob), color) in enumerate(zip(snapshots, colors)):
     ax.plot(x, prob, color=color, ls=styles[idx % len(styles)],
             label=f"t = {n * dt:.2f}")
 ax.set_xlabel("x (a.u.)")
-ax.set_ylabel("|psi|^2")
+ax.set_ylabel(r"$|\psi|^2$ (a.u.$^{-1}$)")
 ax.set_title("Leapfrog: free Gaussian wave packet (E = k0^2/2 = 4.5)")
 ax.legend(frameon=False)
 ax.set_xlim(-15, 20)

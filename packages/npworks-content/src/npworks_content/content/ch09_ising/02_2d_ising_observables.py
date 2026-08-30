@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 
 def ising_2d_mc(L, T, N_therm, N_measure, seed=42):
     rng = np.random.default_rng(seed)
@@ -51,11 +60,10 @@ def _save(stem, ylabel, vals, color='C0', title=''):
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(T_range, vals, 'o-', color=color, markersize=4)
     ax.axvline(2.269, color='gray', linestyle='--', label=r'$T_c \approx 2.269$')
-    ax.set_xlabel(r'$T$')
+    ax.set_xlabel(r'$T^* = k_B T/J$')
     ax.set_ylabel(ylabel)
     ax.set_title(title)
-    ax.legend()
-    ax.grid(True, alpha=0.3)
+    ax.legend(frameon=False)
     plt.tight_layout()
     plt.suptitle(stem)
 

@@ -2,4 +2,8 @@ title: 第14章 复杂几何中的场问题
 description: 弱形式与刚度矩阵组装（有限元）
 sections:
 - file: 01_fem_1d_poisson.py
-  title: 01 Fem 1d Poisson
+  title: 一维 Poisson 方程的有限元验证
+- file: 02_fem_2d_validation.py
+  title: 二维三角元与网格收敛
+- file: 03_fem_circular_hole.py
+  title: 绝热圆孔的通量集中

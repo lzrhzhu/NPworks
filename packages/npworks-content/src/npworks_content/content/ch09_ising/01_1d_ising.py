@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 
 def ising_1d_mc(N, T, N_therm, N_measure, seed=42):
     rng = np.random.default_rng(seed)
@@ -34,7 +43,7 @@ def ising_1d_mc(N, T, N_therm, N_measure, seed=42):
     E_avg = np.mean(E_arr) / N
     m_avg = np.mean(np.abs(M_arr)) / N
     C = np.var(E_arr) / (T ** 2 * N)
-    chi = np.var(np.abs(M_arr)) / (T * N)
+    chi = np.var(M_arr) / (T * N)
     return E_avg, m_avg, C, chi
 
 
@@ -49,10 +58,9 @@ for T in T_range:
 def _save(stem, ylabel, vals, color='C0', title=''):
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(T_range, vals, 'o-', color=color, markersize=4)
-    ax.set_xlabel(r'$T$')
+    ax.set_xlabel(r'$T^* = k_B T/J$')
     ax.set_ylabel(ylabel)
     ax.set_title(title)
-    ax.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.suptitle(stem)
 

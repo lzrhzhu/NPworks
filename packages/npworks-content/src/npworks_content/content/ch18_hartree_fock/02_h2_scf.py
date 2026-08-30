@@ -152,7 +152,7 @@ E_hf = np.array([compute_total_energy(R)[0] for R in Rs])
 i_min = np.argmin(E_hf)
 R_min = Rs[i_min]; E_min = E_hf[i_min]
 D_e = abs(E_min - 2 * E_H_sto3g)          # 同基组结合能
-exact_Re = 1.4011; exact_De = 0.17447     # 实验值：键长与结合能
+exact_Re = 1.4011; exact_De = 0.17447     # 实验平衡键长与势阱深度 D_e（不含零点能）
 print(f"R_e = {R_min:.3f} bohr ({R_min * BOHR_TO_ANGSTROM:.3f} A),"
       f"  E_min = {E_min:.4f} Hartree")
 print(f"D_e (vs 2H, same basis) = {D_e:.4f} Hartree = {D_e * HARTREE_TO_EV:.2f} eV"
@@ -219,22 +219,27 @@ ax.legend(fontsize=10, frameon=False)
 ax.set_ylim(-1.3, 1.3)
 plt.suptitle('h2_scf_mos')
 
-# --- 图4：STO-3G vs 实验 ---
-fig, ax = plt.subplots(figsize=(7.0, 4.5))
+# --- 图4：STO-3G vs 实验（分离不同物理量的单位） ---
+fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.8))
 bar_width = 0.35
-labels = ['$R_e$ (bohr)', '$D_e$ (eV)', '$D_e$ (Hartree)']
-sto3g = [R_min, D_e * HARTREE_TO_EV, D_e]
-exact = [exact_Re, exact_De * HARTREE_TO_EV, exact_De]
-x_pos = np.arange(len(labels))
-ax.bar(x_pos - bar_width / 2, sto3g, bar_width, label='STO-3G HF',
-       color='#3498db', alpha=0.75, edgecolor='black')
-ax.bar(x_pos + bar_width / 2, exact, bar_width, label='Experiment',
-       color='#2ecc71', alpha=0.75, edgecolor='black')
-ax.set_xticks(x_pos)
-ax.set_xticklabels(labels, fontsize=10)
-ax.set_title(r'H$_2$: STO-3G HF vs experiment')
-ax.legend(fontsize=10, frameon=False)
-plt.suptitle('h2_scf_comparison')
+axes[0].bar([-bar_width / 2, bar_width / 2], [R_min, exact_Re], bar_width,
+            color=['#3498db', '#2ecc71'], alpha=0.75, edgecolor='black')
+axes[0].set_xticks([-bar_width / 2, bar_width / 2])
+axes[0].set_xticklabels(['STO-3G HF', 'Experiment'], rotation=15, fontsize=9)
+axes[0].set_ylabel('$R_e$ (bohr)')
+axes[0].set_title('(a) Equilibrium bond length')
+axes[0].text(0, R_min, f'{R_min:.3f}', ha='center', va='bottom', fontsize=9)
+axes[0].text(bar_width, exact_Re, f'{exact_Re:.3f}', ha='center', va='bottom', fontsize=9)
+
+axes[1].bar([-bar_width / 2, bar_width / 2], [D_e * HARTREE_TO_EV, exact_De * HARTREE_TO_EV], bar_width,
+            color=['#3498db', '#2ecc71'], alpha=0.75, edgecolor='black')
+axes[1].set_xticks([-bar_width / 2, bar_width / 2])
+axes[1].set_xticklabels(['STO-3G HF', 'Experiment'], rotation=15, fontsize=9)
+axes[1].set_ylabel('$D_e$ (eV)')
+axes[1].set_title('(b) Well depth')
+axes[1].text(-bar_width / 2, D_e * HARTREE_TO_EV, f'{D_e * HARTREE_TO_EV:.2f}', ha='center', va='bottom', fontsize=9)
+axes[1].text(bar_width / 2, exact_De * HARTREE_TO_EV, f'{exact_De * HARTREE_TO_EV:.2f}', ha='center', va='bottom', fontsize=9)
+fig.suptitle('h2_scf_comparison')
 
 print("02_h2_scf.py done")
 

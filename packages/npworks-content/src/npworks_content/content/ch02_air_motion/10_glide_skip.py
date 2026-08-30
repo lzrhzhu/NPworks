@@ -1,6 +1,15 @@
 import math
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 # 物理常量与指数大气模型
 g = 9.8
 rho0 = 1.29
@@ -67,25 +76,38 @@ def simulate(mode):
 
 
 modes = [
-    ('ballistic', 'Ballistic (E=0)'),
-    ('glide', 'Equilibrium glide (Qian, lift = weight)'),
-    ('skip', 'Skip-glide (Sanger, E=%.1f)' % Emax),
+    ('ballistic', 'Ballistic (E=0)', '--'),
+    ('glide', 'Equilibrium glide (Qian, lift = weight)', '-'),
+    ('skip', 'Skip-glide (Sanger, E=%.1f)' % Emax, '-.'),
 ]
 
-plt.figure(figsize=(11, 6))
+fig, (ax_overview, ax_shape) = plt.subplots(
+    2, 1, figsize=(11, 6), gridspec_kw={'height_ratios': [1, 2]}
+)
 
-for mode, label_text in modes:
+for mode, label_text, line_style in modes:
     xs, ys = simulate(mode)
-    plt.plot([xi / 1000.0 for xi in xs], [yi / 1000.0 for yi in ys],
-             label='%s (range=%.0f km)' % (label_text, xs[-1] / 1000.0))
+    range_km = xs[-1] / 1000.0
+    x_km = [xi / 1000.0 for xi in xs]
+    y_km = [yi / 1000.0 for yi in ys]
+    x_normalized = [xi / xs[-1] for xi in xs]
+    label = '%s (range=%.0f km)' % (label_text, range_km)
+    ax_overview.plot(x_km, y_km, linestyle=line_style, label=label)
+    ax_shape.plot(x_normalized, y_km, linestyle=line_style, label=label)
 
-plt.axhline(0, color='black', linewidth=0.8)
-plt.xlabel('Downrange (km)')
-plt.ylabel('Altitude (km)')
-plt.title('Boost-Glide vs Skip Trajectories (Lift + Drag, Exponential Atmosphere)')
-plt.legend()
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
+ax_overview.axhline(0, color='black', linewidth=0.8)
+ax_overview.set_xlabel('Downrange (km)')
+ax_overview.set_ylabel('Altitude (km)')
+ax_overview.set_aspect('equal')
+ax_overview.text(0.01, 0.82, '(a)', transform=ax_overview.transAxes)
+
+ax_shape.axhline(0, color='black', linewidth=0.8)
+ax_shape.set_xlabel('Normalized downrange, x / range')
+ax_shape.set_ylabel('Altitude (km)')
+ax_shape.legend(frameon=False, loc='best')
+ax_shape.text(0.01, 0.90, '(b)', transform=ax_shape.transAxes)
+
+fig.tight_layout()
 plt.suptitle('glide_skip')
 plt.show()
 print("10_glide_skip.py done")

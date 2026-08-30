@@ -1,6 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
 
 np.random.seed(7)
 N = 64
@@ -9,7 +28,7 @@ dt = 0.005
 n_equil = 2000
 n_sample = 3000
 r_cut = L / 2.0
-rho = N / (L * L)
+area = L * L
 T_target = 1.0
 
 n_side = int(np.ceil(np.sqrt(N)))
@@ -72,23 +91,24 @@ for step in range(n_equil + n_sample):
             hist_acc += h
         n_used += 1
 
-# g(r) = 2 * hist / (N * rho * shell_area)
-gr = 2.0 * hist_acc / (N * rho * shell_area * n_used)
+# 对有限 N 使用 N(N-1) 归一化，使均匀独立粒子的基准严格为 1。
+gr = 2.0 * area * hist_acc / (N * (N - 1) * shell_area * n_used)
 
-fig, ax = plt.subplots(figsize=(8, 5.5))
-ax.plot(r_centers, gr, 'b-', linewidth=1.5)
-ax.axhline(1.0, color='gray', linestyle='--', linewidth=0.8, label='ideal gas (g=1)')
-ax.axvline(2.0 ** (1.0 / 6.0), color='r', linestyle=':', linewidth=0.8,
+fig, ax = plt.subplots()
+ax.plot(r_centers, gr, color='#0072B2', linestyle='-')
+ax.axhline(1.0, color='gray', linestyle='--', linewidth=1.2,
+           label='Ideal gas')
+ax.axvline(2.0 ** (1.0 / 6.0), color='#D55E00', linestyle=':', linewidth=1.2,
            label=r"$r_{\min}=2^{1/6}\sigma$")
-ax.set_xlabel('r / sigma')
-ax.set_ylabel('g(r)')
-ax.set_title('Radial Distribution Function g(r) of a 2D Lennard-Jones Liquid')
+ax.set_xlabel(r'$r/\sigma$')
+ax.set_ylabel(r'$g(r)$')
 ax.set_xlim(0, r_max)
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('rdf')
 
+print('RDF samples: {}'.format(n_used))
+print('RDF tail mean (r >= 3.5): {:.6f}'.format(np.mean(gr[r_centers >= 3.5])))
 print("04_rdf.py done")
 
 plt.show()

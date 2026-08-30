@@ -9,3 +9,7 @@ sections:
   title: 03 Arrhenius
 - file: 04_langevin_thermostat.py
   title: 04 Langevin Thermostat
+- file: 05_em_validation.py
+  title: 05 Euler-Maruyama Validation
+- file: 06_harmonic_fdt.py
+  title: 06 Harmonic FDT Test

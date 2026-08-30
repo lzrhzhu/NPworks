@@ -1,4 +1,4 @@
-title: 第8章 随机游走与扩散
+title: 第 8 章 随机游走与扩散
 description: 随机数、随机游走与 MSD
 sections:
 - file: 01_random_numbers.py

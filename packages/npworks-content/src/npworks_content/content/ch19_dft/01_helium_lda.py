@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-17.5.1 Helium atom: KS-DFT with LDA exchange-correlation, minimal basis
+19.5.1 Helium atom: KS-DFT with LDA exchange-correlation, minimal basis
 Single s-type Gaussian: g(r) = (2*alpha/pi)^(3/4) * exp(-alpha*r^2)
 
 KS-DFT energy:  E = 2*H_core + 2*J + E_xc
@@ -160,7 +160,7 @@ ax1.plot(alpha_hf, E_hf, 'ro', markersize=10, zorder=5)
 ax1.plot(alpha_lda, E_lda, 'bs', markersize=10, zorder=5)
 ax1.set_xlabel('$\\alpha$ (Gaussian exponent)', fontsize=12)
 ax1.set_ylabel('Energy (Hartree)', fontsize=12)
-ax1.set_title('He Atom: HF vs LDA'); ax1.legend(fontsize=9); ax1.grid(True, alpha=0.3)
+ax1.legend(fontsize=9, frameon=False)
 plt.tight_layout(); plt.suptitle('helium_lda')
 # --- 图2：电子密度 ---
 r = np.linspace(0, 3, 300)
@@ -170,7 +170,7 @@ fig, ax2 = plt.subplots(figsize=(8, 5.5))
 ax2.plot(r, rho_hf, 'r-', linewidth=2, label=f'HF ($\\alpha$={alpha_hf:.3f})')
 ax2.plot(r, rho_lda, 'b-', linewidth=2, label=f'LDA ($\\alpha$={alpha_lda:.3f})')
 ax2.set_xlabel('r (bohr)', fontsize=12); ax2.set_ylabel('$\\rho(r)$ (e/bohr$^3$)', fontsize=12)
-ax2.set_title('He Atom: Electron Density'); ax2.legend(fontsize=10); ax2.grid(True, alpha=0.3)
+ax2.legend(fontsize=10, frameon=False)
 plt.tight_layout(); plt.suptitle('helium_lda_density')
 # --- 图3：方法对比 ---
 methods = ['HF\n(1 Gauss)', 'LDA\n(1 Gauss)', 'HF limit', 'PBE\n(ref)', 'B3LYP\n(ref)', 'Exact']
@@ -179,10 +179,9 @@ colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c']
 fig, ax3 = plt.subplots(figsize=(9, 5.5))
 bars = ax3.bar(range(len(methods)), [abs(e) for e in energies], color=colors, alpha=0.7, edgecolor='black')
 ax3.set_xticks(range(len(methods))); ax3.set_xticklabels(methods, fontsize=9)
-ax3.set_ylabel('|Energy| (Hartree)', fontsize=12); ax3.set_title('He Atom: Method Comparison')
+ax3.set_ylabel('|Energy| (Hartree)', fontsize=12)
 for bar, e in zip(bars, energies):
     ax3.text(bar.get_width() / 2 + bar.get_x(), bar.get_height() + 0.01, f'{e:.4f}', ha='center', fontsize=8, rotation=45)
-ax3.grid(True, alpha=0.3, axis='y')
 plt.tight_layout(); plt.suptitle('helium_lda_comparison')
 print("01_helium_lda.py done")
 

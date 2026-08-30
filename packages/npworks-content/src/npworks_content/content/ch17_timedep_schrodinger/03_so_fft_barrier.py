@@ -81,7 +81,7 @@ for idx, ((n, prob), color) in enumerate(zip(snapshots, colors)):
 ax.fill_between(x, 0, V / V_height * 0.5 * peak0, alpha=0.2,
                 color='red', label='Barrier (scaled)')
 ax.set_xlabel("x (a.u.)")
-ax.set_ylabel("|psi|^2")
+ax.set_ylabel(r"$|\psi|^2$ (a.u.$^{-1}$)")
 ax.set_title("SO-FFT: tunneling through barrier (E=4.5 < V0=6)")
 ax.legend(frameon=False, fontsize=8)
 ax.set_xlim(-12, 12)

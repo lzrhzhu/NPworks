@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-17.5.2 H2 Molecule: KS-DFT with LDA, STO-3G basis
+19.5.2 H2 Molecule: KS-DFT with LDA, STO-3G basis
 Reuses ch16 Gaussian integrals; replaces HF exchange with LDA V_xc
 
 H_KS[mu,nu] = H_core[mu,nu] + J_H[mu,nu] + V_xc[mu,nu]
@@ -267,7 +267,7 @@ print("\n" + "=" * 65)
 print("Potential Energy Curve: HF vs LDA")
 print("=" * 65)
 
-Rs = np.linspace(0.5, 5.0, 50)
+Rs = np.linspace(0.5, 5.0, 25)
 E_hf = np.zeros(len(Rs)); E_lda = np.zeros(len(Rs))
 for idx, R in enumerate(Rs):
     S, H, eri, Enuc, ctrs = build_matrices(R)
@@ -291,13 +291,13 @@ ax1.axhline(-1.0, color='gray', linestyle='--', alpha=0.5, label='2H = -1.0')
 ax1.plot(Rs[i_hf], E_hf[i_hf], 'ro', markersize=8)
 ax1.plot(Rs[i_lda], E_lda[i_lda], 'bs', markersize=8)
 ax1.set_xlabel('R (bohr)', fontsize=12); ax1.set_ylabel('E (Hartree)', fontsize=12)
-ax1.set_title('H$_2$ Potential Energy Curve: HF vs LDA'); ax1.legend(fontsize=10); ax1.grid(True, alpha=0.3)
+ax1.legend(fontsize=10, frameon=False)
 plt.tight_layout(); plt.suptitle('h2_lda')
 # --- 图2：LDA 关联能 ---
 fig, ax2 = plt.subplots(figsize=(8, 5.5))
 ax2.plot(Rs, (E_hf - E_lda) * 27.2114, 'g-', linewidth=2)
-ax2.set_xlabel('R (bohr)', fontsize=12); ax2.set_ylabel('E$_{LDA}$ - E$_{HF}$ (eV)', fontsize=12)
-ax2.set_title('LDA Correlation Energy'); ax2.axhline(0, color='gray', linestyle=':', alpha=0.5); ax2.grid(True, alpha=0.3)
+ax2.set_xlabel('R (bohr)', fontsize=12); ax2.set_ylabel('E$_{HF}$ - E$_{LDA}$ (eV)', fontsize=12)
+ax2.axhline(0, color='gray', linestyle=':', alpha=0.5)
 plt.tight_layout(); plt.suptitle('h2_lda_correlation')
 # --- 图3：成键轨道 ---
 S_r, H_r, eri_r, Enuc_r, ctrs_r = build_matrices(R_eq)
@@ -313,7 +313,7 @@ ax3.plot(x, psi_hf, 'r-', linewidth=2, label='HF $\\sigma_g$')
 ax3.plot(x, psi_lda, 'b--', linewidth=2, label='LDA $\\sigma_g$')
 ax3.axvline(-R_eq / 2, color='gray', linestyle=':', alpha=0.5); ax3.axvline(R_eq / 2, color='gray', linestyle=':', alpha=0.5)
 ax3.set_xlabel('x (bohr)', fontsize=12); ax3.set_ylabel('$\\psi$ (normalized)', fontsize=12)
-ax3.set_title('Bonding MO: HF vs LDA'); ax3.legend(fontsize=10); ax3.grid(True, alpha=0.3)
+ax3.legend(fontsize=10, frameon=False)
 plt.tight_layout(); plt.suptitle('h2_lda_mo')
 # --- 图4：方法对比 ---
 methods = ['HF\n(STO-3G)', 'LDA\n(STO-3G)', 'HF\n(cc-pVTZ)', 'LDA\n(cc-pVTZ)', 'B3LYP\n(cc-pVTZ)', 'Expt']
@@ -324,7 +324,7 @@ fig, ax4 = plt.subplots(figsize=(9, 5.5))
 ax4.bar(x_pos - w/2, [r*0.5292 for r in Re_vals], w, label='$R_e$ (A)', color='#3498db', alpha=0.7, edgecolor='black')
 ax4.bar(x_pos + w/2, De_vals, w, label='$D_e$ (eV)', color='#e74c3c', alpha=0.7, edgecolor='black')
 ax4.set_xticks(x_pos); ax4.set_xticklabels(methods, fontsize=8)
-ax4.set_title('H$_2$: Method Comparison'); ax4.legend(fontsize=9); ax4.grid(True, alpha=0.3, axis='y')
+ax4.legend(fontsize=9, frameon=False)
 plt.tight_layout(); plt.suptitle('h2_lda_comparison')
 print("02_h2_lda.py done")
 

@@ -1,6 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300,
+    'figure.figsize': (6.4, 4.0),
+    'font.size': 11,
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+    'xtick.top': True,
+    'ytick.right': True,
+    'axes.linewidth': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': 5,
+    'axes.grid': False,
+    'axes.unicode_minus': False,
+})
+
 
 class HopfieldNetwork:
     def __init__(self, N):
@@ -50,11 +70,11 @@ for data, title, fname, color in [
 
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(overlap_history); ax.set_xlabel('Update step'); ax.set_ylabel('Overlap with target')
-ax.set_title('Retrieval dynamics'); ax.grid(True, alpha=0.3)
+ax.set_title('Retrieval dynamics'); ax.minorticks_on()
 plt.tight_layout(); plt.suptitle('ml_physics_hopfield_dynamics')
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(energy_history); ax.set_xlabel('Update step'); ax.set_ylabel('Energy')
-ax.set_title('Energy evolution'); ax.grid(True, alpha=0.3)
+ax.set_title('Energy evolution'); ax.minorticks_on()
 plt.tight_layout(); plt.suptitle('ml_physics_hopfield_dynamics_energy')
 print("01_hopfield_retrieval.py done")
 

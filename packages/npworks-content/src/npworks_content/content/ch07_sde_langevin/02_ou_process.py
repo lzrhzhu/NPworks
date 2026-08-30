@@ -8,6 +8,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
+
 np.random.seed(1)
 
 kT_m = 1.0
@@ -21,8 +31,9 @@ t = np.linspace(0, T, N + 1)
 n_traj = 300
 
 v = np.zeros(n_traj)
+v[:] = 5.0
 v_traj = np.zeros((n_traj, N + 1))
-v_traj[:, 0] = 5.0
+v_traj[:, 0] = v
 
 for i in range(N):
     dW = np.sqrt(dt) * np.random.randn(n_traj)
@@ -35,15 +46,14 @@ v2_mean = (v_traj ** 2).mean(axis=0)
 # --- 图1：速度弛豫 ---
 fig, ax = plt.subplots(figsize=(9, 5))
 for i in range(8):
-    ax.plot(t, v_traj[i], alpha=0.5, linewidth=0.7)
+    ax.plot(t, v_traj[i], alpha=0.5, linewidth=1.2)
 ax.plot(t, v2_mean, 'r-', linewidth=2.2, label=r'$\langle v^2(t)\rangle$')
 ax.axhline(kT_m, color='k', linestyle='--', linewidth=1.5,
            label=r'$k_BT/m=1$（FDT 预言）')
-ax.set_xlabel('time $t$')
-ax.set_ylabel('$v(t)$')
+ax.set_xlabel('time $t$ (reduced units)')
+ax.set_ylabel(r'$v(t)$ and $\langle v^2(t)\rangle$ (reduced units)')
 ax.set_title('OU 过程：速度弛豫到热平衡')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('ou_process')
 
@@ -53,11 +63,10 @@ ax.hist(v_eq, bins=60, density=True, color='steelblue', alpha=0.7, label='模拟
 v_grid = np.linspace(-4, 4, 200)
 gauss = np.exp(-v_grid ** 2 / (2 * kT_m)) / np.sqrt(2 * np.pi * kT_m)
 ax.plot(v_grid, gauss, 'r-', linewidth=2.2, label='Maxwell 分布')
-ax.set_xlabel('$v$')
+ax.set_xlabel('$v$ (reduced units)')
 ax.set_ylabel('概率密度')
 ax.set_title('稳态速度分布 = Maxwell 分布')
-ax.legend()
-ax.grid(True, alpha=0.3)
+ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('ou_distribution')
 

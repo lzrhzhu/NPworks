@@ -8,6 +8,14 @@ to the full wave result -- showing that coherent ray tracing == TMM.
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0),
+                     'font.size': 11, 'axes.titlesize': 12,
+                     'axes.labelsize': 11, 'xtick.labelsize': 10,
+                     'ytick.labelsize': 10, 'legend.fontsize': 10,
+                     'xtick.direction': 'in', 'ytick.direction': 'in',
+                     'xtick.top': True, 'ytick.right': True,
+                     'axes.grid': False, 'axes.unicode_minus': False})
+
 n0 = 1.0
 n = 2.0
 ns = 1.0
@@ -51,7 +59,6 @@ ax.set_xlabel("λ / d")
 ax.set_ylabel("Transmittance T")
 ax.set_title("Coherent ray summing converges to the wave (TMM) result")
 ax.legend()
-ax.grid(True, alpha=0.3)
 ax.set_ylim(0, 1.1)
 
 plt.suptitle('airy_coherent_rays')

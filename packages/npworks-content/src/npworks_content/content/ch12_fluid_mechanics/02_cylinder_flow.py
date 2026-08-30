@@ -151,13 +151,16 @@ dvdx_plot[1:-1, :] = (v[2:, :] - v[:-2, :]) / (2 * dx)
 omega = dvdx_plot - dudy_plot
 
 fig, ax = plt.subplots(1, 1, figsize=(12, 5))
-cf = ax.contourf(X.T, Y.T, omega.T, levels=30, cmap='RdBu_r', vmin=-10, vmax=10)
-plt.colorbar(cf, ax=ax, label='Vorticity')
-circle = plt.Circle((cx, cy), R, color='gray', zorder=5)
+diameter = 2 * R
+cf = ax.contourf((X / diameter).T, (Y / diameter).T, omega.T,
+                 levels=30, cmap='viridis', vmin=-10, vmax=10)
+plt.colorbar(cf, ax=ax, label='vorticity (1/s)')
+circle = plt.Circle((cx / diameter, cy / diameter), R / diameter,
+                    color='gray', zorder=5)
 ax.add_patch(circle)
 ax.set_title(f'Vorticity Field (Re={Re:.0f})')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
+ax.set_xlabel('x/D')
+ax.set_ylabel('y/D')
 ax.set_aspect('equal')
 plt.tight_layout()
 plt.suptitle('cylinder_Re150')

@@ -1,136 +1,95 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 9, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
+torch.manual_seed(42)
 np.random.seed(42)
+torch.set_default_dtype(torch.float64)
 
 
-class PINN:
-    def __init__(self, n_hidden=16):
-        self.nh = n_hidden
-        s1 = np.sqrt(2.0 / 2)
-        s2 = np.sqrt(2.0 / n_hidden)
-        self.W1 = np.random.randn(2, n_hidden) * s1
-        self.b1 = np.zeros((1, n_hidden))
-        self.W2 = np.random.randn(n_hidden, 1) * s2
-        self.b2 = np.zeros((1, 1))
+class PINN(torch.nn.Module):
+    def __init__(self, n_hidden=32):
+        super().__init__()
+        self.network = torch.nn.Sequential(
+            torch.nn.Linear(2, n_hidden), torch.nn.Tanh(),
+            torch.nn.Linear(n_hidden, n_hidden), torch.nn.Tanh(),
+            torch.nn.Linear(n_hidden, 1),
+        )
 
-    def _forward(self, X):
-        z1 = X @ self.W1 + self.b1
-        a1 = np.tanh(z1)
-        u = a1 @ self.W2 + self.b2
-        return u, a1, z1
-
-    def predict(self, X):
-        u, _, _ = self._forward(X)
-        return u
-
-    def pde_residual(self, X):
-        u, a1, z1 = self._forward(X)
-        sech2 = 1 - a1**2
-
-        dz1_dx = np.broadcast_to(self.W1[0:1, :], (X.shape[0], self.nh))
-        da1_dx = sech2 * dz1_dx
-        du_dx = da1_dx @ self.W2
-
-        dz1_dt = np.broadcast_to(self.W1[1:2, :], (X.shape[0], self.nh))
-        da1_dt = sech2 * dz1_dt
-        du_dt = da1_dt @ self.W2
-
-        d2a1_dx2 = -2 * a1 * sech2 * dz1_dx**2
-        d2u_dx2 = d2a1_dx2 @ self.W2
-
-        return du_dt - d2u_dx2
-
-    def loss(self, xt_f, xt_0, T_ic, xt_L, xt_R):
-        res = self.pde_residual(xt_f)
-        loss_f = np.mean(res**2)
-
-        u_ic = self.predict(xt_0)
-        loss_ic = np.mean((u_ic - T_ic)**2)
-
-        u_L = self.predict(xt_L)
-        u_R = self.predict(xt_R)
-        loss_bc = np.mean(u_L**2) + np.mean(u_R**2)
-
-        return loss_f + 10 * loss_ic + 10 * loss_bc
-
-    def get_params(self):
-        return [self.W1, self.b1, self.W2, self.b2]
-
-    def set_params(self, params):
-        self.W1, self.b1, self.W2, self.b2 = params
-
-    def grad_fd(self, xt_f, xt_0, T_ic, xt_L, xt_R, eps=1e-5):
-        L0 = self.loss(xt_f, xt_0, T_ic, xt_L, xt_R)
-        params = self.get_params()
-        grads = []
-        for p in params:
-            g = np.zeros_like(p)
-            it = np.nditer(p, flags=['multi_index'])
-            while not it.finished:
-                mi = it.multi_index
-                old = p[mi]
-                p[mi] = old + eps
-                Lp = self.loss(xt_f, xt_0, T_ic, xt_L, xt_R)
-                g[mi] = (Lp - L0) / eps
-                p[mi] = old
-                it.iternext()
-            grads.append(g)
-        return grads
+    def forward(self, X):
+        return self.network(X)
 
 
-N_f = 500
-x_f = np.random.uniform(0, 1, (N_f, 1))
-t_f = np.random.uniform(0, 1, (N_f, 1))
-xt_f = np.hstack([x_f, t_f])
+def residual(model, X):
+    X = X.clone().detach().requires_grad_(True)
+    u = model(X)
+    grad_u = torch.autograd.grad(u, X, torch.ones_like(u), create_graph=True)[0]
+    u_t = grad_u[:, 1:2]
+    u_x = grad_u[:, 0:1]
+    grad_ux = torch.autograd.grad(u_x, X, torch.ones_like(u_x), create_graph=True)[0]
+    u_xx = grad_ux[:, 0:1]
+    return u_t - u_xx
 
-N_0 = 50
-x_0 = np.linspace(0, 1, N_0).reshape(-1, 1)
-xt_0 = np.hstack([x_0, np.zeros_like(x_0)])
-T_ic = np.sin(np.pi * x_0)
 
-N_b = 50
-t_b = np.linspace(0, 1, N_b).reshape(-1, 1)
-xt_L = np.hstack([np.zeros_like(t_b), t_b])
-xt_R = np.hstack([np.ones_like(t_b), t_b])
+N_f, N_0, N_b = 1000, 100, 100
+rng = np.random.default_rng(42)
+xt_f = torch.tensor(rng.uniform(0, 1, (N_f, 2)))
+x_0 = torch.linspace(0, 1, N_0)[:, None]
+xt_0 = torch.cat([x_0, torch.zeros_like(x_0)], dim=1)
+T_ic = torch.sin(torch.pi * x_0)
+t_b = torch.linspace(0, 1, N_b)[:, None]
+xt_L = torch.cat([torch.zeros_like(t_b), t_b], dim=1)
+xt_R = torch.cat([torch.ones_like(t_b), t_b], dim=1)
 
-model = PINN(n_hidden=16)
-lr = 0.005
+model = PINN(n_hidden=32)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 epochs = 4000
 losses = []
-
-print(f"Total parameters: {sum(p.size for p in model.get_params())}")
-
 for epoch in range(epochs):
-    current_lr = lr * (0.5 ** (epoch // 2000))
-    grads = model.grad_fd(xt_f, xt_0, T_ic, xt_L, xt_R)
-    params = model.get_params()
-    for p, g in zip(params, grads):
-        p -= current_lr * g
+    optimizer.zero_grad()
+    loss_f = torch.mean(residual(model, xt_f) ** 2)
+    loss_ic = torch.mean((model(xt_0) - T_ic) ** 2)
+    loss_bc = torch.mean(model(xt_L) ** 2) + torch.mean(model(xt_R) ** 2)
+    loss = loss_f + 10 * loss_ic + 10 * loss_bc
+    loss.backward()
+    optimizer.step()
+    losses.append(float(loss.detach()))
+    if epoch % 1000 == 0:
+        print(f'Epoch {epoch}: loss={losses[-1]:.6e}')
 
-    L = model.loss(xt_f, xt_0, T_ic, xt_L, xt_R)
-    losses.append(L)
-
-    if epoch % 500 == 0:
-        print(f"Epoch {epoch}: loss={L:.6f}")
-
-x_plot = np.linspace(0, 1, 80)
+x_plot = np.linspace(0, 1, 100)
 t_plot_vals = [0.0, 0.2, 0.5, 1.0]
-
 fig, ax = plt.subplots(figsize=(8, 5))
 for t_val in t_plot_vals:
-    xt_in = np.column_stack([x_plot, np.full_like(x_plot, t_val)])
-    T_nn = model.predict(xt_in).flatten()
+    xt_in = torch.tensor(np.column_stack([x_plot, np.full_like(x_plot, t_val)]))
+    T_nn = model(xt_in).detach().numpy().ravel()
     T_exact = np.exp(-np.pi**2 * t_val) * np.sin(np.pi * x_plot)
-    ax.plot(x_plot, T_exact, '-', linewidth=2, label=f'$t={t_val:.1f}$ (exact)')
-    ax.plot(x_plot, T_nn, '--', linewidth=2, label=f'$t={t_val:.1f}$ (PINN)')
-ax.set_xlabel('$x$'); ax.set_ylabel('$T(x, t)$')
-ax.set_title('PINN solution vs exact solution'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax.plot(x_plot, T_exact, '-', linewidth=1.8, label=f'$t={t_val:.1f}$ exact')
+    ax.plot(x_plot, T_nn, '--', linewidth=1.4, label=f'$t={t_val:.1f}$ PINN')
+ax.set_xlabel('$x$ (dimensionless)'); ax.set_ylabel('$T(x,t)$ (dimensionless)')
+ax.set_title('PINN solution and exact solution'); ax.legend(frameon=False, ncol=2); ax.minorticks_on()
 plt.tight_layout(); plt.suptitle('ml_physics_pinn_heat')
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.semilogy(losses); ax.set_xlabel('Epoch'); ax.set_ylabel('Total loss')
-ax.set_title('Training loss'); ax.grid(True, alpha=0.3)
-plt.tight_layout(); plt.suptitle('ml_physics_pinn_loss')
-print("06_pinn_heat.py done")
 
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.semilogy(losses)
+ax.set_xlabel('Epoch'); ax.set_ylabel('Total loss'); ax.set_title('PINN training loss'); ax.minorticks_on()
+plt.tight_layout(); plt.suptitle('ml_physics_pinn_loss')
+
+with torch.no_grad():
+    test = torch.tensor(np.column_stack([np.tile(x_plot, len(t_plot_vals)),
+                                         np.repeat(t_plot_vals, len(x_plot))]))
+    pred = model(test).numpy().ravel()
+exact = np.concatenate([np.exp(-np.pi**2 * t) * np.sin(np.pi * x_plot) for t in t_plot_vals])
+print(f'Final loss: {losses[-1]:.6e}')
+print(f'Test-grid RMSE: {np.sqrt(np.mean((pred - exact)**2)):.6e}')
+print('06_pinn_heat.py done')
 plt.show()

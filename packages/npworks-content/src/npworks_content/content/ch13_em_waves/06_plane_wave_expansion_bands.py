@@ -9,6 +9,14 @@ diagonalized along the Gamma-X-M-Gamma path. Eigenvalues give
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0),
+                     'font.size': 11, 'axes.titlesize': 12,
+                     'axes.labelsize': 11, 'xtick.labelsize': 10,
+                     'ytick.labelsize': 10, 'legend.fontsize': 10,
+                     'xtick.direction': 'in', 'ytick.direction': 'in',
+                     'xtick.top': True, 'ytick.right': True,
+                     'axes.grid': False, 'axes.unicode_minus': False})
+
 a = 1.0
 r = 0.2 * a
 eps_rod = 8.9
@@ -76,7 +84,6 @@ ax.set_xticklabels(names)
 ax.set_ylabel("frequency  ω·a / (2πc)")
 ax.set_title("PWE band structure: square lattice of rods (εr = 8.9, r/a = 0.2)")
 ax.set_ylim(0, max(0.8, bands[:, nbands - 1].max() * 1.05))
-ax.grid(True, axis="y", alpha=0.3)
 
 plt.suptitle('plane_wave_expansion_bands')
 plt.show()

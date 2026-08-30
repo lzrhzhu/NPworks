@@ -11,3 +11,7 @@ sections:
   title: 04 Earth Jupiter
 - file: 05_lagrange_points.py
   title: 05 Lagrange Points
+- file: 06_arenstorf_orbit.py
+  title: 06 Arenstorf Orbit
+- file: 07_power_law_orbits.py
+  title: 07 Power Law Orbits
