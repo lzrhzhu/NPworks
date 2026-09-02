@@ -138,10 +138,10 @@ VS Code 风格布局，纯 QSplitter 实现（活动栏固定 48px 不随侧边�
 | 4 | 非线性动力学与混沌 | Lyapunov 指数、分叉图 |
 | 5 | 太阳系的天体运动 | velocity Verlet、辛算法 |
 | 6 | 分子动力学 | LJ 势、周期边界、MSD |
-| 7 | 随机微分方程与朗之万动力学 | 维纳过程、OU、Arrhenius、Langevin 恒温 |
+| 7 | 随机微分方程与朗之万动力学 | 维纳过程、OU、阿伦尼乌斯、朗之万恒温 |
 | 8 | 随机游走与扩散 | 随机数、随机游走、MSD |
-| 9 | 相变与 Ising 模型 | Metropolis、Wolff、有限尺度标度 |
-| 10 | 静电场 | Jacobi、SOR、电容器 |
+| 9 | 相变与伊辛模型 | Metropolis、Wolff、有限尺度标度 |
+| 10 | 静电场 | 雅可比、SOR、电容器 |
 | 11 | 热传导 | FTCS、Crank-Nicolson、ADI |
 | 12 | 流体力学 | 投影法、MAC 网格、Kármán 涡街 |
 | 13 | 电磁波 | FDTD、Yee 网格、PML |

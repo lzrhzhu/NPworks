@@ -11,18 +11,26 @@ plt.rcParams.update({
 })
 
 
-def jacobi_1d(V_left, V_right, N, max_iter=5000, tol=1e-10):
-    V = np.zeros(N + 1)
-    V[0] = V_left
-    V[-1] = V_right
+def jacobi_1d_matrix(V_left, V_right, n, max_iter=5000, tol=1e-10):
+    A = (np.diag(-2.0 * np.ones(n)) + np.diag(np.ones(n - 1), 1)
+         + np.diag(np.ones(n - 1), -1))
+    D = np.diag(np.diag(A))
+    L_mat = np.tril(A, -1)
+    U_mat = np.triu(A, 1)
+    B = np.zeros(n)
+    B[0] = -V_left
+    B[-1] = -V_right
+    J_mat = -np.linalg.solve(D, L_mat + U_mat)
+    q = np.linalg.solve(D, B)
+    x = np.zeros(n)
     for _ in range(max_iter):
-        V_new = V.copy()
-        V_new[1:-1] = 0.5 * (V[:-2] + V[2:])
-        diff = np.max(np.abs(V_new - V))
-        V = V_new
+        x_new = J_mat @ x + q
+        diff = np.max(np.abs(x_new - x))
+        x = x_new
         if diff < tol:
             break
-    return V
+    v = np.concatenate(([V_left], x, [V_right]))
+    return v
 
 
 def jacobi_2d(N, max_iter=10000, tol=1e-6):
@@ -43,12 +51,11 @@ def jacobi_2d(N, max_iter=10000, tol=1e-6):
     return V
 
 
-V_left, V_right = 100.0, 50.0
-N1d = 50
-V1d = jacobi_1d(V_left, V_right, N1d)
-x1d = np.linspace(0, N1d, N1d + 1) / N1d
-x1d_analytic = np.linspace(0, 1, N1d + 1)
-V1d_analytic = V_left + (V_right - V_left) * x1d_analytic
+V_left, V_right = 0.0, 1.0
+n = 9
+v1d = jacobi_1d_matrix(V_left, V_right, n)
+x1d = np.linspace(0, 1, n + 2)
+v1d_analytic = V_left + (V_right - V_left) * x1d
 
 N2d = 50
 V2d = jacobi_2d(N2d)
@@ -58,11 +65,11 @@ X, Y = np.meshgrid(x2d, y2d)
 
 # --- 图1：1D 解 ---
 fig, ax = plt.subplots(figsize=(8, 5))
-ax.plot(x1d, V1d, 'bo-', markersize=3, label='Numerical (Jacobi)')
-ax.plot(x1d_analytic, V1d_analytic, 'r--', linewidth=2, label='Analytical')
+ax.plot(x1d, v1d, 'bo-', markersize=4, label='Numerical (matrix Jacobi)')
+ax.plot(x1d, v1d_analytic, 'r--', linewidth=2, label='Analytical')
 ax.set_xlabel('Position $x / L$')
 ax.set_ylabel('Potential $V$')
-ax.set_title('1D Laplace: V(0)=100, V(L)=50')
+ax.set_title('1D Laplace: V(0)=0, V(L)=1')
 ax.legend(frameon=False)
 plt.tight_layout()
 plt.suptitle('laplace_jacobi_1d')
