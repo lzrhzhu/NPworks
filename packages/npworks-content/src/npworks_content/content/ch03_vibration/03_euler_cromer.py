@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 g = 9.81
 l = 1.0
 Omega2 = g / l
@@ -23,11 +32,11 @@ for i in range(num_steps):
 fig, ax = plt.subplots(figsize=(8, 4.5))
 ax.plot(t, theta, 'b-', linewidth=0.8)
 ax.set_xlabel('t (s)'); ax.set_ylabel(r'$\theta$ (rad)')
-ax.set_title('Euler-Cromer: Stable Oscillation (Simple Pendulum)'); ax.grid(True, alpha=0.3)
+ax.set_title('Euler-Cromer: Stable Oscillation (Simple Pendulum)')
 plt.tight_layout(); plt.suptitle('euler_cromer')
 fig, ax = plt.subplots(figsize=(8, 4.5))
 ax.plot(t, omega, 'r-', linewidth=0.8)
-ax.set_xlabel('t (s)'); ax.set_ylabel(r'$\omega$ (rad/s)'); ax.grid(True, alpha=0.3)
+ax.set_xlabel('t (s)'); ax.set_ylabel(r'$\omega$ (rad/s)')
 plt.tight_layout(); plt.suptitle('euler_cromer_omega')
 print("03_euler_cromer.py done")
 

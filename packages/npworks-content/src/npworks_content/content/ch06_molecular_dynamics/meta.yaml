@@ -1,11 +1,15 @@
-title: 第6章 分子动力学
-description: LJ 势、周期边界与 MSD
+title: 第 6 章 分子动力学
+description: 平面九格子、Lennard–Jones 体系与 NVE 数值验证
 sections:
 - file: 01_lj_potential.py
-  title: 01 Lj Potential
-- file: 02_2d_md.py
-  title: 02 2d Md
+  title: Lennard-Jones 势与力
+- file: 02_two_particle_md.py
+  title: 两粒子最小测试
+- file: 02_nine_cell_phase.py
+  title: 平面九格子 NVE 验证
+- file: 04_periodic_9cell.py
+  title: 九格子几何可视化
 - file: 03_msd.py
-  title: 03 Msd
+  title: 均方位移与扩散
 - file: 04_rdf.py
-  title: 04 Rdf
+  title: 径向分布函数

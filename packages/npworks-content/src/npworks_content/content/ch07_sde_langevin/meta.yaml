@@ -1,15 +1,15 @@
-title: 第7章 随机微分方程与朗之万动力学
-description: 维纳过程、OU 过程与 Langevin 恒温
+title: 第 7 章 随机微分方程与朗之万动力学
+description: 维纳过程、OU 过程、阿伦尼乌斯律与朗之万恒温器
 sections:
 - file: 01_wiener_process.py
-  title: 01 Wiener Process
+  title: 维纳过程系综与统计验证
 - file: 02_ou_process.py
-  title: 02 Ou Process
+  title: OU 过程与速度热平衡
 - file: 03_arrhenius.py
-  title: 03 Arrhenius
+  title: 双阱越垒与阿伦尼乌斯律
 - file: 04_langevin_thermostat.py
-  title: 04 Langevin Thermostat
+  title: 朗之万恒温器
 - file: 05_em_validation.py
-  title: 05 Euler-Maruyama Validation
+  title: 自由扩散与强弱收敛验证
 - file: 06_harmonic_fdt.py
-  title: 06 Harmonic FDT Test
+  title: 谐振子平衡分布与 FDT 对照

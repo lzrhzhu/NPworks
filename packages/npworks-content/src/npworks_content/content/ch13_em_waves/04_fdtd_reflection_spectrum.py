@@ -21,7 +21,7 @@ eps0 = 1.0 / (mu0 * c0 ** 2)
 
 Nx = 800
 dx = 0.01
-S = 0.5
+S = 0.99
 dt = S * dx / c0
 Nt = 8192
 
@@ -45,12 +45,14 @@ def run(eps):
     rec_ref = np.zeros(Nt)
     rec_trans = np.zeros(Nt)
     for n in range(Nt):
+        e0, e1 = Ez[0], Ez[1]
+        en1, en2 = Ez[Nx - 1], Ez[Nx]
         Hy += (dt / (mu0 * dx)) * (Ez[1:] - Ez[:-1])
         Ez[1:-1] += cb[1:-1] * (Hy[1:] - Hy[:-1])
         Ez[src] += np.exp(-((n * dt - t0) / tau) ** 2)
-        # Mur 1st-order ABC at both ends
-        Ez[0] = Ez[1] + mur * (Ez[1] - Ez[0])
-        Ez[Nx] = Ez[Nx - 1] + mur * (Ez[Nx - 1] - Ez[Nx])
+        # Mur 1st-order ABC at both ends (time-n values saved above)
+        Ez[0] = e1 + mur * (Ez[1] - e0)
+        Ez[Nx] = en1 + mur * (en2 - Ez[Nx])
         rec_ref[n] = Ez[ref_probe]
         rec_trans[n] = Ez[trans_probe]
     return rec_ref, rec_trans
@@ -65,7 +67,8 @@ R = np.fft.rfft(ref_tot - ref_inc) / (Einc + 1e-30)
 T = np.fft.rfft(trans_tot) / (np.fft.rfft(trans_inc) + 1e-30)
 
 fmax = 2.0e9
-mask = (freqs > 1e7) & (freqs < fmax)
+valid = np.abs(Einc) > 0.01 * np.abs(Einc).max()   # source has meaningful power
+mask = valid & (freqs > 1e7) & (freqs < fmax)
 
 fig, ax = plt.subplots(figsize=(9, 6))
 ax.plot(freqs[mask] / 1e9, np.abs(R[mask]) ** 2, label="|R|² (reflectance)")

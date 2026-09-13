@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 
 # Fermi-Pasta-Ulam-Tsingou alpha 模型（固定端，原始 1955 形式）
 #   x_i'' = (x_{i+1}-2x_i+x_{i-1}) + alpha[(x_{i+1}-x_i)^2 - (x_i-x_{i-1})^2]
@@ -67,8 +76,7 @@ ax.set_ylabel(r'$E_n / E_{\mathrm{tot}}$')
 ax.set_title('FPUT Recurrence: energy returns to mode 1 instead of equipartition')
 ax.set_xlim(0, t_end)
 ax.set_ylim(0, 1.02)
-ax.legend(loc='center right')
-ax.grid(True, alpha=0.3)
+ax.legend(loc='center right', frameon=False)
 plt.tight_layout()
 plt.suptitle('fput_recurrence')
 

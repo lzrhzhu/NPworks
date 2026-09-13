@@ -17,3 +17,5 @@ sections:
   title: 07 Lattice Dispersion
 - file: 08_fput_recurrence.py
   title: 08 FPUT Recurrence
+- file: 09_lattice_md.py
+  title: 09 Lattice MD Dispersion

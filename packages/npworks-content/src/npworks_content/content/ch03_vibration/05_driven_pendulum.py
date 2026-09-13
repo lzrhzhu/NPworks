@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    'savefig.dpi': 300, 'figure.figsize': (6.4, 4.0), 'font.size': 11,
+    'axes.titlesize': 12, 'axes.labelsize': 11, 'xtick.labelsize': 10,
+    'ytick.labelsize': 10, 'legend.fontsize': 10, 'xtick.direction': 'in',
+    'ytick.direction': 'in', 'xtick.top': True, 'ytick.right': True,
+    'axes.linewidth': 0.8, 'lines.linewidth': 1.5, 'lines.markersize': 5,
+    'axes.grid': False, 'axes.unicode_minus': False,
+})
+
 
 # 驱动阻尼摆:  d2θ/dt2 = -Ω²θ - q dθ/dt + F_D cos(Ω_D t)
 g = 9.81
@@ -56,8 +65,7 @@ ax1.axvline(20.0, color='gray', linestyle='--', alpha=0.5,
 ax1.set_xlabel('t (s)')
 ax1.set_ylabel(r'$\theta$ (rad)')
 ax1.set_title(rf'Driven Damped Pendulum ($\Omega_D/\Omega={Omega_D/Omega:.2f}$)')
-ax1.legend(loc='upper right')
-ax1.grid(True, alpha=0.3)
+ax1.legend(loc='upper right', frameon=False)
 plt.tight_layout()
 plt.suptitle('driven_pendulum')
 
@@ -69,8 +77,7 @@ ax2.axvline(Omega, color='gray', linestyle='--', alpha=0.6,
 ax2.set_xlabel(r'$\Omega_D$ (rad/s)')
 ax2.set_ylabel('steady-state amplitude (rad)')
 ax2.set_title('Resonance Curve')
-ax2.legend(loc='upper right')
-ax2.grid(True, alpha=0.3)
+ax2.legend(loc='upper right', frameon=False)
 plt.tight_layout()
 plt.suptitle('driven_resonance')
 
