@@ -42,9 +42,9 @@ def mode_energies(xx, vv):
 
 
 dt = 0.02
-t_end = 600.0
+t_end = 5600.0
 n_steps = int(t_end / dt)
-rec_every = 5
+rec_every = 20
 n_rec = n_steps // rec_every + 1
 
 times = np.zeros(n_rec)

@@ -17,3 +17,7 @@ sections:
   title: 07 Logistic Map
 - file: 08_lyapunov.py
   title: 08 Lyapunov Exponent
+- file: 09_damped_pendulum.py
+  title: 09 Damped Pendulum
+- file: 10_linear_driven.py
+  title: 10 Linear Driven Pendulum

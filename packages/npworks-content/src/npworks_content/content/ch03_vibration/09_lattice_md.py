@@ -136,7 +136,7 @@ cbar.set_label(r'$u$ (a.u.)')
 # (c) 色散验证：数值频率点落在解析曲线上
 kk = np.linspace(-np.pi, np.pi, 400)
 ax_c.plot(kk / np.pi, omega_of(kk), '-', color='#0072B2', lw=1.6,
-          label='analytic (3.13)')
+          label='analytic dispersion')
 ax_c.plot(k_axis / np.pi, omega_num, 'o', color='#D55E00', ms=3.2, ls='none',
           label='MD + FFT')
 ax_c.set_xlabel(r'$ka/\pi$')

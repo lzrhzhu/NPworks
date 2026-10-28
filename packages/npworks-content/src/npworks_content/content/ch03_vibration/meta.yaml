@@ -1,21 +1,21 @@
-title: 第3章 振动
-description: 辛积分、简正模与声子
+title: 第 3 章 振动——从单摆到晶格
+description: 自由边界有限链的集体激发、频带形成与带边
 sections:
-- file: 01_euler_explicit.py
-  title: 01 Euler Explicit
-- file: 02_euler_implicit.py
-  title: 02 Euler Implicit
-- file: 03_euler_cromer.py
-  title: 03 Euler Cromer
-- file: 04_damped_pendulum.py
-  title: 04 Damped Pendulum
-- file: 05_driven_pendulum.py
-  title: 05 Driven Pendulum
-- file: 06_coupled_oscillators.py
-  title: 06 Coupled Oscillators
+- file: 01_single_oscillator.py
+  title: 01 Single Oscillator
+- file: 02_two_collective_modes.py
+  title: 02 Two Collective Modes
+- file: 03_free_chain_modes.py
+  title: 03 Free Chain Modes
+- file: 04_band_formation.py
+  title: 04 Band Formation
+- file: 05_density_of_states.py
+  title: 05 Density of States
+- file: 06_boundary_spectra.py
+  title: 06 Boundary Spectra
 - file: 07_lattice_dispersion.py
   title: 07 Lattice Dispersion
 - file: 08_fput_recurrence.py
-  title: 08 FPUT Recurrence
+  title: 08 Nonlinear Mode Coupling
 - file: 09_lattice_md.py
-  title: 09 Lattice MD Dispersion
+  title: 09 Time-domain Verification

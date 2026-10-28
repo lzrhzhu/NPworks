@@ -11,7 +11,7 @@ plt.rcParams.update({
 })
 
 
-# 驱动阻尼摆:  d2θ/dt2 = -Ω²θ - q dθ/dt + F_D cos(Ω_D t)
+# 线性驱动阻尼摆:  d2θ/dt2 = -Ω²θ - q dθ/dt + F_D cos(Ω_D t)
 g = 9.81
 l = 1.0
 Omega2 = g / l          # 固有频率平方
@@ -64,10 +64,10 @@ ax1.axvline(20.0, color='gray', linestyle='--', alpha=0.5,
             label='transient | steady')
 ax1.set_xlabel('t (s)')
 ax1.set_ylabel(r'$\theta$ (rad)')
-ax1.set_title(rf'Driven Damped Pendulum ($\Omega_D/\Omega={Omega_D/Omega:.2f}$)')
+ax1.set_title(rf'Linear Driven Damped Pendulum ($\Omega_D/\Omega={Omega_D/Omega:.2f}$)')
 ax1.legend(loc='upper right', frameon=False)
 plt.tight_layout()
-plt.suptitle('driven_pendulum')
+plt.suptitle('linear_driven_pendulum')
 
 # --- 图2：共振曲线（稳态振幅 vs 驱动频率） ---
 fig2, ax2 = plt.subplots(figsize=(9, 5))
@@ -81,6 +81,6 @@ ax2.legend(loc='upper right', frameon=False)
 plt.tight_layout()
 plt.suptitle('driven_resonance')
 
-print("05_driven_pendulum.py done")
+print("10_linear_driven.py done")
 
 plt.show()

@@ -10,48 +10,43 @@ plt.rcParams.update({
     'axes.grid': False, 'axes.unicode_minus': False,
 })
 
-K = 1.0          # 弹簧常数
-a = 1.0          # 晶格常数（单原子）或原胞长度（双原子）
+K = 1.0
+a = 1.0
+k = np.linspace(0.0, np.pi / a, 600)
 
-# ---------- (1) 一维单原子链色散关系 ----------
-# omega(k) = 2 sqrt(K/m) |sin(k a / 2)|, k in [-pi/a, pi/a]
-m = 1.0
-k_mono = np.linspace(-np.pi / a, np.pi / a, 400)
-omega_mono = 2.0 * np.sqrt(K / m) * np.abs(np.sin(k_mono * a / 2.0))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.6, 4.0))
 
-fig1, ax = plt.subplots(figsize=(8, 5))
-ax.plot(k_mono * a / np.pi, omega_mono, 'b-', linewidth=2)
-ax.set_xlabel(r'$ka/\pi$')
-ax.set_ylabel(r'$\omega$ (a.u.)')
-ax.set_title('Monatomic Chain: Acoustic Dispersion')
-ax.set_xlim(-1, 1)
-plt.tight_layout()
-plt.suptitle('dispersion_monoatomic')
+omega_mono = 2.0 * np.sqrt(K) * np.sin(k * a / 2.0)
+group_velocity = np.sqrt(K) * a * np.cos(k * a / 2.0)
+ax1.plot(k * a / np.pi, omega_mono, color='#0072B2', lw=1.8, label=r'$\omega(k)$')
+ax1.plot(k * a / np.pi, group_velocity, '--', color='#D55E00', lw=1.4,
+         label=r'$v_g=d\omega/dk$')
+ax1.set_xlabel(r'$ka/\pi$')
+ax1.set_ylabel('frequency or velocity (a.u.)')
+ax1.set_title('(a) Monatomic chain')
+ax1.set_xlim(0.0, 1.0)
+ax1.set_ylim(0.0, 2.08)
+ax1.legend(frameon=False, loc='center left')
 
-# ---------- (2) 一维双原子链：声学支与光学支 ----------
-# omega^2 = K(1/m1 + 1/m2) +/- K sqrt((1/m1+1/m2)^2 - 4 sin^2(ka/2)/(m1 m2))
-# 带隙 = [sqrt(2K/m2), sqrt(2K/m1)]：区边缘声学支顶与光学支底之间的频率区间
 m1, m2 = 1.0, 2.0
-k_di = np.linspace(0.0, np.pi / a, 400)
-s2 = np.sin(k_di * a / 2.0) ** 2
 base = K * (1.0 / m1 + 1.0 / m2)
-disc = K * np.sqrt((1.0 / m1 + 1.0 / m2) ** 2 - 4.0 * s2 / (m1 * m2))
-omega_aco = np.sqrt(np.maximum(base - disc, 0.0))   # 声学支（低频）
-omega_opt = np.sqrt(base + disc)                     # 光学支（高频）
+disc = K * np.sqrt((1.0 / m1 + 1.0 / m2)**2
+                   - 4.0 * np.sin(k * a / 2.0)**2 / (m1 * m2))
+omega_acoustic = np.sqrt(base - disc)
+omega_optical = np.sqrt(base + disc)
+ax2.plot(k * a / np.pi, omega_acoustic, color='#0072B2', lw=1.8,
+         label='acoustic branch')
+ax2.plot(k * a / np.pi, omega_optical, '--', color='#D55E00', lw=1.8,
+         label='optical branch')
+ax2.axhspan(np.sqrt(2.0 * K / m2), np.sqrt(2.0 * K / m1),
+            color='0.7', alpha=0.25, label='gap')
+ax2.set_xlabel(r'$ka/\pi$')
+ax2.set_ylabel(r'$\omega$ (a.u.)')
+ax2.set_title(r'(b) Diatomic chain, $m_2=2m_1$')
+ax2.set_xlim(0.0, 1.0)
+ax2.legend(frameon=False, loc='center left')
 
-fig2, ax = plt.subplots(figsize=(8, 5))
-ax.plot(k_di * a / np.pi, omega_aco, 'b-', linewidth=2, label='acoustic branch')
-ax.plot(k_di * a / np.pi, omega_opt, 'r-', linewidth=2, label='optical branch')
-ax.axhspan(np.sqrt(2.0 * K / m2), np.sqrt(2.0 * K / m1), alpha=0.12, color='gray',
-           label='gap')
-ax.set_xlabel(r'$ka/\pi$')
-ax.set_ylabel(r'$\omega$ (a.u.)')
-ax.set_title('Diatomic Chain (m2 = 2 m1): Acoustic & Optical Branches')
-ax.set_xlim(0, 1)
-ax.legend(loc='center left', frameon=False)
-plt.tight_layout()
-plt.suptitle('dispersion_diatomic')
-
-print("07_lattice_dispersion.py done")
-
+plt.suptitle('lattice_dispersion')
+print('monatomic band edge:', omega_mono[-1])
+print('diatomic gap:', np.sqrt(2.0 * K / m1) - np.sqrt(2.0 * K / m2))
 plt.show()
